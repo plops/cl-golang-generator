@@ -1,7 +1,7 @@
 ;(ql:quickload "optima")
 ;(ql:quickload "alexandria")
 
-(in-package :cl-py-generator)
+(in-package :cl-golang-generator)
 (setf (readtable-case *readtable*) :invert)
 
 (defparameter *file-hashes* (make-hash-table))
