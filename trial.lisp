@@ -39,7 +39,8 @@
 	     (push e new-body)))
     (values new-body env)))
 
-
+(defun lookup-type (key &key env)
+  (gethash key env))
 
 (consume-declare `((declare (type int64 a b))
 		   (setf a 3)
@@ -48,6 +49,14 @@
 ;; ((setf b 4) (setf a 3))
 ;; #<hash-table :TEST eql :COUNT 2 {10031E1F03}>
 
+
+(multiple-value-bind (body env)
+    (consume-declare `((declare (type int64 a b))
+		       (setf a 3)
+		       (setf b 4)))
+  (lookup-type 'b :env env))
+;; int64
+;; t
 
 (progn
   
@@ -60,12 +69,12 @@
 		(paren (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
 		(let (destructuring-bind (decls &rest body) (cdr code)
-		       (destructuring-bind (body env) (consume-declare body)
+		       (multiple-value-bind (body env) (consume-declare body)
 			 (with-output-to-string (s)
 			   (loop for decl in decls collect
 				(destructuring-bind (name &optional value) decl
-				  (format s "var ~a~@[ ~a~]~@[  ~a~]"
-					  name (lookup-type env name) value)))))))
+				  (format s "var ~a~@[ ~a~]~@[ = ~a~]"
+					  name (lookup-type name :env env) value)))))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
@@ -78,4 +87,7 @@
 		 (cond ((integerp code) (format str "~a" code))
 		       ))))
 	  "")))
-  (emit-go :code `(let ((a 3)))))
+  (emit-go :code `(let ((a 3))
+		    (declare (type int64 a)))))
+
+;; "var a int64 = 3"
