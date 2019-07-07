@@ -8,16 +8,14 @@
 
 (setf (readtable-case *readtable*) :invert)
 
+(format nil "var ~a ~@[~a ~]= ~@[~a~]" 'name nil 3) ;; => "var name = 3"
+(format nil "var ~a ~@[~a ~]= ~@[~a~]" 'name 'int 3) ;; => "var name int = 3"
+
 (progn
-  (defparameter *env-functions* nil)
-  (defparameter *env-macros* nil)
-  (defun emit-go (&key code (str nil) (clear-env nil) (level 0))
-					;(format t "emit ~a ~a~%" level code)
-    (when clear-env
-      (setf *env-functions* nil
-	    *env-macros* nil))
+  
+  (defun emit-go (&key code (str nil)  (level 0))
     (flet ((emit (code &optional (dl 0))
-	     (emit-go :code code :clear-env nil :level (+ dl level))))
+	     (emit-go :code code :level (+ dl level))))
       (if code
 	  (if (listp code)
 	      (case (car code)
@@ -25,6 +23,10 @@
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
 		(let (destructuring-bind (decls &rest body) (cdr code)
 		       (loop for e in body )
+		       (with-output-to-string (s)
+			(loop for decl in decls collect
+			     (destructuring-bind (name &optional value) decl
+			       (format s "var ~a"))))
 		       (format t "let ~a" (list decls body))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
