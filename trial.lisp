@@ -27,8 +27,8 @@
 		       (with-output-to-string (s)
 			(loop for decl in decls collect
 			     (destructuring-bind (name &optional value) decl
-			       (format s "var ~a"))))
-		       (format t "let ~a" (list decls body))))
+			       (format s "var ~a~@[ ~a~]~@[  ~a~]"
+				       name (lookup-type name) value))))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
