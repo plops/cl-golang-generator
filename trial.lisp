@@ -23,8 +23,9 @@
 	      (case (car code)
 		(paren (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
-		(let (destructuring-bind (args &rest body) (cdr code)
-		       (format t "let ~a" (list args body))))
+		(let (destructuring-bind (decls &rest body) (cdr code)
+		       (loop for e in body )
+		       (format t "let ~a" (list decls body))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
