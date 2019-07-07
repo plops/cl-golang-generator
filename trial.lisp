@@ -8,8 +8,9 @@
 
 (setf (readtable-case *readtable*) :invert)
 
-(format nil "var ~a ~@[~a ~]= ~@[~a~]" 'name nil 3) ;; => "var name = 3"
-(format nil "var ~a ~@[~a ~]= ~@[~a~]" 'name 'int 3) ;; => "var name int = 3"
+(format nil "var ~a~@[ ~a~]~@[  ~a~]" 'name nil nil) ;; => "var name"
+(format nil "var ~a~@[ ~a~]~@[ = ~a~]" 'name nil 3) ;; => "var name = 3"
+(format nil "var ~a~@[ ~a~]~@[ = ~a~]" 'name 'int 3) ;; => "var name int = 3"
 
 (progn
   
