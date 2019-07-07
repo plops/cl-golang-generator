@@ -39,6 +39,8 @@
 	     (push e new-body)))
     (values new-body env)))
 
+
+
 (consume-declare `((declare (type int64 a b))
 		   (setf a 3)
 		   (setf b 4)))
@@ -58,12 +60,12 @@
 		(paren (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
 		(let (destructuring-bind (decls &rest body) (cdr code)
-		       (loop for e in body )
-		       (with-output-to-string (s)
-			(loop for decl in decls collect
-			     (destructuring-bind (name &optional value) decl
-			       (format s "var ~a~@[ ~a~]~@[  ~a~]"
-				       name (lookup-type name) value))))))
+		       (destructuring-bind (body env) (consume-declare body)
+			 (with-output-to-string (s)
+			   (loop for decl in decls collect
+				(destructuring-bind (name &optional value) decl
+				  (format s "var ~a~@[ ~a~]~@[  ~a~]"
+					  name (lookup-type env name) value)))))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
