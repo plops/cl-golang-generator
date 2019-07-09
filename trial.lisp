@@ -37,30 +37,34 @@ return the body without them and a hash table with an environment"
 	     (push e new-body)))
     (values new-body env)))
 
-(defun lookup-type (key &key env)
-  (gethash key env))
+(defun lookup-type (name &key env)
+  "get the type of a variable from an environment"
+  (gethash name env))
 
 (defun parse-let (code emit)
+  "let ({var | (var [init-form])}*) declaration* form*"
   (destructuring-bind (decls &rest body) (cdr code)
     (multiple-value-bind (body env) (consume-declare body)
       (with-output-to-string (s)
 	(loop for decl in decls collect
 	     (destructuring-bind (name &optional value) decl
 	       (format s "var ~a~@[ ~a~]~@[ = ~a~]"
-		       name (lookup-type name :env env) (funcall emit value))))))))
+		       name (lookup-type name :env env) (funcall emit value))))
+	(format s "~a" (funcall emit `(do ,@body)))))))
 
 (defun parse-setf (code emit)
- (let ((args (cdr code)))
+  "setf {pair}*"
+  (let ((args (cdr code)))
    (format nil "~a"
-	   (emit `(do0 
+	   (funcall emit `(do0 
 		   ,@(loop for i below (length args) by 2 collect
 			  (let ((a (elt args i))
 				(b (elt args (+ 1 i))))
 			    `(= ,a ,b))))))))
 
+
 (defun parse-+ (code emit)
-  (let ((args (cdr code)))
-    (format nil "(~{(~a)~^+~})" (mapcar emit args))))
+  )
 
 (progn
   (defun emit-go (&key code (str nil)  (level 0))
@@ -71,9 +75,15 @@ return the body without them and a hash table with an environment"
 	      (case (car code)
 		(paren (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
+		(indent (format nil "~{~a~}~a"
+			      (loop for i below level collect "    ")
+			      (emit (cadr code))))
+		(do (with-output-to-string (s)
+		      (format s "~{~&~a~}" (mapcar #'(lambda (x) (emit `(indent ,x) 1)) (cdr code)))))
 		(let (parse-let code #'emit))
 		(setf (parse-setf code #'emit))
-		(+ (parse-+ code #'emit))
+		(+ (let ((args (cdr code)))
+		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
@@ -87,6 +97,7 @@ return the body without them and a hash table with an environment"
 		       ))))
 	  "")))
   (emit-go :code `(let ((a (+ 40 2)))
-		    (declare (type int64 a)))))
+		    (declare (type int64 a))
+		    (setf a 3))))
 
 ;; "var a int64 = 3"
