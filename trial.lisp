@@ -12,12 +12,10 @@
 ;; http://clhs.lisp.se/Body/d_type.htm
 
 ;; go through the body until no declare anymore
-(declare (type int64 a b))
-
-(defparameter *a* (make-hash-table))
-(gethash "bla" *a*)
 
 (defun consume-declare (body)
+  "take a list of instructions (body), parse type declarations,
+return the body without them and a hash table with an environment"
   (let ((env (make-hash-table))
 	(looking-p t)
 	(new-body nil))
@@ -42,24 +40,29 @@
 (defun lookup-type (key &key env)
   (gethash key env))
 
-(consume-declare `((declare (type int64 a b))
-		   (setf a 3)
-		   (setf b 4)))
+(defun parse-let (code emit)
+  (destructuring-bind (decls &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (with-output-to-string (s)
+	(loop for decl in decls collect
+	     (destructuring-bind (name &optional value) decl
+	       (format s "var ~a~@[ ~a~]~@[ = ~a~]"
+		       name (lookup-type name :env env) (funcall emit value))))))))
 
-;; ((setf b 4) (setf a 3))
-;; #<hash-table :TEST eql :COUNT 2 {10031E1F03}>
+(defun parse-setf (code emit)
+ (let ((args (cdr code)))
+   (format nil "~a"
+	   (emit `(do0 
+		   ,@(loop for i below (length args) by 2 collect
+			  (let ((a (elt args i))
+				(b (elt args (+ 1 i))))
+			    `(= ,a ,b))))))))
 
-
-(multiple-value-bind (body env)
-    (consume-declare `((declare (type int64 a b))
-		       (setf a 3)
-		       (setf b 4)))
-  (lookup-type 'b :env env))
-;; int64
-;; t
+(defun parse-+ (code emit)
+  (let ((args (cdr code)))
+    (format nil "(~{(~a)~^+~})" (mapcar emit args))))
 
 (progn
-  
   (defun emit-go (&key code (str nil)  (level 0))
     (flet ((emit (code &optional (dl 0))
 	     (emit-go :code code :level (+ dl level))))
@@ -68,13 +71,9 @@
 	      (case (car code)
 		(paren (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
-		(let (destructuring-bind (decls &rest body) (cdr code)
-		       (multiple-value-bind (body env) (consume-declare body)
-			 (with-output-to-string (s)
-			   (loop for decl in decls collect
-				(destructuring-bind (name &optional value) decl
-				  (format s "var ~a~@[ ~a~]~@[ = ~a~]"
-					  name (lookup-type name :env env) value)))))))
+		(let (parse-let code #'emit))
+		(setf (parse-setf code #'emit))
+		(+ (parse-+ code #'emit))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
@@ -87,7 +86,7 @@
 		 (cond ((integerp code) (format str "~a" code))
 		       ))))
 	  "")))
-  (emit-go :code `(let ((a 3))
+  (emit-go :code `(let ((a (+ 40 2)))
 		    (declare (type int64 a)))))
 
 ;; "var a int64 = 3"
