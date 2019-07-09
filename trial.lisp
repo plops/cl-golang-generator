@@ -48,27 +48,30 @@ return the body without them and a hash table with an environment"
       (with-output-to-string (s)
 	(loop for decl in decls collect
 	     (destructuring-bind (name &optional value) decl
-	       (format s "var ~a~@[ ~a~]~@[ = ~a~]"
-		       name (lookup-type name :env env) (funcall emit value))))
-	(format s "~a" (funcall emit `(do ,@body)))))))
+	       (format s "~a"
+		       (funcall emit
+				`(do0
+				  ,(format s "var ~a~@[ ~a~]~@[ = ~a~]"
+					  name
+					  (lookup-type name :env env)
+					  (funcall emit value)))))))
+	(format s "~a" (funcall emit `(do0 ,@body)))))))
 
 (defun parse-setf (code emit)
   "setf {pair}*"
   (let ((args (cdr code)))
    (format nil "~a"
-	   (funcall emit `(do0 
-		   ,@(loop for i below (length args) by 2 collect
-			  (let ((a (elt args i))
-				(b (elt args (+ 1 i))))
-			    `(= ,a ,b))))))))
-
-
-(defun parse-+ (code emit)
-  )
+	   (funcall emit
+		    `(do0 
+		      ,@(loop for i below (length args) by 2 collect
+			     (let ((a (elt args i))
+				   (b (elt args (+ 1 i))))
+			       `(= ,a ,b))))))))
 
 (progn
   (defun emit-go (&key code (str nil)  (level 0))
     (flet ((emit (code &optional (dl 0))
+	     "change the indentation level. this is used in do"
 	     (emit-go :code code :level (+ dl level))))
       (if code
 	  (if (listp code)
@@ -76,14 +79,25 @@ return the body without them and a hash table with an environment"
 		(paren (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
 		(indent (format nil "~{~a~}~a"
+				;; print indentation characters
 			      (loop for i below level collect "    ")
 			      (emit (cadr code))))
 		(do (with-output-to-string (s)
+		      ;; do {form}*
+		      ;; print each form on a new line with one more indentation.
 		      (format s "~{~&~a~}" (mapcar #'(lambda (x) (emit `(indent ,x) 1)) (cdr code)))))
+		(do0 (with-output-to-string (s)
+		       ;; do0 {form}*
+		       ;; write each form into a newline, keep current indentation level
+		     (format s "~&~a~{~&~a~}"
+			     (emit (cadr code))
+			     (mapcar #'(lambda (x) (emit `(indent ,x) 0)) (cddr code)))))
 		(let (parse-let code #'emit))
 		(setf (parse-setf code #'emit))
 		(+ (let ((args (cdr code)))
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
+		(= (destructuring-bind (a b) (cdr code)
+		   (format nil "~a=~a" (emit a) (emit b))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args)))
@@ -96,8 +110,10 @@ return the body without them and a hash table with an environment"
 		 (cond ((integerp code) (format str "~a" code))
 		       ))))
 	  "")))
-  (emit-go :code `(let ((a (+ 40 2)))
+  (emit-go :code `(let ((a (+ 40 2))
+			(b 3))
 		    (declare (type int64 a))
-		    (setf a 3))))
+		    (setf a 3
+			  b 5))))
 
 ;; "var a int64 = 3"
