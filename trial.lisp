@@ -46,16 +46,16 @@ return the body without them and a hash table with an environment"
   (destructuring-bind (decls &rest body) (cdr code)
     (multiple-value-bind (body env) (consume-declare body)
       (with-output-to-string (s)
-	(loop for decl in decls collect
-	     (destructuring-bind (name &optional value) decl
-	       (format s "~a"
-		       (funcall emit
-				`(do0
-				  ,(format s "var ~a~@[ ~a~]~@[ = ~a~]"
-					  name
-					  (lookup-type name :env env)
-					  (funcall emit value)))))))
-	(format s "~a" (funcall emit `(do0 ,@body)))))))
+	(format s "~a"
+		(funcall emit
+			`(do0
+			  ,@(loop for decl in decls collect
+			       (destructuring-bind (name &optional value) decl
+				 (format nil "var ~a~@[ ~a~]~@[ = ~a~]"
+					 name
+					 (lookup-type name :env env)
+					 (funcall emit value))))
+			  ,@body)))))))
 
 (defun parse-setf (code emit)
   "setf {pair}*"
@@ -95,13 +95,14 @@ return the body without them and a hash table with an environment"
 		(let (parse-let code #'emit))
 		(setf (parse-setf code #'emit))
 		(+ (let ((args (cdr code)))
+		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
 		(= (destructuring-bind (a b) (cdr code)
+		     ;; = pair
 		   (format nil "~a=~a" (emit a) (emit b))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
-			     (emit `(paren ,@args)))
-		     )))
+			     (emit `(paren ,@args))))))
 	      (cond
 		((or (symbolp code)
 		     (stringp code)) ;; print variable
