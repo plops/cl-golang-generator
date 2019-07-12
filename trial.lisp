@@ -113,8 +113,16 @@ return the body without them and a hash table with an environment"
 		     ;; = pair
 		     (format nil "~a=~a" (emit a) (emit b))))
 		(:= (destructuring-bind (a b) (cdr code)
-		     ;; = pair
-		   (format nil "~a:=~a" (emit a) (emit b))))
+		      (format nil "~a:=~a" (emit a) (emit b))))
+		(/= (destructuring-bind (a b) (cdr code)
+		      (format nil "~a/=~a" (emit a) (emit b))))
+		(^= (destructuring-bind (a b) (cdr code)
+		      (format nil "~a^=~a" (emit a) (emit b))))
+		(incf (destructuring-bind (a &optional (b 1)) (cdr code)
+		      (format nil "~a+=~a" (emit a) (emit b))))
+		(decf (destructuring-bind (a &optional (b 1)) (cdr code)
+		      (format nil "~a-=~a" (emit a) (emit b))))
+		
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args))))))
@@ -132,7 +140,9 @@ return the body without them and a hash table with an environment"
 		    
 		    (setf a 3
 			  b (logior a 5))
-		    (:= stai 4))))
+		    (:= stai 4)
+		    (incf a 4)
+		    (/= a b))))
 
 ;; "var a int64 = 3"
 
