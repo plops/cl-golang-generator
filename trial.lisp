@@ -123,14 +123,26 @@ return the body without them and a hash table with an environment"
 		(decf (destructuring-bind (a &optional (b 1)) (cdr code)
 		      (format nil "~a-=~a" (emit a) (emit b))))
 		(string (format nil "\"~a\"" (cadr code)))
-		(-> (let ((forms (cdr code)))
+		(slice (let ((args (cdr code)))
+		       (if (null args)
+			   (format nil ":")
+			   (format nil "~{~a~^:~}" (mapcar #'emit args)))))
+		(aref (destructuring-bind (name &rest indices) (cdr code)
+		      (format nil "~a[~{~a~^,~}]" (emit name) (mapcar #'emit indices))))
+		#+nil (-> (let ((forms (cdr code)))
 		      ;; clojure's thread first macro, thrush operator
 		      ;; http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux/
 		      ;; -> {form}*
-		      (reduce #'(lambda (x y) (list (emit y) (emit x))) forms)))
+		      (emit (reduce #'(lambda (x y) (list (emit x) (emit y))) forms))))
 		(t (destructuring-bind (name &rest args) code
-		     (format nil "~a~a" name
-			     (emit `(paren ,@args))))))
+		     (progn ;if
+		       #+nil(and
+			(= 1 (length args))
+			(eq (aref (format nil "~a" (car args)) 0) #\.))
+		       #+nil (format nil "~a~a" name
+			       (emit args))
+		       (format nil "~a~a" name
+			       (emit `(paren ,@args)))))))
 	      (cond
 		((or (symbolp code)
 		     (stringp code)) ;; print variable
@@ -145,12 +157,19 @@ return the body without them and a hash table with an environment"
 		    
 		    (setf a1 3
 			  b2 (logior a 5))
-		    (:= stai 4)
+		    (:= stai (string "hello"))
 		    (incf a 4)
 		    (/= a b)
-		    (-> .alpha
-			.beta
-			.ty))))
+		    (setf q (sin (atan (aref a (slice 3 4))))
+			  ; f
+			  #+nil (-> sin
+			      (atan a)))
+		    #+nil (->
+		     
+			(string "bla")
+			(.strip)
+			(.split (string " "))
+			(aref 0)))))
 
 ;; "var a int64 = 3"
 
