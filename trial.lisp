@@ -122,7 +122,12 @@ return the body without them and a hash table with an environment"
 		      (format nil "~a+=~a" (emit a) (emit b))))
 		(decf (destructuring-bind (a &optional (b 1)) (cdr code)
 		      (format nil "~a-=~a" (emit a) (emit b))))
-		
+		(string (format nil "\"~a\"" (cadr code)))
+		(-> (let ((forms (cdr code)))
+		      ;; clojure's thread first macro, thrush operator
+		      ;; http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux/
+		      ;; -> {form}*
+		      (reduce #'(lambda (x y) (list (emit y) (emit x))) forms)))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args))))))
@@ -142,7 +147,10 @@ return the body without them and a hash table with an environment"
 			  b2 (logior a 5))
 		    (:= stai 4)
 		    (incf a 4)
-		    (/= a b))))
+		    (/= a b)
+		    (-> .alpha
+			.beta
+			.ty))))
 
 ;; "var a int64 = 3"
 
