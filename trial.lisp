@@ -111,7 +111,10 @@ return the body without them and a hash table with an environment"
 		      (format nil "(~{(~a)~^&&~})" (mapcar #'emit args))))
 		(= (destructuring-bind (a b) (cdr code)
 		     ;; = pair
-		   (format nil "~a=~a" (emit a) (emit b))))
+		     (format nil "~a=~a" (emit a) (emit b))))
+		(:= (destructuring-bind (a b) (cdr code)
+		     ;; = pair
+		   (format nil "~a:=~a" (emit a) (emit b))))
 		(t (destructuring-bind (name &rest args) code
 		     (format nil "~a~a" name
 			     (emit `(paren ,@args))))))
@@ -126,8 +129,10 @@ return the body without them and a hash table with an environment"
   (emit-go :code `(let ((a (+ 40 2))
 			(b 3))
 		    (declare (type int64 a))
+		    
 		    (setf a 3
-			  b 5))))
+			  b (logior a 5))
+		    (:= stai 4))))
 
 ;; "var a int64 = 3"
 
