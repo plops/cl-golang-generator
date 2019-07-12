@@ -76,9 +76,13 @@ return the body without them and a hash table with an environment"
       (if code
 	  (if (listp code)
 	      (case (car code)
-		(paren (let ((args (cdr code)))
+		(paren
+		 ;; paren {args}*
+		 (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
-		(indent (format nil "~{~a~}~a"
+		(indent
+		 ;; indent form
+		 (format nil "~{~a~}~a"
 				;; print indentation characters
 			      (loop for i below level collect "    ")
 			      (emit (cadr code))))
@@ -97,6 +101,14 @@ return the body without them and a hash table with an environment"
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
+		(logior (let ((args (cdr code)))
+			  (format nil "(~{(~a)~^|~})" (mapcar #'emit args))))
+		(logand (let ((args (cdr code)))
+			  (format nil "(~{(~a)~^&~})" (mapcar #'emit args))))
+		(or (let ((args (cdr code)))
+		      (format nil "(~{(~a)~^||~})" (mapcar #'emit args))))
+		(and (let ((args (cdr code)))
+		      (format nil "(~{(~a)~^&&~})" (mapcar #'emit args))))
 		(= (destructuring-bind (a b) (cdr code)
 		     ;; = pair
 		   (format nil "~a=~a" (emit a) (emit b))))
@@ -118,3 +130,6 @@ return the body without them and a hash table with an environment"
 			  b 5))))
 
 ;; "var a int64 = 3"
+
+#+nil
+(logand #x0f #xf0)
