@@ -35,7 +35,7 @@ return the body without them and a hash table with an environment"
 		   (setf looking-p nil)
 		   (push e new-body)))
 	     (push e new-body)))
-    (values new-body env)))
+    (values (reverse new-body) env)))
 
 (defun lookup-type (name &key env)
   "get the type of a variable from an environment"
@@ -138,8 +138,8 @@ return the body without them and a hash table with an environment"
 			(b 3))
 		    (declare (type int64 a))
 		    
-		    (setf a 3
-			  b (logior a 5))
+		    (setf a1 3
+			  b2 (logior a 5))
 		    (:= stai 4)
 		    (incf a 4)
 		    (/= a b))))
