@@ -101,6 +101,16 @@ return the body without them and a hash table with an environment"
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
+		(- (let ((args (cdr code)))
+		     (if (eq 1 (length args))
+			 (format nil "(-(~a))" (emit (car args)))
+			 (format nil "(~{(~a)~^-~})" (mapcar #'emit args)))))
+		(* (let ((args (cdr code)))
+		     (format nil "(~{(~a)~^*~})" (mapcar #'emit args))))
+		(/ (let ((args (cdr code)))
+		     (if (eq 1 (length args))
+			 (format nil "(1.0/(~a))" (emit (car args)))
+			 (format nil "(~{(~a)~^/~})" (mapcar #'emit args)))))
 		(logior (let ((args (cdr code)))
 			  (format nil "(~{(~a)~^|~})" (mapcar #'emit args))))
 		(logand (let ((args (cdr code)))
@@ -167,7 +177,8 @@ return the body without them and a hash table with an environment"
 			  b2 (logior a 5))
 		    (:= stai (string "hello"))
 		    (incf a 4)
-		    (/= a b)
+		    (/= a (- b))
+		    (/ q)
 		    (setf q (sin (atan (aref a (slice 3 4))))
 			  ; f
 			  #+nil (-> sin
