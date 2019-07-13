@@ -13,12 +13,13 @@ const (
 	xyscale = ((width) / ((2) * (xyrange)))
 	zscale  = ((4.000000059604645e-1) * (height))
 	angle   = ((math.Pi) / (6))
-	sin30   = math.Sin(angle)
-	cos30   = math.Cos(angle)
 )
 
+var sin30 = math.Sin(angle)
+var cos30 = math.Cos(angle)
+
 func main() {
-	fmt.Printf("<svg xmlns='http://www.w3.org/200/svg' style='stroke: grey; fill:white; stroke-width: 0.7' width='%d' height='%d'")
+	fmt.Printf("<svg xmlns='http://www.w3.org/200/svg' style='stroke: grey; fill:white; stroke-width: 0.7' width='%d' height='%d'>", width, height)
 	for i := 0; i < cells; (i)++ {
 		for j := 0; j < cells; (j)++ {
 			ax, ay := corner(((i) + (1)), ((j) + (0)))
