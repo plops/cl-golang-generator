@@ -19,9 +19,9 @@ func main() {
 	)
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	for py := 0; py < height; (py)++ {
-		y := ((ymin) + ((float64(py)) / ((height) * ((ymax) - (ymin)))))
+		y := ((ymin) + ((((ymax) - (ymin)) * (float64(py))) / (height)))
 		for px := 0; px < width; (px)++ {
-			x := ((xmin) + ((float64(px)) / ((width) * ((xmax) - (xmin)))))
+			x := ((xmin) + ((((xmax) - (xmin)) * (float64(px))) / (width)))
 			z := complex(x, y)
 			img.Set(px, py, mandelbrot(z))
 		}

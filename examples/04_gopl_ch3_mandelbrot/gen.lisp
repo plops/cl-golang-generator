@@ -22,11 +22,11 @@
 	      (assign
 	       img (image.NewRGBA (image.Rect 0 0 width height)))
 	      (dotimes (py height)
-		(assign y (+ ymin (/ (float64   py)
-				     (* height (- ymax ymin)))))
+		(assign y (+ ymin (/ (*  (- ymax ymin) (float64   py))
+				     height)))
 		(dotimes (px width)
-		  (assign x (+ xmin (/ (float64 px)
-				       (* width (- xmax xmin))))
+		  (assign x (+ xmin (/ (*   (- xmax xmin) (float64 px))
+				       (* width)))
 			  z (complex x y))
 		  (img.Set px py (mandelbrot z))))
 	      (png.Encode os.Stdout img))
@@ -48,4 +48,3 @@
     (write-source *source* code)))
 
 
-;; go build echo.go
