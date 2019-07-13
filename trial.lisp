@@ -88,7 +88,7 @@ entry return-values contains a list of return values"
 	(declare (ignorable req-param opt-param res-param
 			    key-param other-key-p aux-param key-exist-p))
 	(with-output-to-string (s)
-	  (format s "func ~a~a ~a {~%"
+	  (format s "func ~a~a ~a "
 		  name
 		  (funcall emit `(paren
 				  ,@(loop for p in req-param collect
