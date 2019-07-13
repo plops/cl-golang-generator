@@ -4,7 +4,7 @@
 (in-package :cl-golang-generator)
 
 (progn
-  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/01_gopl_ch1_fetchall")
+  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/02_gopl_ch1_fetchall")
   (defparameter *code-file* "fetchall")
   (defparameter *source* (format nil "~a/source/~a" *path*  *code-file*))
   (let* ((code
