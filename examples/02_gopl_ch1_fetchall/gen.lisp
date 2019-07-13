@@ -38,7 +38,7 @@
 		   return))
 	      (assign secs (dot (time.Since start)
 				(Seconds)))
-	      (<- ch (fmt.Sprintf (string "%.2fs %7d %s" secs nbytes url)))))))
+	      (<- ch (fmt.Sprintf (string "%.2fs %7d %s") secs nbytes url))))))
     (write-source *source* code)))
 
 
