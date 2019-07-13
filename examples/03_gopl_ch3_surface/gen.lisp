@@ -14,7 +14,7 @@
 	    (const
 	     width 600
 	     height 320
-	     cells 30
+	     cells 100
 	     xyrange 30
 	     xyscale (/ width (* 2 xyrange))
 	     zscale (* .4 height)
@@ -25,7 +25,7 @@
 	      (defun main ()
 		(fmt.Printf
 		 (string
-		  "<svg xmlns='http://www.w3.org/200/svg' style='stroke: grey; fill:white; stroke-width: 0.7' width='%d' height='%d'>")  width height)
+		  "<svg xmlns='http://www.w3.org/2000/svg' style='stroke: grey; fill:white; stroke-width: 0.7' width='%d' height='%d'>")  width height)
 		(dotimes (i cells)
 		  (dotimes (j cells)
 		    ,(let ((l `((a 1 0)
