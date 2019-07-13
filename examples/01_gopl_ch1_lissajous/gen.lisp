@@ -12,11 +12,20 @@
 	    (package main)
 	    (import image image/color image/gif io math math/rand os)
 	    (let ((palette (curly "[]color.Color" color.White color.Black)))
-	      (const cycles 5
-		     res .001
-		     size 100
-		     nframes 64
-		     delay 8)
+	      (const witeIndex 0
+		     blackIndex 1)
+	      (defun main ()
+		(lissajous os.Stdout))
+	      (defun lissajous (out)
+		(declare (type io.Writer out))
+		
+		(const cycles 5
+		       res .001
+		       size 100
+		       nframes 64
+		       delay 8)
+		(:= freq (* 3.0 (rand.Float64)))
+		)
 	      (defun main ()
 		(flag.Parse)
 		(fmt.Print

@@ -13,13 +13,23 @@ import (
 var palette = []color.Color{color.White, color.Black}
 
 const (
-	cycles  = 5
-	res     = (1.0000000474974513e-3)
-	size    = 100
-	nframes = 64
-	delay   = 8
+	witeIndex  = 0
+	blackIndex = 1
 )
 
+func main() {
+	lissajous(os.Stdout)
+}
+func lissajous(out io.Writer) {
+	const (
+		cycles  = 5
+		res     = (1.0000000474974513e-3)
+		size    = 100
+		nframes = 64
+		delay   = 8
+	)
+	freq := ((3.e+0) * (rand.Float64()))
+}
 func main() {
 	flag.Parse()
 	fmt.Print(strings.Join(flag.Args(), *sep))

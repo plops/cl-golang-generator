@@ -288,7 +288,7 @@ entry return-values contains a list of return values"
 		 (format nil "~a" code))
 		((numberp code) ;; print constants
 		 (cond ((integerp code) (format str "~a" code))
-		       ((floatp code)
+		       ((floatp code) ;; FIXME arbitrary precision?
 			(format str "(~a)" (print-sufficient-digits-f64 code)))))))
 	  "")))
   #-nil
