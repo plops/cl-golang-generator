@@ -169,10 +169,13 @@ entry return-values contains a list of return values"
       (if code
 	  (if (listp code)
 	      (case (car code)
+		(ntuple (let ((args (cdr code)))
+		       (format nil "~{~a~^, ~}" (mapcar #'emit args))))
 		(paren
 		 ;; paren {args}*
 		 (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
+		(go (format nil "go ~a" (emit (car (cdr code)))))
 		(indent
 		 ;; indent form
 		 (format nil "~{~a~}~a"
@@ -231,8 +234,18 @@ entry return-values contains a list of return values"
 			       (if update
 				   (emit update)
 				   ""))
-		       (format s "~a" (emit `(progn ,@body))))
-			 ))
+		       (format s "~a" (emit `(progn ,@body))))))
+		(foreach
+		 ;; foreach [var] range {forms}*
+		 ;; foreach range {forms}*
+		 (destructuring-bind ((&rest decl) &rest body) (cdr code)
+		       (with-output-to-string (s)
+		       (format s "for ~a "
+			       (if (< 1 (length decl))
+				   (destructuring-bind (var range) decl
+				     (emit `(:= ,var ,range)))
+				   (emit (car decl))))
+		       (format s "~a" (emit `(progn ,@body))))))
 		(dotimes (destructuring-bind ((var end) &rest body) (cdr code)
 			   (emit `(for ((:= ,var 0)
 					(< ,var ,end)
@@ -309,6 +322,8 @@ entry return-values contains a list of return values"
 			   (format nil "~{~a~^:~}" (mapcar #'emit args)))))
 		(aref (destructuring-bind (name &rest indices) (cdr code)
 		      (format nil "~a[~{~a~^,~}]" (emit name) (mapcar #'emit indices))))
+		(dot (let ((args (cdr code)))
+		   (format nil "~{~a~^.~}" (mapcar #'emit args))))
 		#+nil (-> (let ((forms (cdr code)))
 		      ;; clojure's thread first macro, thrush operator
 		      ;; http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux/

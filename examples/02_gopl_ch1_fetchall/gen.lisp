@@ -10,10 +10,17 @@
   (let* ((code
 	  `(do0
 	    (package main)
-	    (import fmt io io/ioutil net/http os time)
+	    (import fmt io io/ioutil net/http os
+		    time)
 	    (defun main ()
 	      (assign start (time.Now)
-		      ch (make (chan string)))))))
+		      ch (make (chan string)))
+	      (foreach ((ntuple _ url) (range (aref os.Args "1:")))
+		   (go (fetch url ch)))
+	      (foreach ((range (aref os.Args "1:")))
+		       (fmt.Println <-ch))
+	      (fmt.Printf (string "%.2fs elapsed\\n") (dot (time.Since start)
+						    (Seconds)))))))
     (write-source *source* code)))
 
 
