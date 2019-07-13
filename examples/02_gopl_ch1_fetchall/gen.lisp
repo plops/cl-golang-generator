@@ -26,10 +26,19 @@
 		       (type "chan<- string" ch))
 	      (assign start (time.Now)
 		      (ntuple resp err) (http.Get url))
-	      (if (!= err nil)
+	      (if (!= err "nil" )
 		  (do0
 		   (<- ch (fmt.Sprint err))
-		   return))))))
+		   return))
+	      (assign (ntuple nbytes err) (io.Copy ioutil.Discard resp.Body))
+	      (resp.Body.Close)
+	      (if (!= err "nil")
+		  (do0
+		   (<- ch (fmt.Sprintf (string "while reading %s: %v" url err)))
+		   return))
+	      (assign secs (dot (time.Since start)
+				(Seconds)))
+	      (<- ch (fmt.Sprintf (string "%.2fs %7d %s" secs nbytes url)))))))
     (write-source *source* code)))
 
 

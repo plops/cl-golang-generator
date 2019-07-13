@@ -176,6 +176,8 @@ entry return-values contains a list of return values"
 		 (let ((args (cdr code)))
 			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
 		(go (format nil "go ~a" (emit (car (cdr code)))))
+		(range (format nil "range ~a" (emit (car (cdr code)))))
+		(chan (format nil "chan ~a" (emit (car (cdr code)))))
 		(indent
 		 ;; indent form
 		 (format nil "~{~a~}~a"
@@ -294,7 +296,7 @@ entry return-values contains a list of return values"
 		     ;; = pair
 		     (format nil "(~a)=(~a)" (emit a) (emit b))))
 		(:= (destructuring-bind (a b) (cdr code)
-		      (format nil "~a:=(~a)" (emit a) (emit b))))
+		      (format nil "~a:=~a" (emit a) (emit b))))
 		(/= (destructuring-bind (a b) (cdr code)
 		      (format nil "~a/=(~a)" (emit a) (emit b))))
 		(^= (destructuring-bind (a b) (cdr code)
