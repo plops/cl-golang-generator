@@ -117,7 +117,10 @@ entry return-values contains a list of return values"
 				  ,@(loop for p in req-param collect
 					 (format nil "~a ~a"
 						 p (gethash p env)))))
-		  (car (gethash 'return-values env))
+		  (let ((r (gethash 'return-values env)))
+		    (if (< 1 (length r))
+			(funcall emit `(paren ,@r))
+			(car r)))
 		  )
 	  (format s "~a" (funcall emit `(progn ,@body))))))))
 

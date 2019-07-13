@@ -1,3 +1,8 @@
 * Introduction
 
 Common Lisp program that transforms s-expressions into Go language
+
+
+* References
+
+- https://common-lisp.net/project/parse-declarations/manual/parse-declarations.html perhaps i should use this to parse type declarations in defun and let
