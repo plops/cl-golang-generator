@@ -11,12 +11,18 @@
 	  `(do0
 	    (package main)
 	    (import flag fmt string)
-	    (defun main ()
-	      (flag.Parse)
-	      (fmt.Print
-	       (strings.Join
-		(flag.Args)
-		*sep))
-	      (if (not *n)
-		  (fmt.Println))))))
+	    (let ((n (flag.Bool (string "n")
+				false
+				(string "omit trailing newline")))
+		  (sep (flag.String (string "s")
+				    (string " ")
+				    (string "separator"))))
+	     (defun main ()
+	       (flag.Parse)
+	       (fmt.Print
+		(strings.Join
+		 (flag.Args)
+		 *sep))
+	       (if (not *n)
+		   (fmt.Println)))))))
     (write-source *source* code)))

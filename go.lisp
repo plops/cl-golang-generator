@@ -6,7 +6,7 @@
 
 (defun write-source (name code &optional (dir (user-homedir-pathname))
 				 ignore-hash)
-  (let* ((fn (merge-pathnames (format nil "~a.py" name)
+  (let* ((fn (merge-pathnames (format nil "~a.go" name)
 			      dir))
 	(code-str (emit-go
 		   :code code))
