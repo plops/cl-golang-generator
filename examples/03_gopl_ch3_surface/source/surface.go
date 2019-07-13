@@ -8,7 +8,7 @@ import (
 const (
 	width   = 600
 	height  = 320
-	cells   = 100
+	cells   = 30
 	xyrange = 30
 	xyscale = ((width) / ((2) * (xyrange)))
 	zscale  = ((4.000000059604645e-1) * (height))
@@ -26,7 +26,7 @@ func main() {
 			bx, by := corner(((i) + (0)), ((j) + (0)))
 			cx, cy := corner(((i) + (0)), ((j) + (1)))
 			dx, dy := corner(((i) + (1)), ((j) + (1)))
-			fmt.Printf("<polygon points='%g,%g %g,%g %g,%g %g,%g'/>\n", ax, ay, bx, by, cx, cy, dx, dy)
+			fmt.Printf("<polygon points='%6.3f,%6.3f %6.3f,%6.3f %6.3f,%6.3f %6.3f,%6.3f'/>\n", ax, ay, bx, by, cx, cy, dx, dy)
 		}
 	}
 	fmt.Println("</svg>")
