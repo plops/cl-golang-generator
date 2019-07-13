@@ -1,12 +1,35 @@
-(ql:quickload "alexandria")
-
-(defpackage :trial
-  (:use :cl
-	;:optima
-	:alexandria))
-(in-package :trial)
+(in-package :cl-golang-generator)
 
 (setf (readtable-case *readtable*) :invert)
+
+(defparameter *file-hashes* (make-hash-table))
+
+(defun write-source (name code &optional (dir (user-homedir-pathname))
+				 ignore-hash)
+  (let* ((fn (merge-pathnames (format nil "~a.py" name)
+			      dir))
+	(code-str (emit-go
+		   :code code))
+	(fn-hash (sxhash fn))
+	 (code-hash (sxhash code-str)))
+    (multiple-value-bind (old-code-hash exists) (gethash fn-hash *file-hashes*)
+     (when (or (not exists) ignore-hash (/= code-hash old-code-hash))
+       ;; store the sxhash of the c source in the hash table
+       ;; *file-hashes* with the key formed by the sxhash of the full
+       ;; pathname
+       (setf (gethash fn-hash *file-hashes*) code-hash)
+       (with-open-file (s fn
+			  :direction :output
+			  :if-exists :supersede
+			  :if-does-not-exist :create)
+	 (write-sequence code-str s))
+
+       (sb-ext:run-program
+					;"/usr/local/go/bin/go"
+	"/usr/bin/go"
+	(list "fmt" (namestring fn))
+	)))))
+
 
 ;; http://clhs.lisp.se/Body/s_declar.htm
 ;; http://clhs.lisp.se/Body/d_type.htm
@@ -80,7 +103,7 @@ entry return-values contains a list of return values"
   ;; func(x float, y int) int {
   ;; FIXME multiple value return?
   (destructuring-bind (name lambda-list &rest body) (cdr code)
-    (multiple-value-bind (body env) (consume-declare body)
+    (multiple-value-bind (body env) (consume-declare body) ;; py
       (multiple-value-bind (req-param opt-param res-param
 				      key-param other-key-p
 				      aux-param key-exist-p)
@@ -141,25 +164,24 @@ entry return-values contains a list of return values"
 			     (emit (cadr code))
 			     (mapcar #'(lambda (x) (emit `(indent ,x) 0)) (cddr code)))))
 		(let (parse-let code #'emit))
-		(defun (parse-defun code #'emit)
-		    )
+		(defun (parse-defun code #'emit))
 		(setf (parse-setf code #'emit))
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
 		(- (let ((args (cdr code)))
 		     (if (eq 1 (length args))
-			 (format nil "(-(~a))" (emit (car args)))
+			 (format nil "(-(~a))" (emit (car args))) ;; py
 			 (format nil "(~{(~a)~^-~})" (mapcar #'emit args)))))
 		(* (let ((args (cdr code)))
 		     (format nil "(~{(~a)~^*~})" (mapcar #'emit args))))
 		(/ (let ((args (cdr code)))
 		     (if (eq 1 (length args))
-			 (format nil "(1.0/(~a))" (emit (car args)))
+			 (format nil "(1.0/(~a))" (emit (car args))) ;; py
 			 (format nil "(~{(~a)~^/~})" (mapcar #'emit args)))))
-		(logior (let ((args (cdr code)))
+		(logior (let ((args (cdr code))) ;; py
 			  (format nil "(~{(~a)~^|~})" (mapcar #'emit args))))
-		(logand (let ((args (cdr code)))
+		(logand (let ((args (cdr code))) ;; py
 			  (format nil "(~{(~a)~^&~})" (mapcar #'emit args))))
 		(or (let ((args (cdr code)))
 		      (format nil "(~{(~a)~^||~})" (mapcar #'emit args))))
@@ -182,7 +204,7 @@ entry return-values contains a list of return values"
 		     (format nil "~a<<~a" (emit a) (emit b))))
 		(>> (destructuring-bind (a b) (cdr code)
 		      (format nil "~a>>~a" (emit a) (emit b))))
-		(incf (destructuring-bind (a &optional b) (cdr code)
+		(incf (destructuring-bind (a &optional b) (cdr code) ;; py
 			(if b
 			    (format nil "(~a)+=(~a)" (emit a) (emit b))
 			    (format nil "(~a)++" (emit a)))))
@@ -219,6 +241,7 @@ entry return-values contains a list of return values"
 		 (cond ((integerp code) (format str "~a" code))
 		       ))))
 	  "")))
+  #+nil
   (emit-go :code `(let ((a (+ 40 2))
 			(b 3))
 		    (declare (type int64 a))
