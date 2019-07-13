@@ -17,15 +17,15 @@
 	       ymin -2
 	       xmax 2
 	       ymax 2
-	       with 1024
+	       width 1024
 	       height 1024)
 	      (assign
 	       img (image.NewRGBA (image.Rect 0 0 width height)))
 	      (dotimes (py height)
-		(assign y (+ ymin (/ (float py)
+		(assign y (+ ymin (/ (float64   py)
 				     (* height (- ymax ymin)))))
 		(dotimes (px width)
-		  (assign x (+ xmin (/ (float px)
+		  (assign x (+ xmin (/ (float64 px)
 				       (* width (- xmax xmin))))
 			  z (complex x y))
 		  (img.Set px py (mandelbrot z))))
@@ -38,7 +38,7 @@
 	       contrast 15)
 	      (let ((v 0))
 		(declare (type complex128 v))
-		(for ((assign n (uint8 0))
+		(for ((:= n (uint8 0))
 		      (< n iterations)
 		      (incf n))
 		     (setf v (+ z (* v v)))
