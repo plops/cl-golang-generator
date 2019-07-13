@@ -181,6 +181,11 @@ entry return-values contains a list of return values"
 		(import (let ((args (cdr code)))
 			  (format nil "import (~{~&\"~a\"~}~&)"
 				  args)))
+		(curly ;; name{arg1, args}
+		 (destructuring-bind (name &rest args) (cdr code)
+		   (format nil "~a {~{~a~^, ~}}"
+			   (emit name)
+			   (mapcar #'emit args))))
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
