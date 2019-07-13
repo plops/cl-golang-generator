@@ -205,6 +205,22 @@ entry return-values contains a list of return values"
 		(let (parse-let code #'emit))
 		
 		(defun (parse-defun code #'emit))
+		(defstruct
+		    ;;  defstruct name {slot-description}*
+		    ;; slot-description::= slot-name | (slot-name [slot-initform [[slot-option]]]) 
+		    ;; slot-option::= :type slot-type
+		    (destructuring-bind (name &rest slot-descriptions) (cdr code)
+		      (format
+		       nil "type ~a struct ~a"
+		       name
+		       (emit
+			`(progn
+			   ,@(loop for desc in slot-descriptions collect
+				  (destructuring-bind (slot-name ;; &optional init
+						       ;; init doesnt really fit into go semantics
+								 &key type) desc
+				    (format nil "~a ~a" slot-name type)))))))
+		    )
 		(setf (parse-setf code #'emit))
 		(const (parse-const code #'emit))
 		(assign
