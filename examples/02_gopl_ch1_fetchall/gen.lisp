@@ -20,7 +20,16 @@
 	      (foreach ((range (aref os.Args "1:")))
 		       (fmt.Println <-ch))
 	      (fmt.Printf (string "%.2fs elapsed\\n") (dot (time.Since start)
-						    (Seconds)))))))
+							   (Seconds))))
+	    (defun fetch (url ch)
+	      (declare (type string url)
+		       (type "chan<- string" ch))
+	      (assign start (time.Now)
+		      (ntuple resp err) (http.Get url))
+	      (if (!= err nil)
+		  (do0
+		   (<- ch (fmt.Sprint err))
+		   return))))))
     (write-source *source* code)))
 
 
