@@ -12,14 +12,19 @@
 	    (package main)
 	    (import image image/color image/gif io math math/rand os)
 	    (let ((palette (curly "[]color.Color" color.White color.Black)))
-	     (defun main ()
-	       (flag.Parse)
-	       (fmt.Print
-		(strings.Join
-		 (flag.Args)
-		 *sep))
-	       (if (not *n)
-		   (fmt.Println)))))))
+	      (const cycles 5
+		     res .001
+		     size 100
+		     nframes 64
+		     delay 8)
+	      (defun main ()
+		(flag.Parse)
+		(fmt.Print
+		 (strings.Join
+		  (flag.Args)
+		  *sep))
+		(if (not *n)
+		    (fmt.Println)))))))
     (write-source *source* code)))
 
 

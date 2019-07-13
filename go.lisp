@@ -132,6 +132,20 @@ entry return-values contains a list of return values"
 				   (b (elt args (+ 1 i))))
 			       `(= ,a ,b))))))))
 
+(defun parse-const (code emit)
+  "const {pair}*"
+  (let ((args (cdr code)))
+    (with-output-to-string (s)
+      (format s "const (")
+      (format s "~a~%"
+	     (funcall emit
+		      `(do0 
+			,@(loop for i below (length args) by 2 collect
+			       (let ((a (elt args i))
+				     (b (elt args (+ 1 i))))
+				 `(= ,a ,b))))))
+      (format s ")"))))
+
 (progn
   (defun emit-go (&key code (str nil)  (level 0))
     (flet ((emit (code &optional (dl 0))
@@ -165,8 +179,10 @@ entry return-values contains a list of return values"
 			     (emit (cadr code))
 			     (mapcar #'(lambda (x) (emit `(indent ,x) 0)) (cddr code)))))
 		(let (parse-let code #'emit))
+		
 		(defun (parse-defun code #'emit))
 		(setf (parse-setf code #'emit))
+		(const (parse-const code #'emit))
 		(if (destructuring-bind (condition true-statement &optional false-statement) (cdr code)
 		    (with-output-to-string (s)
 		      (format s "if ( ~a ) ~a"
