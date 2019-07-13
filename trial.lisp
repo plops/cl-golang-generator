@@ -15,7 +15,12 @@
 
 (defun consume-declare (body)
   "take a list of instructions (body), parse type declarations,
-return the body without them and a hash table with an environment"
+return the body without them and a hash table with an environment. the
+entry return-values contains a list of return values"
+
+  ;; (declare (type int a b))
+  ;; (declare (values int &optional))
+  ;; (declare (values int float &optional))
   (let ((env (make-hash-table))
 	(looking-p t)
 	(new-body nil))
@@ -23,11 +28,21 @@ return the body without them and a hash table with an environment"
 	 (if looking-p
 	     (if (listp e)
 		 (if (eq (car e) 'declare)
-		     (when (and (listp (second e))
-				(eq (first (second e)) 'type))
-		       (destructuring-bind (type-symb type &rest vars) (second e)
-			 (loop for var in vars do
-			      (setf (gethash var env) type))))
+		     (progn
+		      (when (and (listp (second e))
+				 (eq (first (second e)) 'type))
+			(destructuring-bind (type-symb type &rest vars) (second e)
+			  (loop for var in vars do
+			       (setf (gethash var env) type))))
+		      (when (and (listp (second e))
+				 (eq (first (second e)) 'values))
+			(destructuring-bind (symb &rest types-opt) (second e)
+			  (let ((types nil))
+			    ;; only collect types until occurrance of &optional
+			    (loop for type in types-opt do
+				 (unless (eq #\& (aref (format nil "~a" type) 0))
+				   (push type types)))
+			    (setf (gethash 'return-values env) (reverse types))))))
 		     (progn
 		       (push e new-body)
 		       (setf looking-p nil)))
@@ -56,6 +71,8 @@ return the body without them and a hash table with an environment"
 					 (lookup-type name :env env)
 					 (funcall emit value))))
 			  ,@body)))))))
+
+
 
 (defun parse-setf (code emit)
   "setf {pair}*"
@@ -97,6 +114,28 @@ return the body without them and a hash table with an environment"
 			     (emit (cadr code))
 			     (mapcar #'(lambda (x) (emit `(indent ,x) 0)) (cddr code)))))
 		(let (parse-let code #'emit))
+		(defun
+		    ;;  defun function-name lambda-list [declaration*] form*
+		    ;; https://golang.org/ref/spec#Function_declarations
+		    (destructuring-bind (name lambda-list &rest body) (cdr code)
+		      (multiple-value-bind (req-param opt-param res-param
+						      key-param other-key-p
+						      aux-param key-exist-p)
+			 (parse-ordinary-lambda-list lambda-list)
+		       (declare (ignorable req-param opt-param res-param
+					   key-param other-key-p aux-param key-exist-p))
+		       (with-output-to-string (s)
+			 (format s "func ~a~a:~%"
+				 name
+				 (emit `(paren ,@(append req-param
+							 (loop for e in key-param collect 
+							      (destructuring-bind ((keyword-name name) init suppliedp)
+								  e
+								(declare (ignorable keyword-name suppliedp))
+								(if init
+								    `(= ,name ,init)
+								    `(= ,name "None"))))))))
+			 (format s "~a" (emit `(do ,@body)))))))
 		(setf (parse-setf code #'emit))
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
