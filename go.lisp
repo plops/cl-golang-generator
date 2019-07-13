@@ -124,6 +124,29 @@ entry return-values contains a list of return values"
 		  )
 	  (format s "~a" (funcall emit `(progn ,@body))))))))
 
+
+(defun parse-lambda (code emit)
+  ;;  lambda lambda-list [declaration*] form*
+  (destructuring-bind (lambda-list &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (multiple-value-bind (req-param opt-param res-param
+				      key-param other-key-p
+				      aux-param key-exist-p)
+	  (parse-ordinary-lambda-list lambda-list)
+	(declare (ignorable req-param opt-param res-param
+			    key-param other-key-p aux-param key-exist-p))
+	(with-output-to-string (s)
+	  (format s "func ~a ~@[~a ~]"
+		  (funcall emit `(paren
+				  ,@(loop for p in req-param collect
+					 (format nil "~a ~a"
+						 p (gethash p env)))))
+		  (let ((r (gethash 'return-values env)))
+		    (if (< 1 (length r))
+			(funcall emit `(paren ,@r))
+			(car r))))
+	  (format s "~a" (funcall emit `(progn ,@body))))))))
+
 (defun parse-setf (code emit)
   "setf {pair}*"
   (let ((args (cdr code)))
@@ -205,6 +228,7 @@ entry return-values contains a list of return values"
 		(let (parse-let code #'emit))
 		
 		(defun (parse-defun code #'emit))
+		(lambda (parse-lambda code #'emit))
 		(defstruct
 		    ;;  defstruct name {slot-description}*
 		    ;; slot-description::= slot-name | (slot-name [slot-initform [[slot-option]]]) 
@@ -406,7 +430,9 @@ entry return-values contains a list of return values"
 			(aref 0))
 		    (defstruct Employee
 		      (ID :type int)
-		      (Name :type string)))))
+		      (Name :type string))
+		    (lambda (items)
+		      (declare (type "[]string" items))))))
 
 ;; "var a int64 = 3"
 
