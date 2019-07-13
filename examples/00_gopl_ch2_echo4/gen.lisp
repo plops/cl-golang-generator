@@ -10,7 +10,7 @@
   (let* ((code
 	  `(do0
 	    (package main)
-	    (import flag fmt string)
+	    (import flag fmt strings)
 	    (let ((n (flag.Bool (string "n")
 				false
 				(string "omit trailing newline")))
@@ -26,3 +26,5 @@
 	       (if (not *n)
 		   (fmt.Println)))))))
     (write-source *source* code)))
+
+;; go build echo.go
