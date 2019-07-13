@@ -18,7 +18,7 @@
 return the body without them and a hash table with an environment. the
 entry return-values contains a list of return values"
 
-  ;; (declare (type int a b))
+  ;; (declare (type int a b) (type float c)
   ;; (declare (values int &optional))
   ;; (declare (values int float &optional))
   (let ((env (make-hash-table))
@@ -28,15 +28,15 @@ entry return-values contains a list of return values"
 	 (if looking-p
 	     (if (listp e)
 		 (if (eq (car e) 'declare)
-		     (progn
-		      (when (and (listp (second e))
-				 (eq (first (second e)) 'type))
-			(destructuring-bind (type-symb type &rest vars) (second e)
+		     (loop for declaration in (cdr e) do
+		      (when (eq (first declaration) 'type)
+			(destructuring-bind (symb type &rest vars) declaration
+			  (declare (ignorable symb))
 			  (loop for var in vars do
 			       (setf (gethash var env) type))))
-		      (when (and (listp (second e))
-				 (eq (first (second e)) 'values))
-			(destructuring-bind (symb &rest types-opt) (second e)
+		      (when (eq (first declaration) 'values)
+			(destructuring-bind (symb &rest types-opt) declaration
+			  (declare (ignorable symb))
 			  (let ((types nil))
 			    ;; only collect types until occurrance of &optional
 			    (loop for type in types-opt do
@@ -132,7 +132,7 @@ entry return-values contains a list of return values"
 			  (declare (ignorable req-param opt-param res-param
 					      key-param other-key-p aux-param key-exist-p))
 			  (with-output-to-string (s)
-			    (format s "func ~a~a ~a{~%"
+			    (format s "func ~a~a ~a {~%"
 				    name
 				    (emit `(paren
 					    ,@(loop for p in req-param collect
