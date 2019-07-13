@@ -167,6 +167,20 @@ entry return-values contains a list of return values"
 		(let (parse-let code #'emit))
 		(defun (parse-defun code #'emit))
 		(setf (parse-setf code #'emit))
+		(if (destructuring-bind (condition true-statement &optional false-statement) (cdr code)
+		    (with-output-to-string (s)
+		      (format s "if ( ~a ) ~a"
+			      (emit condition)
+			      (emit `(progn ,true-statement)))
+		      (when false-statement
+			(format s " else ~a"
+				;(emit `(indent "else"))
+				(emit `(progn ,false-statement)))))))
+		(not (format nil "!(~a)" (car (cdr code))))
+		(package (format nil "package ~a" (car (cdr code))))
+		(import (let ((args (cdr code)))
+			  (format nil "import (~{~&\"~a\"~}~&)"
+				  args)))
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
@@ -242,7 +256,7 @@ entry return-values contains a list of return values"
 		 (cond ((integerp code) (format str "~a" code))
 		       ))))
 	  "")))
-  #+nil
+  #-nil
   (emit-go :code `(let ((a (+ 40 2))
 			(b 3))
 		    (declare (type int64 a))
@@ -263,7 +277,8 @@ entry return-values contains a list of return values"
 		      (declare (type int a b)
 			       (type float c)
 			       (values float &optional))
-		      (return c))
+		      (if a (return c)
+			  v))
 		    #+nil (->
 		     
 			(string "bla")
