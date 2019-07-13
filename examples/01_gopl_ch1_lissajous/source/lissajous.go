@@ -31,11 +31,17 @@ func lissajous(out io.Writer) {
 	freq := ((3.e+0) * (rand.Float64()))
 	anim := gif.GIF{LoopCount: nframes}
 	phase := (0.0e+0)
-}
-func main() {
-	flag.Parse()
-	fmt.Print(strings.Join(flag.Args(), *sep))
-	if !(*n) {
-		fmt.Println()
+	for i := 0; i < nframes; (i)++ {
+		rect := image.Rect(0, 0, ((1) + ((2) * (size))), ((1) + ((2) * (size))))
+		img := image.NewPaletted(rect, palette)
+		for t := (0.0e+0); t < ((cycles) * (2) * (math.Pi)); (t) += (res) {
+			x := math.Sin(t)
+			y := math.Sin((((t) * (freq)) + (phase)))
+			img.SetColorIndex(((size) + (int(((5.e-1) + ((x) * (size)))))), ((size) + (int(((5.e-1) + ((y) * (size)))))), blackIndex)
+		}
+		(phase) += (1.0000000149011612e-1)
+		anim.Delay = append(anim.Delay, delay)
+		anim.Image = append(anim.Image, img)
 	}
+	gif.EncodeAll(out, &anim)
 }

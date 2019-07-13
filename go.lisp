@@ -215,8 +215,29 @@ entry return-values contains a list of return values"
 			      (emit `(progn ,true-statement)))
 		      (when false-statement
 			(format s " else ~a"
-				;(emit `(indent "else"))
 				(emit `(progn ,false-statement)))))))
+		(for
+		 ;; for [init [condition [update]]] {forms}*
+		 (destructuring-bind ((&optional init condition update) &rest body)
+			 (cdr code)
+		       (with-output-to-string (s)
+		       (format s "for ~a ; ~a; ~a "
+			       (if init
+				   (emit init)
+				   "")
+			       (if condition
+				   (emit condition)
+				   "")
+			       (if update
+				   (emit update)
+				   ""))
+		       (format s "~a" (emit `(progn ,@body))))
+			 ))
+		(dotimes (destructuring-bind ((var end) &rest body) (cdr code)
+			   (emit `(for ((:= ,var 0)
+					(< ,var ,end)
+					(incf ,var))
+				       ,@body))))
 		(not (format nil "!(~a)" (car (cdr code))))
 		(package (format nil "package ~a" (car (cdr code))))
 		(import (let ((args (cdr code)))

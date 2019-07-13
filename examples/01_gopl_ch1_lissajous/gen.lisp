@@ -29,15 +29,26 @@
 		 anim (curly gif.GIF
 			     :LoopCount nframes)
 		 phase 0.0)
-		)
-	      (defun main ()
-		(flag.Parse)
-		(fmt.Print
-		 (strings.Join
-		  (flag.Args)
-		  *sep))
-		(if (not *n)
-		    (fmt.Println)))))))
+		(dotimes (i nframes)
+		  (assign
+		   rect (image.Rect 0 0
+				    (+ 1 (* 2 size))
+				    (+ 1 (* 2 size)))
+		   img (image.NewPaletted rect palette))
+		  (for ((:= t 0.0) (< t (* cycles 2 math.Pi)) (incf t res))
+		       (assign
+			x (math.Sin t)
+			y (math.Sin (+ (* t freq)
+				       phase)))
+		       (img.SetColorIndex
+			(+ size (int (+ .5 (* x size))))
+			(+ size (int (+ .5 (* y size))))
+			blackIndex))
+		  (incf phase .1)
+		  (setf
+		   anim.Delay (append anim.Delay delay)
+		   anim.Image (append anim.Image img)))
+		(gif.EncodeAll out &anim))))))
     (write-source *source* code)))
 
 
