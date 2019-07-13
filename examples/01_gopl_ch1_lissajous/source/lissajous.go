@@ -29,7 +29,8 @@ func lissajous(out io.Writer) {
 		delay   = 8
 	)
 	freq := ((3.e+0) * (rand.Float64()))
-	anim := gif.GIF{LoopCount, nframes}
+	anim := gif.GIF{LoopCount: nframes}
+	phase := (0.0e+0)
 }
 func main() {
 	flag.Parse()

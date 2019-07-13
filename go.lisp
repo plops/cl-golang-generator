@@ -223,10 +223,18 @@ entry return-values contains a list of return values"
 			  (format nil "import (~{~&\"~a\"~}~&)"
 				  args)))
 		(curly ;; name{arg1, args}
+		  ;; or name{key1:arg1, key2:arg2}
 		 (destructuring-bind (name &rest args) (cdr code)
-		   (format nil "~a {~{~a~^, ~}}"
-			   (emit name)
-			   (mapcar #'emit args))))
+		   (if (keywordp (car args))
+		       (format nil "~a {~{~a~^, ~}}"
+			       (emit name)
+			       (loop for i below (length args) by 2 collect
+				    (let ((a (elt args i))
+					  (b (elt args (+ 1 i))))
+				      (format nil "~a: ~a" a b))))
+		       (format nil "~a {~{~a~^, ~}}"
+			       (emit name)
+			       (mapcar #'emit args)))))
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))

@@ -27,7 +27,8 @@
 		(assign
 		 freq (* 3.0 (rand.Float64))
 		 anim (curly gif.GIF
-			     :LoopCount nframes))
+			     :LoopCount nframes)
+		 phase 0.0)
 		)
 	      (defun main ()
 		(flag.Parse)
