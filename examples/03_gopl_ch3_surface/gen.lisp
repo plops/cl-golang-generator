@@ -25,9 +25,7 @@
 	    (defun main ()
 	      (fmt.Printf
 	       (string
-		(+ "<svg xmlns='http://www.w3.org/200/svg' "
-		   "style='stroke: grey; fill:white; stroke-width: 0.7' "
-		   "width='%d' height='%d'") width height))
+		"<svg xmlns='http://www.w3.org/200/svg' style='stroke: grey; fill:white; stroke-width: 0.7' width='%d' height='%d'" width height))
 	      (dotimes (i cells)
 		(dotimes (j cells)
 		  ,@(loop for e in `((a 1 0)
@@ -48,7 +46,26 @@
 	    (defun corner (i j)
 	      (declare (type int i j)
 		       (values float64 float64 &optional))
-	      ))))
+	      (assign
+	       x (* xyrange (- (/ (float64 i) cells) .5))
+	       y (* xyrange (- (/ (float64 j) cells) .5))
+	       z (f x y)
+	       sx (+ (* .5 width)
+		     (* (- x y)
+			cos30
+			xyscale))
+	       sy (+ (* .5 width)
+		     (* (+ x y)
+			sin30
+			xyscale)
+		     (* -1 z zscale)))
+	      (return (ntuple sx sy)))
+	    (defun f (x y)
+	      (declare (type float64 x y)
+		       (values float64 &optional))
+	      (assign
+	       r (math.Hypot x y))
+	      (return (/ (math.Sin r) r))))))
     (write-source *source* code)))
 
 

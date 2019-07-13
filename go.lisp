@@ -181,6 +181,7 @@ entry return-values contains a list of return values"
 		(go (format nil "go ~a" (emit (car (cdr code)))))
 		(range (format nil "range ~a" (emit (car (cdr code)))))
 		(chan (format nil "chan ~a" (emit (car (cdr code)))))
+		(return (format nil "return ~a" (emit (car (cdr code)))))
 		(indent
 		 ;; indent form
 		 (format nil "~{~a~}~a"
