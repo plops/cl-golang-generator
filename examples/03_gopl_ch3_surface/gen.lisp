@@ -69,7 +69,9 @@
 		       (values float64 &optional))
 	      (assign
 	       r (math.Hypot x y))
-	      (return (/ (math.Sin r) r))))))
+	      (if (!= r 0.0)
+		  (return (/ (math.Sin r) r))
+		  (return 1.0))))))
     (write-source *source* code)))
 
 

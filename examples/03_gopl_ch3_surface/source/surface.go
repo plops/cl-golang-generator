@@ -41,5 +41,9 @@ func corner(i int, j int) (float64, float64) {
 }
 func f(x float64, y float64) float64 {
 	r := math.Hypot(x, y)
-	return ((math.Sin(r)) / (r))
+	if (r) != (0.0e+0) {
+		return ((math.Sin(r)) / (r))
+	} else {
+		return (1.e+0)
+	}
 }
