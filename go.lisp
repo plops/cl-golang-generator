@@ -219,7 +219,7 @@ entry return-values contains a list of return values"
 				  (destructuring-bind (slot-name ;; &optional init
 						       ;; init doesnt really fit into go semantics
 								 &key type) desc
-				    (format nil "~a ~a" slot-name type)))))))
+				    (format nil "~a~@[ ~a~]" slot-name type)))))))
 		    )
 		(setf (parse-setf code #'emit))
 		(const (parse-const code #'emit))
@@ -397,12 +397,16 @@ entry return-values contains a list of return values"
 			       (values float &optional))
 		      (if a (return c)
 			  v))
+		    
 		    #+nil (->
 		     
 			(string "bla")
 			(.strip)
 			(.split (string " "))
-			(aref 0)))))
+			(aref 0))
+		    (defstruct Employee
+		      (ID :type int)
+		      (Name :type string)))))
 
 ;; "var a int64 = 3"
 
