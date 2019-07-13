@@ -24,7 +24,10 @@
 		       size 100
 		       nframes 64
 		       delay 8)
-		(:= freq (* 3.0 (rand.Float64)))
+		(assign
+		 freq (* 3.0 (rand.Float64))
+		 anim (curly gif.GIF
+			     :LoopCount nframes))
 		)
 	      (defun main ()
 		(flag.Parse)

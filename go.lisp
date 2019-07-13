@@ -146,6 +146,8 @@ entry return-values contains a list of return values"
 				 `(= ,a ,b))))))
       (format s ")"))))
 
+
+
 (defun print-sufficient-digits-f64 (f)
   "print a double floating point number as a string with a given nr. of
   digits. parse it again and increase nr. of digits until the same bit
@@ -196,6 +198,16 @@ entry return-values contains a list of return values"
 		(defun (parse-defun code #'emit))
 		(setf (parse-setf code #'emit))
 		(const (parse-const code #'emit))
+		(assign
+		 ;; assign {pair}*
+		 (let ((args (cdr code)))
+		   (format nil "~a~%"
+			   (emit
+			    `(do0 
+			      ,@(loop for i below (length args) by 2 collect
+				     (let ((a (elt args i))
+					   (b (elt args (+ 1 i))))
+				       `(:= ,a ,b))))))))
 		(if (destructuring-bind (condition true-statement &optional false-statement) (cdr code)
 		    (with-output-to-string (s)
 		      (format s "if ( ~a ) ~a"
