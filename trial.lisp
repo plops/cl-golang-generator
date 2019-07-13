@@ -21,6 +21,8 @@ entry return-values contains a list of return values"
   ;; (declare (type int a b) (type float c)
   ;; (declare (values int &optional))
   ;; (declare (values int float &optional))
+
+  ;; FIXME doesnt handle documentation strings
   (let ((env (make-hash-table))
 	(looking-p t)
 	(new-body nil))
@@ -72,7 +74,28 @@ entry return-values contains a list of return values"
 					 (funcall emit value))))
 			  ,@body)))))))
 
-
+(defun parse-defun (code emit)
+  ;;  defun function-name lambda-list [declaration*] form*
+  ;; https://golang.org/ref/spec#Function_declarations
+  ;; func(x float, y int) int {
+  ;; FIXME multiple value return?
+  (destructuring-bind (name lambda-list &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (multiple-value-bind (req-param opt-param res-param
+				      key-param other-key-p
+				      aux-param key-exist-p)
+	  (parse-ordinary-lambda-list lambda-list)
+	(declare (ignorable req-param opt-param res-param
+			    key-param other-key-p aux-param key-exist-p))
+	(with-output-to-string (s)
+	  (format s "func ~a~a ~a {~%"
+		  name
+		  (funcall emit `(paren
+				  ,@(loop for p in req-param collect
+					 (format nil "~a ~a"
+						 p (gethash p env)))))
+		  (car (gethash 'return-values env)))
+	  (format s "~a" (funcall emit `(progn ,@body))))))))
 
 (defun parse-setf (code emit)
   "setf {pair}*"
@@ -118,28 +141,8 @@ entry return-values contains a list of return values"
 			     (emit (cadr code))
 			     (mapcar #'(lambda (x) (emit `(indent ,x) 0)) (cddr code)))))
 		(let (parse-let code #'emit))
-		(defun
-		    ;;  defun function-name lambda-list [declaration*] form*
-		    ;; https://golang.org/ref/spec#Function_declarations
-		    ;; func(x float, y int) int {
-		    ;; FIXME multiple value return?
-		    (destructuring-bind (name lambda-list &rest body) (cdr code)
-		      (multiple-value-bind (body env) (consume-declare body)
-			(multiple-value-bind (req-param opt-param res-param
-							key-param other-key-p
-							aux-param key-exist-p)
-			    (parse-ordinary-lambda-list lambda-list)
-			  (declare (ignorable req-param opt-param res-param
-					      key-param other-key-p aux-param key-exist-p))
-			  (with-output-to-string (s)
-			    (format s "func ~a~a ~a {~%"
-				    name
-				    (emit `(paren
-					    ,@(loop for p in req-param collect
-						   (format nil "~a ~a"
-							   p (gethash p env)))))
-				    (car (gethash 'return-values env)))
-			    (format s "~a" (emit `(progn ,@body))))))))
+		(defun (parse-defun code #'emit)
+		    )
 		(setf (parse-setf code #'emit))
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
