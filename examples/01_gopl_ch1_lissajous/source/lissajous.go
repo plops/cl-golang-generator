@@ -14,7 +14,7 @@ var palette = []color.Color{color.White, color.Black}
 
 const (
 	cycles  = 5
-	res     = nil
+	res     = (1.0000000474974513e-3)
 	size    = 100
 	nframes = 64
 	delay   = 8

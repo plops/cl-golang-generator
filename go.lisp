@@ -146,6 +146,19 @@ entry return-values contains a list of return values"
 				 `(= ,a ,b))))))
       (format s ")"))))
 
+(defun print-sufficient-digits-f64 (f)
+  "print a double floating point number as a string with a given nr. of
+  digits. parse it again and increase nr. of digits until the same bit
+  pattern."
+  (let* ((ff (coerce f 'double-float))
+	 (s (format nil "~E" ff)))
+    #+nil (assert (= 0d0 (- ff
+			    (read-from-string s))))
+    (assert (< (abs (- ff
+		       (read-from-string s)))
+	       1d-12))
+   (substitute #\e #\d s)))
+
 (progn
   (defun emit-go (&key code (str nil)  (level 0))
     (flet ((emit (code &optional (dl 0))
@@ -275,7 +288,8 @@ entry return-values contains a list of return values"
 		 (format nil "~a" code))
 		((numberp code) ;; print constants
 		 (cond ((integerp code) (format str "~a" code))
-		       ))))
+		       ((floatp code)
+			(format str "(~a)" (print-sufficient-digits-f64 code)))))))
 	  "")))
   #-nil
   (emit-go :code `(let ((a (+ 40 2))
