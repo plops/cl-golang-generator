@@ -181,7 +181,21 @@
 			)
 		       (lexPanic
 			(setf err (fmt.Errorf (string "%s") x)))
-		       (t (panic x)))))))
+		       (t (panic x))))))
+	      (assign lex (new lexer))
+	      (lex.scan.Init (strings.NewReader input))
+	      (setf lex.scan.Mode
+		    (logior scanner.ScanIdents
+			    scanner.ScanInts
+			    scanner.ScanFloats))
+	      (lex.next)
+	      (assign e (parseExpr lex))
+	      (if (!= lex.token
+		      scanner.EOF)
+		  (return (ntuple
+			   nil
+			   (fmt.Errorf (string "unexpected")))))
+	      (return (ntuple e "nil")))
 	    
 	    )))
     (write-source *source* code)))
