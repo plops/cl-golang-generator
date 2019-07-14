@@ -82,8 +82,8 @@
 				  ,@(loop for i below nargs
 				       collect
 					 `(dot c
-					      (aref args ,i)
-					      (Eval env))))))))
+					       (aref args ,i)
+					       (Eval env))))))))
 	      (panic (fmt.Sprintf
 		      (string "unsupported function call: %s")
 		      c.fn)))
@@ -209,7 +209,7 @@
 		       (values Expr))
 	      (assign lhs (parseUnary lex))
 	      (for ((:= prec
-			    (precedence lex.token))
+			(precedence lex.token))
 		    (<= prec1 prec)
 		    (decf prec))
 		   (while (== (precedence lex.token)
@@ -219,7 +219,29 @@
 		     (assign rhs (parseBinary lex (+ prec 1)))
 		     (setf lhs (curly binary op lhs rhs))))
 	      (return lhs))
- 
+
+	    ;; unary = '+' expr | primary
+	    (defun parseUnary (lex)
+	      (declare (type *lexer lex)
+		       (values Expr))
+	      (if (or (== lex.token (char +))
+		      (== lex.token (char -)))
+		  (do0
+		   (assign op lex.token)
+		   (lex.next) ;; consume operator char
+		   (return (curly unary op (parseUnary lex)))))
+	      (return (parsePrimary lex)))
+
+	    ;; primary = id|id( expr, ...)| num| (expr)
+	    (defun parsePrimary (lex)
+	      (declare (type *lexer lex)
+		       (values Expr))
+	      (ecase lex.token
+		(scanner.Ident
+		 (assign id (lex.text))
+		 (lex.next) ;; consume id
+		 (when )
+		 )))
 	    
 	    
 	    )))

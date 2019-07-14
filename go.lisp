@@ -464,6 +464,10 @@ entry return-values contains a list of return values"
 		      (when false-statement
 			(format s " else ~a"
 				(emit `(progn ,false-statement)))))))
+		(when (destructuring-bind (condition &rest forms) (cdr code)
+			(emit `(if ,condition
+				   (do0
+				    ,@forms)))))
 		(ecase
 		    ;; ecase keyform {normal-clause}*
 		    ;; normal-clause::= (keys form*) 
