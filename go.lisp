@@ -535,6 +535,15 @@ entry return-values contains a list of return values"
 				     (emit `(:= ,var ,range)))
 				   (emit (car decl))))
 		       (format s "~a" (emit `(progn ,@body))))))
+
+		(while
+		    ;; while condition {forms}*
+		    ;; this is equivalent to foreach range 
+		    (destructuring-bind ((condition) &rest body) (cdr code)
+		      (with-output-to-string (s)
+			(format s "for ~a "
+				(emit condition))
+			(format s "~a" (emit `(progn ,@body))))))
 		(dotimes (destructuring-bind ((var end) &rest body) (cdr code)
 			   (emit `(for ((:= ,var 0)
 					(< ,var ,end)

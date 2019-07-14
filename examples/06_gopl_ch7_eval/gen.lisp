@@ -171,7 +171,7 @@
 	    ;; expr ::= num | id | id '(' exp ',' ... ')'| '-' expr | expr '+' expr
 	    (defun Parse (input)
 	      (declare (type string input)
-		       (values Expr error))
+		       (values "_ Expr" "err error"))
 	      (defer
 		  ((lambda ()
 		     (case (assign x
@@ -193,9 +193,30 @@
 	      (if (!= lex.token
 		      scanner.EOF)
 		  (return (ntuple
-			   nil
+			   "nil"
 			   (fmt.Errorf (string "unexpected")))))
 	      (return (ntuple e "nil")))
+
+	    (defun parseExpr (lex)
+	      (declare (type *lexer lex)
+		       (values Expr))
+	      (return (parseBinary lex 1)))
+	    ;; binary = unary ('+' binary)*
+	    ;; stops when operator of lower precedence than prec1 
+	    (defun parseBinary (lex prec1)
+	      (declare (type *lexer lex)
+		       (type int prec1)
+		       (values Expr))
+	      (assign lhs (parseUnary lex))
+	      (for ((assign prec
+			    (precedence lex.token))
+		    (<= prec1 prec)
+		    (decf prec))
+		   (while (== (precedence lex.token)
+				prec)))
+	      )
+
+	    
 	    
 	    )))
     (write-source *source* code)))
