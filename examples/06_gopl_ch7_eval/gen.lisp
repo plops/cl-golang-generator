@@ -11,7 +11,10 @@
 	  `(do0
 	    (package main)
 	    
-	    (import fmt math testing)
+	    (import fmt math testing
+		    strconv
+		    strings
+		    text/scanner)
 	    (deftype Var ()
 	      string)
 	    (deftype literal ()
@@ -141,6 +144,44 @@
 			      test.env
 			      got
 			      test.want)))))
+
+	    (defstruct0 lexer
+		(scan scanner.Scanner)
+	      (token rune))
+
+	    (defmethod next ((lex *lexer))
+	      (setf lex.token
+		    (lex.scan.Scan)))
+	    (defmethod text ((lex *lexer))
+	      (declare (values string &optional))
+	      (return (lex.scan.TokenText)))
+	    (deftype lexPanic ()
+	      string)
+	    (defun precedence (op)
+	      (declare (type rune op)
+		       (values int))
+	      (ecase op
+		((ntuple (char *)
+			 (char /))
+		 (return 2))
+		((ntuple (char +)
+			 (char -))
+		 (return 1)))
+	      (return 0))
+	    ;; expr ::= num | id | id '(' exp ',' ... ')'| '-' expr | expr '+' expr
+	    (defun Parse (input)
+	      (declare (type string input)
+		       (values Expr error))
+	      (defer
+		  ((lambda ()
+		     (case (assign x
+				   (dot (recover)
+					"(type)"))
+		       ("nil"
+			)
+		       (lexPanic
+			(setf err (fmt.Errorf (string "%s") x)))
+		       (t (panic x)))))))
 	    
 	    )))
     (write-source *source* code)))

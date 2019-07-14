@@ -366,6 +366,7 @@ entry return-values contains a list of return values"
 		(go (format nil "go ~a" (emit (car (cdr code)))))
 		(range (format nil "range ~a" (emit (car (cdr code)))))
 		(chan (format nil "chan ~a" (emit (car (cdr code)))))
+		(defer (format nil "defer ~a" (emit (car (cdr code)))))
 		(return (format nil "return ~a" (emit (car (cdr code)))))
 		(indent
 		 ;; indent form
@@ -464,7 +465,7 @@ entry return-values contains a list of return values"
 			(format s " else ~a"
 				(emit `(progn ,false-statement)))))))
 		(ecase
-		    ;; ecase keyform {normal-clause}* => result*
+		    ;; ecase keyform {normal-clause}*
 		    ;; normal-clause::= (keys form*) 
 		    (destructuring-bind (keyform &rest clauses)
 			(cdr code)
@@ -481,6 +482,32 @@ entry return-values contains a list of return values"
 					    `(do0
 					      ,@(mapcar #'emit
 							forms)))))))))))
+		(case
+		    ;; case keyform {normal-clause}* [otherwise-clause]
+		    ;; normal-clause::= (keys form*) 
+		    ;; otherwise-clause::= (t form*) 
+		    
+		    (destructuring-bind (keyform &rest clauses)
+			(cdr code)
+		      (format
+		       nil "switch ~a ~a"
+		       (emit keyform)
+		       (emit
+			`(progn
+			   ,@(loop for c in clauses collect
+				  (destructuring-bind (key &rest forms) c
+				    (if (eq key t)
+					(format nil "default:~&~a"
+						(emit
+						   `(do0
+						     ,@(mapcar #'emit
+							       forms))))
+					(format nil "case ~a:~&~a"
+						  (emit key)
+						  (emit
+						   `(do0
+						     ,@(mapcar #'emit
+							       forms))))))))))))
 		(for
 		 ;; for [init [condition [update]]] {forms}*
 		 (destructuring-bind ((&optional init condition update) &rest body)
