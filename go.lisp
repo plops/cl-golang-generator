@@ -108,7 +108,6 @@ entry return-values contains a list of return values"
   ;;  defun function-name lambda-list [declaration*] form*
   ;; https://golang.org/ref/spec#Function_declarations
   ;; func(x float, y int) int {
-  ;; FIXME multiple value return?
   (destructuring-bind (name lambda-list &rest body) (cdr code)
     (multiple-value-bind (body env) (consume-declare body) ;; py
       (multiple-value-bind (req-param opt-param res-param
@@ -135,6 +134,42 @@ entry return-values contains a list of return values"
 			(car r))))
 	  (format s "~a" (funcall emit `(progn ,@body))))))))
 
+(defun parse-defmethod (code emit)
+  ;;  defmethod function-name specialized-lambda-list [declaration*] form*
+  ;; specialized-lambda-list::= ({var | (var parameter-specializer-name)}*
+  ;; first element of lambda-list declares the object (the methods receiver)
+  ;; (defmethod Distance ((p Point) q) ...
+  ;; => func (p Point) Distance(q Point) float64 { ...
+  
+  (destructuring-bind (name lambda-list &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (destructuring-bind (receiver-name receiver-type) (car lambda-list)
+	(multiple-value-bind (req-param opt-param res-param
+					key-param other-key-p
+					aux-param key-exist-p)
+	    (parse-ordinary-lambda-list (cdr lambda-list))
+	  (declare (ignorable req-param opt-param res-param
+			      key-param other-key-p aux-param key-exist-p))
+	  (with-output-to-string (s)
+	    (format s "func (~a ~a) ~a~a ~@[~a ~]"
+		    receiver-name
+		    receiver-type
+		    name
+		    (funcall emit `(paren
+				    ,@(loop for p in req-param collect
+					   (format nil "~a ~a"
+						   p
+						   (let ((type (gethash p env)))
+						     (if type
+							 type
+							 (break "can't find type for ~a in defun"
+								p)))))))
+		    (let ((r (gethash 'return-values env)))
+		      (if (< 1 (length r))
+			  (funcall emit `(paren ,@r))
+			  (car r))))
+	    (format s "~a" (funcall emit `(progn ,@body)))))))))
+
 
 (defun parse-lambda (code emit)
   ;;  lambda lambda-list [declaration*] form*
@@ -157,6 +192,9 @@ entry return-values contains a list of return values"
 			(funcall emit `(paren ,@r))
 			(car r))))
 	  (format s "~a" (funcall emit `(progn ,@body))))))))
+
+
+
 
 (defun parse-setf (code emit)
   "setf {pair}*"
@@ -268,37 +306,7 @@ entry return-values contains a list of return values"
 		
 		(defun (parse-defun code #'emit))
 		(lambda (parse-lambda code #'emit))
-		(defmethod
-		    ;;  defmethod function-name specialized-lambda-list [declaration*] form*
-		    ;; specialized-lambda-list::= ({var | (var parameter-specializer-name)}* 
-		    ;; => func (p Point) Distance(q Point) float64 { ...
-		    (destructuring-bind (name lambda-list &rest body) (cdr code)
-		      (multiple-value-bind (body env) (consume-declare body) ;; py
-			(multiple-value-bind (req-param opt-param res-param
-							key-param other-key-p
-							aux-param key-exist-p)
-			    (parse-ordinary-lambda-list lambda-list)
-			  (declare (ignorable req-param opt-param res-param
-					      key-param other-key-p aux-param key-exist-p))
-			  (with-output-to-string (s)
-			    (format s "func ~a~a ~@[~a ~]"
-				    name
-				    (funcall emit `(paren
-						    ,@(loop for p in req-param collect
-							   (format nil "~a ~a"
-								   p
-								   (let ((type (gethash p env)))
-								     (if type
-									 type
-									 (break "can't find type for ~a in defun"
-										p)))))))
-				    (let ((r (gethash 'return-values env)))
-				      (if (< 1 (length r))
-					  (funcall emit `(paren ,@r))
-					  (car r))))
-			    (format s "~a" (funcall emit `(progn ,@body)))))))
-		    
-		    )
+		(defmethod (parse-defmethod code #'emit))
 		#+nil (defstruct
 		    ;;  defstruct name {slot-description}*
 		    ;; slot-description::= slot-name | (slot-name [slot-initform [[slot-option]]]) 
@@ -472,42 +480,49 @@ entry return-values contains a list of return values"
 			(format str "(~a)" (print-sufficient-digits-f64 code)))))))
 	  "")))
   #-nil
-  (emit-go :code `(let ((a (+ 40 2))
-			(b 3))
-		    (declare (type int64 a))
+  (defparameter *bla*
+    (emit-go :code `(let ((a (+ 40 2))
+					      (b 3))
+					  (declare (type int64 a))
 		    
-		    (setf a1 3
-			  b2 (logior a 5))
-		    (:= stai (string "hello"))
-		    (incf a 4)
-		    (incf b)
-		    (/= a (- b))
-		    (/ q)
-		    (setf q (sin (atan (aref a (slice 3 4))))
+					  (setf a1 3
+						b2 (logior a 5))
+					  (:= stai (string "hello"))
+					  (incf a 4)
+					  (incf b)
+					  (/= a (- b))
+					  (/ q)
+					  (setf q (sin (atan (aref a (slice 3 4))))
 			  
-			  ; f
-			  #+nil (-> sin
-				    (atan a)))
-		    (defun bla (a b c)
-		      (declare (type int a b)
-			       (type float c)
-			       (values float &optional))
-		      (if a (return c)
-			  v))
+					; f
+						#+nil (-> sin
+							  (atan a)))
+					  (defun bla (a b c)
+					    (declare (type int a b)
+						     (type float c)
+						     (values float &optional))
+					    (if a (return c)
+						v))
 		    
-		    #+nil (->
-		     
-			(string "bla")
-			(.strip)
-			(.split (string " "))
-			(aref 0))
-		    (defstruct Employee
-		      (ID :type int)
-		      (Name :type string))
-		    (lambda (items)
-		      (declare (type "[]string" items))))))
+					  #+nil (->
+			   
+						 (string "bla")
+						 (.strip)
+						 (.split (string " "))
+						 (aref 0))
+					  (defstruct0 Employee
+					      (ID int)
+					    (Name string))
+					  (lambda (items)
+					    (declare (type "[]string" items))
+					    )
+					  (defstruct0 Point
+					      (X float64)
+					    (Y float64))
+					  (defmethod Distance ((p Point) q)
+					    (declare (type Point q)
+						     (values float64 &optional))
+					    (return (math.Hypot (- q.X p.X)
+								(- q.Y p.Y))))))))
 
-;; "var a int64 = 3"
-
-#+nil
-(logand #x0f #xf0)
+(format nil *bla*)
