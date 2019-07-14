@@ -35,7 +35,12 @@
 								       components)))))))))
 	      (defun main ()
 		(foreach ((ntuple i course) (range (topoSort prereqs)))
-			 (fmt.Printf (string "%d:\\t%s\\n") (+ i 1) course)))))))
+			 (fmt.Printf (string "%d:\\t%s\\n") (+ i 1) course)))
+	      (defun topoSort (m)
+		(declare (type "map[string][]string" m)
+			 (values "[]string" &optional))
+		(let (order)
+		  (declare (type "[]string" order))))))))
     (write-source *source* code)))
 
 

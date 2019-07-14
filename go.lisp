@@ -90,11 +90,15 @@ entry return-values contains a list of return values"
 		(funcall emit
 			`(do0
 			  ,@(loop for decl in decls collect
-			       (destructuring-bind (name &optional value) decl
-				 (format nil "var ~a~@[ ~a~]~@[ = ~a~]"
-					 name
-					 (lookup-type name :env env)
-					 (funcall emit value))))
+				 (if (listp decl) ;; split into name and initform
+				     (destructuring-bind (name &optional value) decl
+				       (format nil "var ~a~@[ ~a~]~@[ = ~a~]"
+					       name
+					       (lookup-type name :env env)
+					       (funcall emit value)))
+				     (format nil "var ~a ~a"
+					     decl
+					     (lookup-type decl :env env))))
 			  ,@body)))))))
 
 (defun parse-defun (code emit)

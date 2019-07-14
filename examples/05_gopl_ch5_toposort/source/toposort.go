@@ -12,3 +12,6 @@ func main() {
 		fmt.Printf("%d:\t%s\n", ((i) + (1)), course)
 	}
 }
+func topoSort(m map[string][]string) []string {
+	var order []string
+}
