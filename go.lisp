@@ -268,6 +268,37 @@ entry return-values contains a list of return values"
 		
 		(defun (parse-defun code #'emit))
 		(lambda (parse-lambda code #'emit))
+		(defmethod
+		    ;;  defmethod function-name specialized-lambda-list [declaration*] form*
+		    ;; specialized-lambda-list::= ({var | (var parameter-specializer-name)}* 
+		    ;; => func (p Point) Distance(q Point) float64 { ...
+		    (destructuring-bind (name lambda-list &rest body) (cdr code)
+		      (multiple-value-bind (body env) (consume-declare body) ;; py
+			(multiple-value-bind (req-param opt-param res-param
+							key-param other-key-p
+							aux-param key-exist-p)
+			    (parse-ordinary-lambda-list lambda-list)
+			  (declare (ignorable req-param opt-param res-param
+					      key-param other-key-p aux-param key-exist-p))
+			  (with-output-to-string (s)
+			    (format s "func ~a~a ~@[~a ~]"
+				    name
+				    (funcall emit `(paren
+						    ,@(loop for p in req-param collect
+							   (format nil "~a ~a"
+								   p
+								   (let ((type (gethash p env)))
+								     (if type
+									 type
+									 (break "can't find type for ~a in defun"
+										p)))))))
+				    (let ((r (gethash 'return-values env)))
+				      (if (< 1 (length r))
+					  (funcall emit `(paren ,@r))
+					  (car r))))
+			    (format s "~a" (funcall emit `(progn ,@body)))))))
+		    
+		    )
 		#+nil (defstruct
 		    ;;  defstruct name {slot-description}*
 		    ;; slot-description::= slot-name | (slot-name [slot-initform [[slot-option]]]) 
