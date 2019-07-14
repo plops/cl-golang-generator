@@ -524,5 +524,3 @@ entry return-values contains a list of return values"
 						     (values float64 &optional))
 					    (return (math.Hypot (- q.X p.X)
 								(- q.Y p.Y))))))))
-
-(format nil *bla*)
