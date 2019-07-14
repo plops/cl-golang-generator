@@ -442,9 +442,7 @@ entry return-values contains a list of return values"
 			   name
 			   (emit
 			    `(progn
-			       ,@(loop for desc in slot-descriptions collect
-				      (destructuring-bind (slot-name &optional type) desc
-					(format nil "~a~@[ ~a~]" slot-name type))))))))
+			       ,@(mapcar #'emit slot-descriptions))))))
 		(setf (parse-setf code #'emit))
 		(const (parse-const code #'emit))
 		(assign

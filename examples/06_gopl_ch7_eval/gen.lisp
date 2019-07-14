@@ -20,6 +20,19 @@
 		(op rune)
 	      (x Expr)
 	      )
+	    (defstruct0 binary
+		(op rune)
+	      (x Expr)
+	      (y Expr))
+	    (defstruct0 call
+		(fn string)
+	      (args "[]Expr"))
+	    (deftype Env ()
+	      "map[Var]float64")
+	    (definterface Expr
+		(defun-declaration Eval (env)
+		  (declare (type Env env)
+			   (values float64 &opional))))
 	    )))
     (write-source *source* code)))
 
