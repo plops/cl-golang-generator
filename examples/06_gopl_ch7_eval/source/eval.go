@@ -72,6 +72,23 @@ type TestDefinition struct {
 	want string
 }
 
-func TestEval(test *testing.T) {
-	tests := TestDefinition{{"sqrt(A / pi)", Env{"A": 87616, "pi": math.Pi}, "167"}}
+func TestEval(intest *testing.T) {
+	tests := []TestDefinition{{"sqrt(A / pi)", Env{"A": 87616, "pi": math.Pi}, "167"}, {"pow(x,3)+pow(y,3)", Env{"x": 12, "y": 1}, "1729"}}
+	var prevExpr string
+	for _, test := range tests {
+		if (test.expr) != (prevExpr) {
+			fmt.Printf("\n%s\n", test.expr)
+			prevExpr = test.expr
+		}
+		expr, err := Parse(test.expr)
+		if (err) != (nil) {
+			intest.Error(err)
+			continue
+		}
+		got := fmt.Sprintf("%.6g", expr.Eval(test.env))
+		fmt.Printf("\t%v => %s\n", test.env, got)
+		if (got) != (test.want) {
+			intest.Errorf("%s.Eval() in %s=%q, want %q", test.expr, test.env, got, test.want)
+		}
+	}
 }

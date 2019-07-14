@@ -89,12 +89,12 @@
 		(expr string)
 	      (env Env)
 	      (want string))
-	    (defun TestEval (test)
-	      (declare (type "*testing.T" test))
+	    (defun TestEval (intest)
+	      (declare (type "*testing.T" intest))
 	      
 	      (assign
 	       tests
-	       (cast TestDefinition
+	       (cast "[]TestDefinition"
 		     (braces
 		      (braces (string "sqrt(A / pi)")
 			      (cast Env (dict
@@ -102,7 +102,45 @@
 					  87616)
 					 ((string "pi")
 					  math.Pi)))
-			      (string "167"))))))
+			      (string "167"))
+		      (braces (string "pow(x,3)+pow(y,3)")
+			      (cast Env (dict
+					 ((string "x")
+					  12)
+					 ((string "y")
+					  1)))
+			      (string "1729")))))
+	      (let (prevExpr)
+		(declare (type string prevExpr))
+		(foreach ((ntuple _ test)
+			  (range tests))
+			 (if (!= test.expr
+				 prevExpr)
+			     (do0
+			      (fmt.Printf (string "\\n%s\\n"
+						  )
+					  test.expr)
+			      (setf prevExpr test.expr)))
+			 (assign (ntuple expr err)
+				 (Parse test.expr))
+			 (if (!= err "nil")
+			     (do0
+			      (intest.Error err)
+			      continue))
+			 (assign got
+				 (fmt.Sprintf
+				  (string "%.6g")
+				  (expr.Eval test.env)))
+			 (fmt.Printf
+			  (string "\\t%v => %s\\n")
+			  test.env got)
+			 (if (!= got test.want)
+			     (intest.Errorf
+			      (string "%s.Eval() in %s=%q, want %q")
+			      test.expr
+			      test.env
+			      got
+			      test.want)))))
 	    
 	    )))
     (write-source *source* code)))
