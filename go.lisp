@@ -145,7 +145,7 @@ entry return-values contains a list of return values"
 	(declare (ignorable req-param opt-param res-param
 			    key-param other-key-p aux-param key-exist-p))
 	(with-output-to-string (s)
-	  (format s "func ~a~a ~@[~a ~]"
+	  (format s "~a~a ~@[~a ~]"
 		  name
 		  (funcall emit `(paren
 				  ,@(loop for p in req-param collect
@@ -239,7 +239,7 @@ entry return-values contains a list of return values"
 	  (declare (ignorable req-param opt-param res-param
 			      key-param other-key-p aux-param key-exist-p))
 	  (with-output-to-string (s)
-	    (format s "func ~a~a ~@[~a ~]"
+	    (format s "~a~a ~@[~a ~]"
 		    name
 		    (funcall emit `(paren
 				    ,@(loop for p in req-param collect
@@ -463,6 +463,24 @@ entry return-values contains a list of return values"
 		      (when false-statement
 			(format s " else ~a"
 				(emit `(progn ,false-statement)))))))
+		(ecase
+		    ;; ecase keyform {normal-clause}* => result*
+		    ;; normal-clause::= (keys form*) 
+		    (destructuring-bind (keyform &rest clauses)
+			(cdr code)
+		      (format
+		       nil "switch ~a ~a"
+		       (emit keyform)
+		       (emit
+			`(progn
+			   ,@(loop for c in clauses collect
+				  (destructuring-bind (key &rest forms) c
+				   (format nil "case ~a:~&~a"
+					   (emit key)
+					   (emit
+					    `(do0
+					      ,@(mapcar #'emit
+							forms)))))))))))
 		(for
 		 ;; for [init [condition [update]]] {forms}*
 		 (destructuring-bind ((&optional init condition update) &rest body)
@@ -553,6 +571,7 @@ entry return-values contains a list of return values"
 			    (format nil "(~a)-=(~a)" (emit a) (emit b))
 			    (format nil "(~a)--" (emit a)))))
 		(string (format nil "\"~a\"" (cadr code)))
+		(char (format nil "'~a'" (cadr code)))
 		(slice (let ((args (cdr code)))
 		       (if (null args)
 			   (format nil ":")

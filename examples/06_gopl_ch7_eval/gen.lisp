@@ -30,10 +30,27 @@
 	    (deftype Env ()
 	      "map[Var]float64")
 	    (definterface Expr
-		(defun-declaration Eval (env)
+		(defmethod-interface Eval ((v Var) env)
 		  (declare (type Env env)
 			   (values float64 &opional))))
+	    (defmethod Eval ((v Var) env)
+	      (declare (type Env env)
+		       (values float64 &opional))
+	      (return (aref env v)))
+	    (defmethod Eval ((l literal) _)
+	      (declare (type Env _)
+		       (values float64 &opional))
+	      (return (float64 l)))
+	    (defmethod Eval ((u unary) env)
+	      (declare (type Env env)
+		       (values float64 &opional))
+	      (ecase u.op
+		((char +)
+		 (return (u.x.Eval env)))
+		((char -)
+		 (return (- (u.x.Eval env))))))
 	    )))
     (write-source *source* code)))
+
 
 
