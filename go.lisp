@@ -200,7 +200,35 @@ entry return-values contains a list of return values"
 		(paren
 		 ;; paren {args}*
 		 (let ((args (cdr code)))
-			 (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
+		   (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
+		(braces
+		 ;; braces {args}*
+		 (let ((args (cdr code)))
+		   (format nil "{~{~a~^, ~}}" (mapcar #'emit args))))
+		(curly ;; name{arg1, args}
+		  ;; or name{key1:arg1, key2:arg2}
+		 (destructuring-bind (name &rest args) (cdr code)
+		   (emit `(cast ,name
+				(braces
+				 ,@(if (keywordp (car args))
+				      (loop for i below (length args) by 2 collect
+					   (let ((a (elt args i))
+						 (b (elt args (+ 1 i))))
+					     (format nil "~a: ~a" (emit a) (emit b))))
+				      args))))))
+		(cast ;; cast type value
+		 (destructuring-bind (type value) (cdr code)
+		   (format nil "~a ~a" (emit type) (emit value)))
+		 )
+		(dict
+		 ;; dict {pair}*
+		 (let* ((args (cdr code)))
+		      (let ((str (with-output-to-string (s)
+				   (loop for (e f) in args
+				      do
+					(format s "~a: ~a," (emit e) (emit f))))))
+			(format nil "{~a}" ;; remove trailing comma
+				(subseq str 0 (- (length str) 1))))))
 		(go (format nil "go ~a" (emit (car (cdr code)))))
 		(range (format nil "range ~a" (emit (car (cdr code)))))
 		(chan (format nil "chan ~a" (emit (car (cdr code)))))
@@ -302,19 +330,7 @@ entry return-values contains a list of return values"
 		(import (let ((args (cdr code)))
 			  (format nil "import (~{~&\"~a\"~}~&)"
 				  args)))
-		(curly ;; name{arg1, args}
-		  ;; or name{key1:arg1, key2:arg2}
-		 (destructuring-bind (name &rest args) (cdr code)
-		   (if (keywordp (car args))
-		       (format nil "~a {~{~a~^, ~}}"
-			       (emit name)
-			       (loop for i below (length args) by 2 collect
-				    (let ((a (elt args i))
-					  (b (elt args (+ 1 i))))
-				      (format nil "~a: ~a" a b))))
-		       (format nil "~a {~{~a~^, ~}}"
-			       (emit name)
-			       (mapcar #'emit args)))))
+		
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
 		     (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
