@@ -613,14 +613,29 @@ entry return-values contains a list of return values"
 		      ;; -> {form}*
 		      (emit (reduce #'(lambda (x y) (list (emit x) (emit y))) forms))))
 		(t (destructuring-bind (name &rest args) code
-		     (progn ;if
-		       #+nil(and
-			(= 1 (length args))
-			(eq (aref (format nil "~a" (car args)) 0) #\.))
-		       #+nil (format nil "~a~a" name
-			       (emit args))
-		       (format nil "~a~a" name
-			       (emit `(paren ,@args)))))))
+
+		     (if (listp name)
+		       ;; lambda call and similar complex constructs
+			 (format nil "(~a)(~a)"
+				 (emit name)
+				 (if args
+				     (emit `(paren ,@args))
+				     ""))
+			 ;; function call
+			 
+			 
+			 (progn ;if
+			   #+nil(and
+				 (= 1 (length args))
+				 (eq (aref (format nil "~a" (car args)) 0) #\.))
+			   #+nil (format nil "~a~a" name
+					 (emit args))
+
+
+			   
+			   
+			   (format nil "~a~a" name
+				   (emit `(paren ,@args))))))))
 	      (cond
 		((or (symbolp code)
 		     (stringp code)) ;; print variable

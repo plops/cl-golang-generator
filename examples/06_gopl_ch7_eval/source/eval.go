@@ -1,119 +1,132 @@
 package main
+
 import (
-"fmt"
-"math"
-"testing"
-"strconv"
-"strings"
-"text/scanner"
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
+	"testing"
+	"text/scanner"
 )
+
 type Var string
 type literal float64
 type unary struct {
-    op rune
-    x Expr
+	op rune
+	x  Expr
 }
 type binary struct {
-    op rune
-    x Expr
-    y Expr
+	op rune
+	x  Expr
+	y  Expr
 }
 type call struct {
-    fn string
-    args []Expr
+	fn   string
+	args []Expr
 }
 type Env map[Var]float64
 type Expr interface {
-    Eval(env Env) float64 
+	Eval(env Env) float64
 }
+
 func (v Var) Eval(env Env) float64 {
-    return env[v]
+	return env[v]
 }
 func (l literal) Eval(_ Env) float64 {
-    return float64(l)
+	return float64(l)
 }
 func (u unary) Eval(env Env) float64 {
-    switch u.op {
-        case '+':
-return u.x.Eval(env)
-        case '-':
-return (-(u.x.Eval(env)))
-}
-    panic(fmt.Sprintf("unsupported unary operator: %q", u.op))
+	switch u.op {
+	case '+':
+		return u.x.Eval(env)
+	case '-':
+		return (-(u.x.Eval(env)))
+	}
+	panic(fmt.Sprintf("unsupported unary operator: %q", u.op))
 }
 func (b binary) Eval(env Env) float64 {
-    switch b.op {
-        case '+':
-return ((b.x.Eval(env))+(b.x.Eval(env)))
-        case '-':
-return ((b.x.Eval(env))-(b.x.Eval(env)))
-        case '*':
-return ((b.x.Eval(env))*(b.x.Eval(env)))
-        case '/':
-return ((b.x.Eval(env))/(b.x.Eval(env)))
-}
-    panic(fmt.Sprintf("unsupported binary operator: %q", b.op))
+	switch b.op {
+	case '+':
+		return ((b.x.Eval(env)) + (b.x.Eval(env)))
+	case '-':
+		return ((b.x.Eval(env)) - (b.x.Eval(env)))
+	case '*':
+		return ((b.x.Eval(env)) * (b.x.Eval(env)))
+	case '/':
+		return ((b.x.Eval(env)) / (b.x.Eval(env)))
+	}
+	panic(fmt.Sprintf("unsupported binary operator: %q", b.op))
 }
 func (c call) Eval(env Env) float64 {
-    switch c.fn {
-        case "pow":
-return math.Pow(c.args[0].Eval(env), c.args[1].Eval(env))
-        case "sin":
-return math.Sin(c.args[0].Eval(env))
-        case "sqrt":
-return math.Sin(c.args[0].Eval(env))
+	switch c.fn {
+	case "pow":
+		return math.Pow(c.args[0].Eval(env), c.args[1].Eval(env))
+	case "sin":
+		return math.Sin(c.args[0].Eval(env))
+	case "sqrt":
+		return math.Sin(c.args[0].Eval(env))
+	}
+	panic(fmt.Sprintf("unsupported function call: %s", c.fn))
 }
-    panic(fmt.Sprintf("unsupported function call: %s", c.fn))
-}
+
 type TestDefinition struct {
-    expr string
-    env Env
-    want string
+	expr string
+	env  Env
+	want string
 }
+
 func TestEval(intest *testing.T) {
-    tests:=[]TestDefinition {{"sqrt(A / pi)", Env {"A": 87616,"pi": math.Pi}, "167"}, {"pow(x,3)+pow(y,3)", Env {"x": 12,"y": 1}, "1729"}}
-    var prevExpr string
-    for _, test:=range tests {
-        if ( (test.expr)!=(prevExpr) ) {
-            fmt.Printf("\n%s\n", test.expr)
-            prevExpr=test.expr
+	tests := []TestDefinition{{"sqrt(A / pi)", Env{"A": 87616, "pi": math.Pi}, "167"}, {"pow(x,3)+pow(y,3)", Env{"x": 12, "y": 1}, "1729"}}
+	var prevExpr string
+	for _, test := range tests {
+		if (test.expr) != (prevExpr) {
+			fmt.Printf("\n%s\n", test.expr)
+			prevExpr = test.expr
+		}
+		expr, err := Parse(test.expr)
+		if (err) != (nil) {
+			intest.Error(err)
+			continue
+		}
+		got := fmt.Sprintf("%.6g", expr.Eval(test.env))
+		fmt.Printf("\t%v => %s\n", test.env, got)
+		if (got) != (test.want) {
+			intest.Errorf("%s.Eval() in %s=%q, want %q", test.expr, test.env, got, test.want)
+		}
+	}
 }
-        expr, err:=Parse(test.expr)
-        if ( (err)!=(nil) ) {
-            intest.Error(err)
-            continue
-}
-        got:=fmt.Sprintf("%.6g", expr.Eval(test.env))
-        fmt.Printf("\t%v => %s\n", test.env, got)
-        if ( (got)!=(test.want) ) {
-            intest.Errorf("%s.Eval() in %s=%q, want %q", test.expr, test.env, got, test.want)
-}
-}
-}
+
 type lexer struct {
-    scan scanner.Scanner
-    token rune
+	scan  scanner.Scanner
+	token rune
 }
+
 func (lex *lexer) next() {
-    lex.token=lex.scan.Scan()
+	lex.token = lex.scan.Scan()
 }
 func (lex *lexer) text() string {
-    return lex.scan.TokenText()
+	return lex.scan.TokenText()
 }
+
 type lexPanic string
+
 func precedence(op rune) int {
-    switch op {
-        case '*', '/':
-return 2
-        case '+', '-':
-return 1
-}
-    return 0
+	switch op {
+	case '*', '/':
+		return 2
+	case '+', '-':
+		return 1
+	}
+	return 0
 }
 func Parse(input string) (Expr, error) {
-    defer (lambda ()
-  (case (assign x (dot (recover) (type)))
-    (nil)
-    (lexPanic (setf err (fmt.Errorf (string %s) x)))
-    (t (panic x))))()
+	defer (func() {
+		switch x := recover().(type); {
+		case nil:
+		case lexPanic:
+			err = fmt.Errorf("%s", x)
+		default:
+			panic(x)
+		}
+	})()
 }
