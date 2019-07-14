@@ -41,13 +41,14 @@
 			 (values "[]string" &optional))
 		(let (order
 		      keys
-		      ;visitAll
+		      visitAll ;; needs to be explicitly defined for recursion
 		      )
 		  (declare (type "[]string" order keys)
-			   ;(type "func(items []string)" visitAll)
+			   (type "func(items []string)" visitAll)
 			   )
 		  (assign seen (make "map[string]bool"))
-		  (assign visitAll (lambda (items)
+		  
+		  (setf visitAll (lambda (items)
 				     (declare (type "[]string" items))
 				     (foreach ((ntuple _ item)
 					       (range items))

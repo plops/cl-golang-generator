@@ -15,8 +15,9 @@ func main() {
 func topoSort(m map[string][]string) []string {
 	var order []string
 	var keys []string
+	var visitAll func(items []string)
 	seen := make(map[string]bool)
-	visitAll := func(items []string) {
+	visitAll = func(items []string) {
 		for _, item := range items {
 			if !(seen[item]) {
 				seen[item] = true
