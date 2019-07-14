@@ -240,7 +240,26 @@
 		(scanner.Ident
 		 (assign id (lex.text))
 		 (lex.next) ;; consume id
-		 (when )
+		 (unless (== lex.token (char "("))
+		   (return (Var id)))
+		 (lex.next) ;; consume (
+		 (let (args)
+		   (declare (type "[]Expr" args))
+		   (unless (== lex.token (char ")"))
+		     (while true
+		       (setf args (append args (parseExpr lex)))
+		       (unless (== lex.token (char ","))
+			 break)
+		       (lex.next) ;; consume ,
+		       )
+		     (unless (== lex.token (char ")"))
+		       (assign msg (fmt.Sprintf
+				    (string "got %q, want )")
+				    lex.token))
+		       (panic (lexPanic msg))))
+		   (lex.next) ;; consume )
+		   (return (curly call id args))
+		   )
 		 )))
 	    
 	    

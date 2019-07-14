@@ -154,3 +154,38 @@ func parseBinary(lex *lexer, prec1 int) Expr {
 	}
 	return lhs
 }
+func parseUnary(lex *lexer) Expr {
+	if ((lex.token) == ('+')) || ((lex.token) == ('-')) {
+		op := lex.token
+		lex.next()
+		return unary{op, parseUnary(lex)}
+	}
+	return parsePrimary(lex)
+}
+func parsePrimary(lex *lexer) Expr {
+	switch lex.token {
+	case scanner.Ident:
+		id := lex.text()
+		lex.next()
+		if !((lex.token) == ('(')) {
+			return Var(id)
+		}
+		lex.next()
+		var args []Expr
+		if !((lex.token) == (')')) {
+			for true {
+				args = append(args, parseExpr(lex))
+				if !((lex.token) == (',')) {
+					break
+				}
+				lex.next()
+			}
+			if !((lex.token) == (')')) {
+				msg := fmt.Sprintf("got %q, want )", lex.token)
+				panic(lexPanic(msg))
+			}
+		}
+		lex.next()
+		return call{id, args}
+	}
+}
