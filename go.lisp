@@ -123,12 +123,16 @@ entry return-values contains a list of return values"
 		  (funcall emit `(paren
 				  ,@(loop for p in req-param collect
 					 (format nil "~a ~a"
-						 p (gethash p env)))))
+						 p
+						 (let ((type (gethash p env)))
+						   (if type
+						       type
+						       (break "can't find type for ~a in defun"
+							      p)))))))
 		  (let ((r (gethash 'return-values env)))
 		    (if (< 1 (length r))
 			(funcall emit `(paren ,@r))
-			(car r)))
-		  )
+			(car r))))
 	  (format s "~a" (funcall emit `(progn ,@body))))))))
 
 
