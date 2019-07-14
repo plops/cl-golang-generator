@@ -219,7 +219,7 @@
 		     (assign rhs (parseBinary lex (+ prec 1)))
 		     (setf lhs (curly binary op lhs rhs))))
 	      (return lhs))
-
+ 
 	    
 	    
 	    )))
