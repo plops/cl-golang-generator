@@ -410,7 +410,12 @@ entry return-values contains a list of return values"
 						       ;; init doesnt really fit into go semantics
 								 &key type) desc
 				    (format nil "~a~@[ ~a~]" slot-name type))))))))
-
+		(deftype
+		    ;; deftype name lambda-list {form}*
+		    ;; only the first form of the body is used, lambda list is ignored
+		    (destructuring-bind (name lambda-list &rest body) (cdr code)
+		      (declare (ignore lambda-list))
+		      (format nil "type ~a ~a" name (emit (car body)))))
 		(defstruct0
 		 ;; defstruct without init-form
 		 ;; defstruct name {slot-description}*

@@ -10,7 +10,17 @@
   (let* ((code
 	  `(do0
 	    (package main)
-	    (import fmt sort))))
+	    
+	    ;(import fmt sort)
+	    (deftype Var ()
+	      string)
+	    (deftype literal ()
+	      float64)
+	    (defstruct0 unary
+		(op rune)
+	      (x Expr)
+	      )
+	    )))
     (write-source *source* code)))
 
 
