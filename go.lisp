@@ -98,7 +98,10 @@ entry return-values contains a list of return values"
 					       (funcall emit value)))
 				     (format nil "var ~a ~a"
 					     decl
-					     (lookup-type decl :env env))))
+					     (let ((type (lookup-type decl :env env)))
+					       (if type
+						   type
+						   (break "type ~a not defined." decl))))))
 			  ,@body)))))))
 
 (defun parse-defun (code emit)

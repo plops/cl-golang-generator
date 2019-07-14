@@ -14,4 +14,6 @@ func main() {
 }
 func topoSort(m map[string][]string) []string {
 	var order []string
+	var visitAll func(items []string)
+	seen := make(map[string]bool)
 }

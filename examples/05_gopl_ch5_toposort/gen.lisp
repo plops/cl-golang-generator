@@ -39,8 +39,11 @@
 	      (defun topoSort (m)
 		(declare (type "map[string][]string" m)
 			 (values "[]string" &optional))
-		(let (order)
-		  (declare (type "[]string" order))))))))
+		(let (order
+		      visitAll)
+		  (declare (type "[]string" order)
+			   (type "func(items []string)" visitAll))
+		  (assign seen (make "map[string]bool"))))))))
     (write-source *source* code)))
 
 
