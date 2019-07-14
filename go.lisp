@@ -268,7 +268,7 @@ entry return-values contains a list of return values"
 		
 		(defun (parse-defun code #'emit))
 		(lambda (parse-lambda code #'emit))
-		(defstruct
+		#+nil (defstruct
 		    ;;  defstruct name {slot-description}*
 		    ;; slot-description::= slot-name | (slot-name [slot-initform [[slot-option]]]) 
 		    ;; slot-option::= :type slot-type
@@ -282,8 +282,23 @@ entry return-values contains a list of return values"
 				  (destructuring-bind (slot-name ;; &optional init
 						       ;; init doesnt really fit into go semantics
 								 &key type) desc
-				    (format nil "~a~@[ ~a~]" slot-name type)))))))
-		    )
+				    (format nil "~a~@[ ~a~]" slot-name type))))))))
+
+		(defstruct0
+		 ;; defstruct without init-form
+		 ;; defstruct name {slot-description}*
+		 ;; slot-description::= slot-name | (slot-name [slot-type])
+
+		 ;; a slot-name without type can be used to create a
+		 ;; composed type with a struct embedding
+		 (destructuring-bind (name &rest slot-descriptions) (cdr code)
+		   (format nil "type ~a struct ~a"
+			   name
+			   (emit
+			    `(progn
+			       ,@(loop for desc in slot-descriptions collect
+				      (destructuring-bind (slot-name &optional type) desc
+					(format nil "~a~@[ ~a~]" slot-name type))))))))
 		(setf (parse-setf code #'emit))
 		(const (parse-const code #'emit))
 		(assign
