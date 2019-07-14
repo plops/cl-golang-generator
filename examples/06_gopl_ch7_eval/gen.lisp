@@ -11,7 +11,7 @@
 	  `(do0
 	    (package main)
 	    
-	    ;(import fmt sort)
+	    (import fmt math testing)
 	    (deftype Var ()
 	      string)
 	    (deftype literal ()
@@ -59,8 +59,8 @@
 	      (ecase b.op
 		,@(loop for op in `(+ - * /) collect
 		       `((char ,op)
-			 (return (,op (u.x.Eval env)
-				      (u.x.Eval env))))))
+			 (return (,op (b.x.Eval env)
+				      (b.x.Eval env))))))
 	      (panic (fmt.Sprintf
 		      (string "unsupported binary operator: %q")
 		      b.op)))
@@ -84,6 +84,25 @@
 	      (panic (fmt.Sprintf
 		      (string "unsupported function call: %s")
 		      c.fn)))
+
+	    (defstruct0 TestDefinition
+		(expr string)
+	      (env Env)
+	      (want string))
+	    (defun TestEval (test)
+	      (declare (type "*testing.T" test))
+	      
+	      (assign
+	       tests
+	       (cast TestDefinition
+		     (braces
+		      (braces (string "sqrt(A / pi)")
+			      (cast Env (dict
+					 ((string "A")
+					  87616)
+					 ((string "pi")
+					  math.Pi)))
+			      (string "167"))))))
 	    
 	    )))
     (write-source *source* code)))
