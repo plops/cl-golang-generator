@@ -33,4 +33,29 @@ func (u unary) Eval(env Env) float64 {
 	case '-':
 		return (-(u.x.Eval(env)))
 	}
+	panic(fmt.Sprintf("unsupported unary operator: %q", u.op))
+}
+func (b binary) Eval(env Env) float64 {
+	switch b.op {
+	case '+':
+		return ((u.x.Eval(env)) + (u.x.Eval(env)))
+	case '-':
+		return ((u.x.Eval(env)) - (u.x.Eval(env)))
+	case '*':
+		return ((u.x.Eval(env)) * (u.x.Eval(env)))
+	case '/':
+		return ((u.x.Eval(env)) / (u.x.Eval(env)))
+	}
+	panic(fmt.Sprintf("unsupported binary operator: %q", b.op))
+}
+func (c call) Eval(env Env) float64 {
+	switch c.fn {
+	case "pow":
+		return math.Pow(c.args[0].Eval(env), c.args[1].Eval(env))
+	case "sin":
+		return math.Sin(c.args[0].Eval(env))
+	case "sqrt":
+		return math.Sin(c.args[0].Eval(env))
+	}
+	panic(fmt.Sprintf("unsupported function call: %s", c.fn))
 }

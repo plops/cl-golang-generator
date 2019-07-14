@@ -48,7 +48,43 @@
 		((char +)
 		 (return (u.x.Eval env)))
 		((char -)
-		 (return (- (u.x.Eval env))))))
+		 (return (- (u.x.Eval env)))))
+	      (panic (fmt.Sprintf
+		      (string "unsupported unary operator: %q")
+		      u.op)))
+	    
+	    (defmethod Eval ((b binary) env)
+	      (declare (type Env env)
+		       (values float64 &opional))
+	      (ecase b.op
+		,@(loop for op in `(+ - * /) collect
+		       `((char ,op)
+			 (return (,op (u.x.Eval env)
+				      (u.x.Eval env))))))
+	      (panic (fmt.Sprintf
+		      (string "unsupported binary operator: %q")
+		      b.op)))
+
+	    (defmethod Eval ((c call) env)
+	      (declare (type Env env)
+		       (values float64 &opional))
+	      (ecase c.fn
+		,@(loop for (name nargs gofun)
+		     in `((pow 2 math.Pow)
+			  (sin 1 math.Sin)
+			  (sqrt 1 math.Sin))
+		     collect
+		       `((string ,name)
+			 (return (,gofun
+				  ,@(loop for i below nargs
+				       collect
+					 `(dot c
+					      (aref args ,i)
+					      (Eval env))))))))
+	      (panic (fmt.Sprintf
+		      (string "unsupported function call: %s")
+		      c.fn)))
+	    
 	    )))
     (write-source *source* code)))
 
