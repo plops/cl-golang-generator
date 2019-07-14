@@ -260,11 +260,18 @@
 		   (lex.next) ;; consume )
 		   (return (curly call id args))
 		   )
-		 )))
-	    
-	    
-	    )))
-    (write-source *source* code)))
+		 )
+		((ntuple scanner.Int
+			 scanner.Float)
+		 
+		 (assign (ntuple f err)
+			 (strconv.ParseFloat (lex.text) 64))
+		 (unless (== err "nil")
+		   (panic (lexPanic (err.Error))))))
+	      
+	      
+	      )))
+	 (write-source *source* code))))
 
 
 
