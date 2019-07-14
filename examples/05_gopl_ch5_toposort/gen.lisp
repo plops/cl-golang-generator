@@ -40,10 +40,27 @@
 		(declare (type "map[string][]string" m)
 			 (values "[]string" &optional))
 		(let (order
-		      visitAll)
-		  (declare (type "[]string" order)
-			   (type "func(items []string)" visitAll))
-		  (assign seen (make "map[string]bool"))))))))
+		      keys
+		      ;visitAll
+		      )
+		  (declare (type "[]string" order keys)
+			   ;(type "func(items []string)" visitAll)
+			   )
+		  (assign seen (make "map[string]bool"))
+		  (assign visitAll (lambda (items)
+				     (declare (type "[]string" items))
+				     (foreach ((ntuple _ item)
+					       (range items))
+					      (if (not (aref seen item))
+						  (do0
+						   (setf (aref seen item) true)
+						   (visitAll (aref m item))
+						   (setf order (append order item)))))))
+		  (foreach (key (range m))
+			   (setf keys (append keys key)))
+		  (sort.Strings keys)
+		  (visitAll keys)
+		  (return order)))))))
     (write-source *source* code)))
 
 

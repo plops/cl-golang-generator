@@ -336,7 +336,7 @@ entry return-values contains a list of return values"
 					(< ,var ,end)
 					(incf ,var))
 				       ,@body))))
-		(not (format nil "!(~a)" (car (cdr code))))
+		(not (format nil "!(~a)" (emit (car (cdr code)))))
 		(package (format nil "package ~a" (car (cdr code))))
 		(import (let ((args (cdr code)))
 			  (format nil "import (~{~&\"~a\"~}~&)"

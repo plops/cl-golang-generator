@@ -14,6 +14,21 @@ func main() {
 }
 func topoSort(m map[string][]string) []string {
 	var order []string
-	var visitAll func(items []string)
+	var keys []string
 	seen := make(map[string]bool)
+	visitAll := func(items []string) {
+		for _, item := range items {
+			if !(seen[item]) {
+				seen[item] = true
+				visitAll(m[item])
+				order = append(order, item)
+			}
+		}
+	}
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	visitAll(keys)
+	return order
 }
