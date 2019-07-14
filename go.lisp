@@ -468,6 +468,10 @@ entry return-values contains a list of return values"
 			(emit `(if ,condition
 				   (do0
 				    ,@forms)))))
+		(unless (destructuring-bind (condition &rest forms) (cdr code)
+			(emit `(if (not ,condition)
+				   (do0
+				    ,@forms)))))
 		(ecase
 		    ;; ecase keyform {normal-clause}*
 		    ;; normal-clause::= (keys form*) 
