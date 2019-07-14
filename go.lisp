@@ -134,6 +134,33 @@ entry return-values contains a list of return values"
 			(car r))))
 	  (format s "~a" (funcall emit `(progn ,@body))))))))
 
+(defun parse-defun-declaration (code emit)
+  ;; only emit the declaration of the function
+  (destructuring-bind (name lambda-list &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (multiple-value-bind (req-param opt-param res-param
+				      key-param other-key-p
+				      aux-param key-exist-p)
+	  (parse-ordinary-lambda-list lambda-list)
+	(declare (ignorable req-param opt-param res-param
+			    key-param other-key-p aux-param key-exist-p))
+	(with-output-to-string (s)
+	  (format s "func ~a~a ~@[~a ~]"
+		  name
+		  (funcall emit `(paren
+				  ,@(loop for p in req-param collect
+					 (format nil "~a ~a"
+						 p
+						 (let ((type (gethash p env)))
+						   (if type
+						       type
+						       (break "can't find type for ~a in defun"
+							      p)))))))
+		  (let ((r (gethash 'return-values env)))
+		    (if (< 1 (length r))
+			(funcall emit `(paren ,@r))
+			(car r)))))))))
+
 (defun parse-defmethod (code emit)
   ;;  defmethod function-name specialized-lambda-list [declaration*] form*
   ;; specialized-lambda-list::= ({var | (var parameter-specializer-name)}*
@@ -169,6 +196,64 @@ entry return-values contains a list of return values"
 			  (funcall emit `(paren ,@r))
 			  (car r))))
 	    (format s "~a" (funcall emit `(progn ,@body)))))))))
+
+(defun parse-defmethod-declaration (code emit)
+  ;; only emit declaration 
+  (destructuring-bind (name lambda-list &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (destructuring-bind (receiver-name receiver-type) (car lambda-list)
+	(multiple-value-bind (req-param opt-param res-param
+					key-param other-key-p
+					aux-param key-exist-p)
+	    (parse-ordinary-lambda-list (cdr lambda-list))
+	  (declare (ignorable req-param opt-param res-param
+			      key-param other-key-p aux-param key-exist-p))
+	  (with-output-to-string (s)
+	    (format s "func (~a ~a) ~a~a ~@[~a ~]"
+		    receiver-name
+		    receiver-type
+		    name
+		    (funcall emit `(paren
+				    ,@(loop for p in req-param collect
+					   (format nil "~a ~a"
+						   p
+						   (let ((type (gethash p env)))
+						     (if type
+							 type
+							 (break "can't find type for ~a in defun"
+								p)))))))
+		    (let ((r (gethash 'return-values env)))
+		      (if (< 1 (length r))
+			  (funcall emit `(paren ,@r))
+			  (car r))))))))))
+
+(defun parse-defmethod-interface (code emit)
+  ;; only emit declaration that can be used in an interface
+  (destructuring-bind (name lambda-list &rest body) (cdr code)
+    (multiple-value-bind (body env) (consume-declare body)
+      (destructuring-bind (receiver-name receiver-type) (car lambda-list)
+	(multiple-value-bind (req-param opt-param res-param
+					key-param other-key-p
+					aux-param key-exist-p)
+	    (parse-ordinary-lambda-list (cdr lambda-list))
+	  (declare (ignorable req-param opt-param res-param
+			      key-param other-key-p aux-param key-exist-p))
+	  (with-output-to-string (s)
+	    (format s "func ~a~a ~@[~a ~]"
+		    name
+		    (funcall emit `(paren
+				    ,@(loop for p in req-param collect
+					   (format nil "~a ~a"
+						   p
+						   (let ((type (gethash p env)))
+						     (if type
+							 type
+							 (break "can't find type for ~a in defun"
+								p)))))))
+		    (let ((r (gethash 'return-values env)))
+		      (if (< 1 (length r))
+			  (funcall emit `(paren ,@r))
+			  (car r))))))))))
 
 
 (defun parse-lambda (code emit)
@@ -305,8 +390,11 @@ entry return-values contains a list of return values"
 		(let (parse-let code #'emit))
 		
 		(defun (parse-defun code #'emit))
+		(defun-declaration (parse-defun-declaration code #'emit))
 		(lambda (parse-lambda code #'emit))
 		(defmethod (parse-defmethod code #'emit))
+		(defmethod-interface (parse-defmethod-interface code #'emit))
+		(defmethod-declaration (parse-defmethod-declaration code #'emit))
 		#+nil (defstruct
 		    ;;  defstruct name {slot-description}*
 		    ;; slot-description::= slot-name | (slot-name [slot-initform [[slot-option]]]) 
@@ -332,6 +420,20 @@ entry return-values contains a list of return values"
 		 ;; composed type with a struct embedding
 		 (destructuring-bind (name &rest slot-descriptions) (cdr code)
 		   (format nil "type ~a struct ~a"
+			   name
+			   (emit
+			    `(progn
+			       ,@(loop for desc in slot-descriptions collect
+				      (destructuring-bind (slot-name &optional type) desc
+					(format nil "~a~@[ ~a~]" slot-name type))))))))
+
+		(definterface
+		    
+		 ;; definterface name {slot-description}*
+		 ;; slot-description::= other-interface-name | method-interface-declaration
+
+		 (destructuring-bind (name &rest slot-descriptions) (cdr code)
+		   (format nil "type ~a interface ~a"
 			   name
 			   (emit
 			    `(progn
