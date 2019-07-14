@@ -139,3 +139,18 @@ func Parse(input string) (_ Expr, err error) {
 	}
 	return e, nil
 }
+func parseExpr(lex *lexer) Expr {
+	return parseBinary(lex, 1)
+}
+func parseBinary(lex *lexer, prec1 int) Expr {
+	lhs := parseUnary(lex)
+	for prec := precedence(lex.token); (prec1) <= (prec); (prec)-- {
+		for (precedence(lex.token)) == (prec) {
+			op := lex.token
+			lex.next()
+			rhs := parseBinary(lex, ((prec) + (1)))
+			lhs = binary{op, lhs, rhs}
+		}
+	}
+	return lhs
+}

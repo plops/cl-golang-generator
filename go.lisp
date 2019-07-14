@@ -538,8 +538,8 @@ entry return-values contains a list of return values"
 
 		(while
 		    ;; while condition {forms}*
-		    ;; this is equivalent to foreach range 
-		    (destructuring-bind ((condition) &rest body) (cdr code)
+		    
+		    (destructuring-bind (condition &rest body) (cdr code)
 		      (with-output-to-string (s)
 			(format s "for ~a "
 				(emit condition))
@@ -589,6 +589,8 @@ entry return-values contains a list of return values"
 		      (format nil "(~a)<=(~a)" (emit a) (emit b))))
 		(!= (destructuring-bind (a b) (cdr code)
 		      (format nil "(~a)!=(~a)" (emit a) (emit b))))
+		(== (destructuring-bind (a b) (cdr code)
+		      (format nil "(~a)==(~a)" (emit a) (emit b))))
 		(<- ;; send to channel channel
 		 (destructuring-bind (a b) (cdr code)
 		      (format nil "~a<-~a" (emit a) (emit b))))

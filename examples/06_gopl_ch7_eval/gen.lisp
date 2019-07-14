@@ -208,13 +208,17 @@
 		       (type int prec1)
 		       (values Expr))
 	      (assign lhs (parseUnary lex))
-	      (for ((assign prec
+	      (for ((:= prec
 			    (precedence lex.token))
 		    (<= prec1 prec)
 		    (decf prec))
 		   (while (== (precedence lex.token)
-				prec)))
-	      )
+			      prec)
+		     (assign op lex.token)
+		     (lex.next)
+		     (assign rhs (parseBinary lex (+ prec 1)))
+		     (setf lhs (curly binary op lhs rhs))))
+	      (return lhs))
 
 	    
 	    
