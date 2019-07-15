@@ -44,7 +44,7 @@ This is the sixth in a series of code generators.
   how I work.
 
 
-cl-golang-generator is based on cl-js-generator. Go doesn't really
+cl-golang-generator is based on cl-py-generator. Go doesn't really
 need indenting (go fmt can fix this) and also doesn't have lots of
 semicolons (like C). That makes the s-expression to golang conversion
 quite simple. The hardest part for this code generator is to support
