@@ -53,7 +53,59 @@ for declarations in the first forms of the body of let and defun. I
 really like that solution. It can even notice (most of the time) if a
 variable has a typo in the declaration.
 
+* Syntax
 
+| lisp                | comment                        | example                     | expanded          |   |   |   |   |   |
+|---------------------+--------------------------------+-----------------------------+-------------------+---+---+---+---+---|
+| ntuple              | comma separated list           | (:= (ntuple val err) (bla)) | val, err := bla() |   |   |   |   |   |
+| paren               | comma separated list in parens | (paren 1 2 3)               | (1,2,3)           |   |   |   |   |   |
+| braces              | comma separated list in braces | (braces 1 2 3)              | {1,2,3}           |   |   |   |   |   |
+| curly               | for instantiation              | (curly []int 1 2 3)         | []int{1,2,3}      |   |   |   |   |   |
+| cast                | like a funcall without parens  |                             |                   |   |   |   |   |   |
+| dict                |                                |                             |                   |   |   |   |   |   |
+| do0                 | combine instructions           |                             |                   |   |   |   |   |   |
+| let                 | var declaration                |                             |                   |   |   |   |   |   |
+| assign              | ":=" declaration               |                             |                   |   |   |   |   |   |
+| ":="                | ":=" declaration use in for    |                             |                   |   |   |   |   |   |
+| defun               |                                |                             |                   |   |   |   |   |   |
+| defun-declaration   | for type declaration           |                             |                   |   |   |   |   |   |
+| lambda              | unnamed function               |                             |                   |   |   |   |   |   |
+| defmethod           |                                |                             |                   |   |   |   |   |   |
+| defmethod-interface | for interface declaration      |                             |                   |   |   |   |   |   |
+| defstruct0          | struct declaration             |                             |                   |   |   |   |   |   |
+| deftype             |                                |                             |                   |   |   |   |   |   |
+| definterface        |                                |                             |                   |   |   |   |   |   |
+| setf                | several =                      |                             |                   |   |   |   |   |   |
+| const               | several const declarations     |                             |                   |   |   |   |   |   |
+| if                  |                                |                             |                   |   |   |   |   |   |
+| when                | easier than if for multi form  |                             |                   |   |   |   |   |   |
+| unless              |                                |                             |                   |   |   |   |   |   |
+| case                | switch statement               |                             |                   |   |   |   |   |   |
+| ecase               | like case but without default  |                             |                   |   |   |   |   |   |
+| for                 |                                |                             |                   |   |   |   |   |   |
+| foreach             |                                |                             |                   |   |   |   |   |   |
+| while               |                                |                             |                   |   |   |   |   |   |
+| dotimes             |                                |                             |                   |   |   |   |   |   |
+| not                 |                                |                             |                   |   |   |   |   |   |
+| "+,-,*,/"           |                                |                             |                   |   |   |   |   |   |
+| logior, logand      |                                |                             |                   |   |   |   |   |   |
+| or, and             |                                |                             |                   |   |   |   |   |   |
+| "/=,^=,<=,!=,=='    |                                |                             |                   |   |   |   |   |   |
+| <-                  |                                |                             |                   |   |   |   |   |   |
+| "<,<<,>>"           |                                |                             |                   |   |   |   |   |   |
+| incf, decf          |                                |                             |                   |   |   |   |   |   |
+| string              |                                |                             |                   |   |   |   |   |   |
+| char                |                                |                             |                   |   |   |   |   |   |
+| aref                | array access                   |                             |                   |   |   |   |   |   |
+| slice               |                                |                             |                   |   |   |   |   |   |
+| dot                 | combine with dots              |                             |                   |   |   |   |   |   |
+|                     |                                |                             |                   |   |   |   |   |   |
+
+
+
+** special instructions
+
+- like a function call but without parens: go, range, chan, defer, return
 
 
 
