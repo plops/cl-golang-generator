@@ -18,8 +18,16 @@
 	      float64)
 	    (defstruct0 unary
 		(op rune)
+	      (x Expr))
+	    (defstruct0 binary
+		(op rune)
 	      (x Expr)
-	      )
+	      (y Expr))
+	    (defstruct0 call
+		(fn string)
+	      (args "[]Expr"))
+	    (deftype Env ()
+	      "map[Var]float64")
 	    )))
     (write-source *source* code)))
 
