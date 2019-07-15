@@ -121,7 +121,7 @@ func precedence(op rune) int {
 }
 func Parse(input string) (_ Expr, err error) {
 	defer (func() {
-		switch x := recover().(type); {
+		switch x := recover().(type) {
 		case nil:
 		case lexPanic:
 			err = fmt.Errorf("%s", x)
@@ -192,5 +192,18 @@ func parsePrimary(lex *lexer) Expr {
 		if !((err) == (nil)) {
 			panic(lexPanic(err.Error()))
 		}
+		lex.next()
+		return literal(f)
+	case '(':
+		lex.next()
+		e := parseExpr(lex)
+		if !((lex.token) == (')')) {
+			msg := fmt.Sprintf("got <?>, want )")
+			panic(lexPanic(msg))
+		}
+		lex.next()
+		return e
 	}
+	msg := fmt.Sprintf("unexpected at end <?>")
+	panic(lexPanic(msg))
 }

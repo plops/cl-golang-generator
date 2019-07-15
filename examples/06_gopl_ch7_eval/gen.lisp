@@ -173,7 +173,7 @@
 		       (values "_ Expr" "err error"))
 	      (defer
 		  ((lambda ()
-		     (case (assign x
+		     (case (:= x
 				   (dot (recover)
 					"(type)"))
 		       ("nil"
@@ -266,11 +266,21 @@
 		 (assign (ntuple f err)
 			 (strconv.ParseFloat (lex.text) 64))
 		 (unless (== err "nil")
-		   (panic (lexPanic (err.Error))))))
-	      
-	      
-	      )))
-	 )
+		   (panic (lexPanic (err.Error))))
+		 (lex.next) ;; consume number
+		 (return (literal f))
+		 )
+		((char "(")
+		 (lex.next) ;; consume (
+		 (assign e (parseExpr lex))
+		 (unless (== lex.token (char ")"))
+		   (assign msg (fmt.Sprintf (string "got <?>, want )")))
+		   (panic (lexPanic msg)))
+		 (lex.next) ;; consume )
+		 (return e)
+		 ))
+	      (assign msg (fmt.Sprintf (string "unexpected at end <?>")))
+	      (panic (lexPanic msg))))))
     (write-source *source* code)))
 
 
