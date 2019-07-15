@@ -145,7 +145,7 @@ entry return-values contains a list of return values"
 	(declare (ignorable req-param opt-param res-param
 			    key-param other-key-p aux-param key-exist-p))
 	(with-output-to-string (s)
-	  (format s "func ~a~a ~@[~a ~]"
+	  (format s "~a~a ~@[~a ~]"
 		  name
 		  (funcall emit `(paren
 				  ,@(loop for p in req-param collect
@@ -239,7 +239,7 @@ entry return-values contains a list of return values"
 	  (declare (ignorable req-param opt-param res-param
 			      key-param other-key-p aux-param key-exist-p))
 	  (with-output-to-string (s)
-	    (format s "func ~a~a ~@[~a ~]"
+	    (format s "~a~a ~@[~a ~]"
 		    name
 		    (funcall emit `(paren
 				    ,@(loop for p in req-param collect
@@ -366,6 +366,7 @@ entry return-values contains a list of return values"
 		(go (format nil "go ~a" (emit (car (cdr code)))))
 		(range (format nil "range ~a" (emit (car (cdr code)))))
 		(chan (format nil "chan ~a" (emit (car (cdr code)))))
+		(defer (format nil "defer ~a" (emit (car (cdr code)))))
 		(return (format nil "return ~a" (emit (car (cdr code)))))
 		(indent
 		 ;; indent form
@@ -442,9 +443,7 @@ entry return-values contains a list of return values"
 			   name
 			   (emit
 			    `(progn
-			       ,@(loop for desc in slot-descriptions collect
-				      (destructuring-bind (slot-name &optional type) desc
-					(format nil "~a~@[ ~a~]" slot-name type))))))))
+			       ,@(mapcar #'emit slot-descriptions))))))
 		(setf (parse-setf code #'emit))
 		(const (parse-const code #'emit))
 		(assign
@@ -465,6 +464,58 @@ entry return-values contains a list of return values"
 		      (when false-statement
 			(format s " else ~a"
 				(emit `(progn ,false-statement)))))))
+		(when (destructuring-bind (condition &rest forms) (cdr code)
+			(emit `(if ,condition
+				   (do0
+				    ,@forms)))))
+		(unless (destructuring-bind (condition &rest forms) (cdr code)
+			(emit `(if (not ,condition)
+				   (do0
+				    ,@forms)))))
+		(ecase
+		    ;; ecase keyform {normal-clause}*
+		    ;; normal-clause::= (keys form*) 
+		    (destructuring-bind (keyform &rest clauses)
+			(cdr code)
+		      (format
+		       nil "switch ~a ~a"
+		       (emit keyform)
+		       (emit
+			`(progn
+			   ,@(loop for c in clauses collect
+				  (destructuring-bind (key &rest forms) c
+				   (format nil "case ~a:~&~a"
+					   (emit key)
+					   (emit
+					    `(do0
+					      ,@(mapcar #'emit
+							forms)))))))))))
+		(case
+		    ;; case keyform {normal-clause}* [otherwise-clause]
+		    ;; normal-clause::= (keys form*) 
+		    ;; otherwise-clause::= (t form*) 
+		    
+		    (destructuring-bind (keyform &rest clauses)
+			(cdr code)
+		      (format
+		       nil "switch ~a ~a"
+		       (emit keyform)
+		       (emit
+			`(progn
+			   ,@(loop for c in clauses collect
+				  (destructuring-bind (key &rest forms) c
+				    (if (eq key t)
+					(format nil "default:~&~a"
+						(emit
+						   `(do0
+						     ,@(mapcar #'emit
+							       forms))))
+					(format nil "case ~a:~&~a"
+						  (emit key)
+						  (emit
+						   `(do0
+						     ,@(mapcar #'emit
+							       forms))))))))))))
 		(for
 		 ;; for [init [condition [update]]] {forms}*
 		 (destructuring-bind ((&optional init condition update) &rest body)
@@ -492,6 +543,15 @@ entry return-values contains a list of return values"
 				     (emit `(:= ,var ,range)))
 				   (emit (car decl))))
 		       (format s "~a" (emit `(progn ,@body))))))
+
+		(while
+		    ;; while condition {forms}*
+		    
+		    (destructuring-bind (condition &rest body) (cdr code)
+		      (with-output-to-string (s)
+			(format s "for ~a "
+				(emit condition))
+			(format s "~a" (emit `(progn ,@body))))))
 		(dotimes (destructuring-bind ((var end) &rest body) (cdr code)
 			   (emit `(for ((:= ,var 0)
 					(< ,var ,end)
@@ -537,6 +597,8 @@ entry return-values contains a list of return values"
 		      (format nil "(~a)<=(~a)" (emit a) (emit b))))
 		(!= (destructuring-bind (a b) (cdr code)
 		      (format nil "(~a)!=(~a)" (emit a) (emit b))))
+		(== (destructuring-bind (a b) (cdr code)
+		      (format nil "(~a)==(~a)" (emit a) (emit b))))
 		(<- ;; send to channel channel
 		 (destructuring-bind (a b) (cdr code)
 		      (format nil "~a<-~a" (emit a) (emit b))))
@@ -555,6 +617,7 @@ entry return-values contains a list of return values"
 			    (format nil "(~a)-=(~a)" (emit a) (emit b))
 			    (format nil "(~a)--" (emit a)))))
 		(string (format nil "\"~a\"" (cadr code)))
+		(char (format nil "'~a'" (cadr code)))
 		(slice (let ((args (cdr code)))
 		       (if (null args)
 			   (format nil ":")
@@ -569,14 +632,29 @@ entry return-values contains a list of return values"
 		      ;; -> {form}*
 		      (emit (reduce #'(lambda (x y) (list (emit x) (emit y))) forms))))
 		(t (destructuring-bind (name &rest args) code
-		     (progn ;if
-		       #+nil(and
-			(= 1 (length args))
-			(eq (aref (format nil "~a" (car args)) 0) #\.))
-		       #+nil (format nil "~a~a" name
-			       (emit args))
-		       (format nil "~a~a" name
-			       (emit `(paren ,@args)))))))
+
+		     (if (listp name)
+		       ;; lambda call and similar complex constructs
+			 (format nil "(~a)(~a)"
+				 (emit name)
+				 (if args
+				     (emit `(paren ,@args))
+				     ""))
+			 ;; function call
+			 
+			 
+			 (progn ;if
+			   #+nil(and
+				 (= 1 (length args))
+				 (eq (aref (format nil "~a" (car args)) 0) #\.))
+			   #+nil (format nil "~a~a" name
+					 (emit args))
+
+
+			   
+			   
+			   (format nil "~a~a" name
+				   (emit `(paren ,@args))))))))
 	      (cond
 		((or (symbolp code)
 		     (stringp code)) ;; print variable
