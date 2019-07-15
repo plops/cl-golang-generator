@@ -1,6 +1,7 @@
 * Introduction
 
-Common Lisp program that transforms s-expressions into Go language
+Common Lisp program that transforms s-expressions into Go language. It
+is currently still work in progress.
 
 
 This is the sixth in a series of code generators.
