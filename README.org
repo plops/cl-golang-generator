@@ -3,6 +3,60 @@
 Common Lisp program that transforms s-expressions into Go language
 
 
+This is the sixth in a series of code generators.
+
+- https://github.com/plops/cl-cpp-generator I tried this generator
+  with C/C++/ISPC/OpenCL/Cuda. It was my first attempt. The largest
+  project with this is a firmware for a microcontroller. The difficult
+  part is to get placement of semicolons right. I'm not terribly happy
+  with the current solution. People don't like that every function
+  call has to be explicitly stated as such. Initially I thought it
+  would help me to add function parameter completion in emacs. But I
+  never figured out how to do that and in later code generators I
+  simplified the lisp syntax.
+
+- https://github.com/plops/cl-ada-generator (abandoned) I always
+  wanted to have a VHDL code generator and thought that ADA would be a
+  good target to support a similar language. Unfortunately ADA and
+  VHDL have a lot of syntactic constructs which I find difficult to
+  express in Lisp semantics that I can remember. So I stopped working
+  in this direction.
+
+- https://github.com/plops/cl-py-generator At a new job I generated
+  LOTS of python code (75k lines) with this generator. The difficult
+  part was to get indents right. It works really well. I should
+  backport some features from cl-golang-generator: Variable type
+  declaration, when, unless, unitary - and unitary /, logior, logand,
+  incf, decf.
+
+- https://github.com/plops/cl-js-generator I played around with webrtc
+  and webgl in the browser.  I used parenscript before and I really
+  like the way it upholds lisp semantics (every expression returns a
+  value). However, the generated javascript can be difficult to read
+  (and compare to s-expressions). For this project my goal was to have
+  a very minimal mapping from s-expressions to javascript. Turns out
+  converting lisp to javascript is very straightforward.
+
+- https://github.com/plops/cl-wolfram-generator (abandoned) At some
+  point I was able to download a wolfram language license. I think
+  this language is very close to Lisp. I tried some code generation
+  but the free license would only work on one computer which is not
+  how I work.
+
+
+cl-golang-generator is based on cl-js-generator. Go doesn't really
+need indenting (go fmt can fix this) and also doesn't have lots of
+semicolons (like C). That makes the s-expression to golang conversion
+quite simple. The hardest part for this code generator is to support
+type declaration. I did the simplest possible thing and only search
+for declarations in the first forms of the body of let and defun. I
+really like that solution. It can even notice (most of the time) if a
+variable has a typo in the declaration.
+
+
+
+
+
 * References
 
 - https://common-lisp.net/project/parse-declarations/manual/parse-declarations.html perhaps i should use this to parse type declarations in defun and let
