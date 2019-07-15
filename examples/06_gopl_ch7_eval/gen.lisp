@@ -175,7 +175,7 @@
 		  ((lambda ()
 		     (case (:= x
 				   (dot (recover)
-					"(type)"))
+					"(type)")) ;; ch 7.10 type assertion
 		       ("nil"
 			)
 		       (lexPanic
