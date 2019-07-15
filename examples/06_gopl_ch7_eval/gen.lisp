@@ -265,7 +265,7 @@
 		(foreach ((ntuple _ test)
 			  (range tests))
 			 (if (!= test.expr
-				 prevExpr)
+				 prevExpr) 
 			     (do0
 			      (fmt.Printf (string "\\n%s\\n"
 						  )
