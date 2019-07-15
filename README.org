@@ -111,4 +111,6 @@ variable has a typo in the declaration.
 
 * References
 
+- https://github.com/golang-standards/project-layout go directory layout
 - https://common-lisp.net/project/parse-declarations/manual/parse-declarations.html perhaps i should use this to parse type declarations in defun and let
+ 
