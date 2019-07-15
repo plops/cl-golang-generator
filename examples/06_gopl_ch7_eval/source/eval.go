@@ -91,7 +91,7 @@ func TestEval(intest *testing.T) {
 		got := fmt.Sprintf("%.6g", expr.Eval(test.env))
 		fmt.Printf("\t%v => %s\n", test.env, got)
 		if (got) != (test.want) {
-			intest.Errorf("%s.Eval() in %s=%q, want %q", test.expr, test.env, got, test.want)
+			intest.Errorf("%s.Eval() in <env>=%q, want %q", test.expr, got, test.want)
 		}
 	}
 }

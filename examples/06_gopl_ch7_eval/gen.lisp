@@ -138,9 +138,9 @@
 			  test.env got)
 			 (if (!= got test.want)
 			     (intest.Errorf
-			      (string "%s.Eval() in %s=%q, want %q")
+			      (string "%s.Eval() in <env>=%q, want %q")
 			      test.expr
-			      test.env
+			      ;test.env
 			      got
 			      test.want)))))
 
