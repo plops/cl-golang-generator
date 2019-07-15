@@ -1,11 +1,10 @@
-package main
+package eval
 
 import (
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
-	"testing"
 	"text/scanner"
 )
 
@@ -67,33 +66,6 @@ func (c call) Eval(env Env) float64 {
 		return math.Sin(c.args[0].Eval(env))
 	}
 	panic(fmt.Sprintf("unsupported function call: %s", c.fn))
-}
-
-type TestDefinition struct {
-	expr string
-	env  Env
-	want string
-}
-
-func TestEval(intest *testing.T) {
-	tests := []TestDefinition{{"sqrt(A / pi)", Env{"A": 87616, "pi": math.Pi}, "167"}, {"pow(x,3)+pow(y,3)", Env{"x": 12, "y": 1}, "1729"}}
-	var prevExpr string
-	for _, test := range tests {
-		if (test.expr) != (prevExpr) {
-			fmt.Printf("\n%s\n", test.expr)
-			prevExpr = test.expr
-		}
-		expr, err := Parse(test.expr)
-		if (err) != (nil) {
-			intest.Error(err)
-			continue
-		}
-		got := fmt.Sprintf("%.6g", expr.Eval(test.env))
-		fmt.Printf("\t%v => %s\n", test.env, got)
-		if (got) != (test.want) {
-			intest.Errorf("%s.Eval() in <env>=%q, want %q", test.expr, got, test.want)
-		}
-	}
 }
 
 type lexer struct {

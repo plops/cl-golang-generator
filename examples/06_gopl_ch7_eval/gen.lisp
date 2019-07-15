@@ -6,12 +6,14 @@
 (progn
   (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/06_gopl_ch7_eval")
   (defparameter *code-file* "eval")
+  (defparameter *code-test-file* "eval_test")
   (defparameter *source* (format nil "~a/source/~a" *path*  *code-file*))
+  (defparameter *source-test* (format nil "~a/source/~a" *path*  *code-test-file*))
   (let* ((code
 	  `(do0
-	    (package main)
+	    (package eval)
 	    
-	    (import fmt math testing
+	    (import fmt math
 		    strconv
 		    strings
 		    text/scanner)
@@ -87,63 +89,7 @@
 		      (string "unsupported function call: %s")
 		      c.fn)))
 
-	    (defstruct0 TestDefinition
-		(expr string)
-	      (env Env)
-	      (want string))
-	    (defun TestEval (intest)
-	      (declare (type "*testing.T" intest))
-	      
-	      (assign
-	       tests
-	       (cast "[]TestDefinition"
-		     (braces
-		      (braces (string "sqrt(A / pi)")
-			      (cast Env (dict
-					 ((string "A")
-					  87616)
-					 ((string "pi")
-					  math.Pi)))
-			      (string "167"))
-		      (braces (string "pow(x,3)+pow(y,3)")
-			      (cast Env (dict
-					 ((string "x")
-					  12)
-					 ((string "y")
-					  1)))
-			      (string "1729")))))
-	      (let (prevExpr)
-		(declare (type string prevExpr))
-		(foreach ((ntuple _ test)
-			  (range tests))
-			 (if (!= test.expr
-				 prevExpr)
-			     (do0
-			      (fmt.Printf (string "\\n%s\\n"
-						  )
-					  test.expr)
-			      (setf prevExpr test.expr)))
-			 (assign (ntuple expr err)
-				 (Parse test.expr))
-			 (if (!= err "nil")
-			     (do0
-			      (intest.Error err)
-			      continue))
-			 (assign got
-				 (fmt.Sprintf
-				  (string "%.6g")
-				  (expr.Eval test.env)))
-			 (fmt.Printf
-			  (string "\\t%v => %s\\n")
-			  test.env got)
-			 (if (!= got test.want)
-			     (intest.Errorf
-			      (string "%s.Eval() in <env>=%q, want %q")
-			      test.expr
-			      ;test.env
-			      got
-			      test.want)))))
-
+	    
 	    (defstruct0 lexer
 		(scan scanner.Scanner)
 	      (token rune))
@@ -280,7 +226,74 @@
 		 (return e)
 		 ))
 	      (assign msg (fmt.Sprintf (string "unexpected at end <?>")))
-	      (panic (lexPanic msg))))))
-    (write-source *source* code)))
+	      (panic (lexPanic msg)))))
+	 (code-test
+	  `(do0
+	    (package eval)
+	    
+	    (import fmt math testing
+		    )
+	    
+
+	    (defstruct0 TestDefinition
+		(expr string)
+	      (env Env)
+	      (want string))
+	    (defun TestEval (intest)
+	      (declare (type "*testing.T" intest))
+	      
+	      (assign
+	       tests
+	       (cast "[]TestDefinition"
+		     (braces
+		      (braces (string "sqrt(A / pi)")
+			      (cast Env (dict
+					 ((string "A")
+					  87616)
+					 ((string "pi")
+					  math.Pi)))
+			      (string "167"))
+		      (braces (string "pow(x,3)+pow(y,3)")
+			      (cast Env (dict
+					 ((string "x")
+					  12)
+					 ((string "y")
+					  1)))
+			      (string "1729")))))
+	      (let (prevExpr)
+		(declare (type string prevExpr))
+		(foreach ((ntuple _ test)
+			  (range tests))
+			 (if (!= test.expr
+				 prevExpr)
+			     (do0
+			      (fmt.Printf (string "\\n%s\\n"
+						  )
+					  test.expr)
+			      (setf prevExpr test.expr)))
+			 (assign (ntuple expr err)
+				 (Parse test.expr))
+			 (if (!= err "nil")
+			     (do0
+			      (intest.Error err)
+			      continue))
+			 (assign got
+				 (fmt.Sprintf
+				  (string "%.6g")
+				  (expr.Eval test.env)))
+			 (fmt.Printf
+			  (string "\\t%v => %s\\n")
+			  test.env got)
+			 (if (!= got test.want)
+			     (intest.Errorf
+			      (string "%s.Eval() in <env>=%q, want %q")
+			      test.expr
+			      ;test.env
+			      got
+			      test.want)))))
+
+	    )))
+    (write-source *source* code)
+    (write-source *source-test* code-test)))
 
 
