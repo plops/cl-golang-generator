@@ -120,3 +120,5 @@ variable has a typo in the declaration.
   - go get -u github.com/motemen/gore/cmd/gore
   - go get -u github.com/mdempsky/gocode  
   - go get -u github.com/k0kubun/pp  
+
+- http://go-database-sql.org/modifying.html database
