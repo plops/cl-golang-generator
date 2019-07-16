@@ -23,7 +23,7 @@
 	     fyne.io/fyne/canvas
 	     fyne.io/fyne/theme
 	     fyne.io/fyne/app
-	     fyne.io/fyne/widget
+	     ;fyne.io/fyne/widget
 	     github.com/fyne-io/examples/img/icon)
 	    (defstruct0 fractal
 		(currIterations int)
@@ -170,15 +170,21 @@
 	    
 	    ;; https://github.com/fyne-io/examples/blob/develop/main.go
 	    (defun main ()
-	      (assign a (app.New)
-		      win (a.NewWindow (string "Hello World!"))
-		      )
-	      (win.SetContent
-	       (widget.NewVBox
-		(widget.NewLabel (string "Hello World!"))
-		(widget.NewButton (string "Quit") (lambda ()
-						    (a.Quit)))))
-	      (win.ShowAndRun)
+	      ;(assign f (fractal.New))
+					;(fractal.Show)
+	      (assign ex (app.New))
+	      (Show ex)
+	      (ex.Run)
+	      #+nil(do0
+	       (assign a (app.New)
+		       win (a.NewWindow (string "Hello World!"))
+		       )
+	       (win.SetContent
+		(widget.NewVBox
+		 (widget.NewLabel (string "Hello World!"))
+		 (widget.NewButton (string "Quit") (lambda ()
+						     (a.Quit)))))
+	       (win.ShowAndRun))
 	      )))
 	 )
     (write-source *source* code)

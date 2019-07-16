@@ -7,7 +7,6 @@ import (
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
-	"fyne.io/fyne/widget"
 	"github.com/fyne-io/examples/img/icon"
 	"image/color"
 	"math"
@@ -110,10 +109,7 @@ func Show(app fyne.App) {
 	window.Show()
 }
 func main() {
-	a := app.New()
-	win := a.NewWindow("Hello World!")
-	win.SetContent(widget.NewVBox(widget.NewLabel("Hello World!"), widget.NewButton("Quit", func() {
-		a.Quit()
-	})))
-	win.ShowAndRun()
+	ex := app.New()
+	Show(ex)
+	ex.Run()
 }
