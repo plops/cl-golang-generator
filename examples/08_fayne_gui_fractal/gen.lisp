@@ -170,24 +170,9 @@
 	    
 	    ;; https://github.com/fyne-io/examples/blob/develop/main.go
 	    (defun main ()
-	      ;(assign f (fractal.New))
-					;(fractal.Show)
 	      (assign ex (app.New))
 	      (Show ex)
-	      (ex.Run)
-	      #+nil(do0
-	       (assign a (app.New)
-		       win (a.NewWindow (string "Hello World!"))
-		       )
-	       (win.SetContent
-		(widget.NewVBox
-		 (widget.NewLabel (string "Hello World!"))
-		 (widget.NewButton (string "Quit") (lambda ()
-						     (a.Quit)))))
-	       (win.ShowAndRun))
-	      )))
-	 )
-    (write-source *source* code)
-    ))
+	      (ex.Run)))))
+    (write-source *source* code)))
 
 
