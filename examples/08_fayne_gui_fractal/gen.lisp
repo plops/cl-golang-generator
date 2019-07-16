@@ -12,9 +12,13 @@
   (let* ((code
 	  `(do0
 	    (package main)
-	    "//  go get -u fyne.io/fyne"
-	    "//  go get -u github.com/fyne-io/examples/img/icon"
-	    ;; https://fyne.io//develop/cross-compiling.html
+	    "// go get -u fyne.io/fyne"
+	    "// go get -u github.com/fyne-io/examples/img/icon"
+	    "// go build fractal.go"
+	    "// https://fyne.io//develop/cross-compiling.html"
+	    
+	    "// sudo apt install mingw-w64"
+
 	    "// GOOS=windows CC=x86_64-w64-mingw32-gcc go build fractal.go"
 	    
 	     
