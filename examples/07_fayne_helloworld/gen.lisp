@@ -11,7 +11,7 @@
   
   (let* ((code
 	  `(do0
-	    (package eval)
+	    (package main)
 	    "//  go get -u fyne.io/fyne"
 	    "// the initial `go build hello.go` takes a while"
 	    
