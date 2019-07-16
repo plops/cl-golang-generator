@@ -72,6 +72,79 @@
 		       (uint8 (* (- 1.0 c) (float64
 					    (uint8 (- end
 						      start))))))))
+
+	    (defmethod scaleColor ((f *fractal)
+				   c start end)
+	      (declare (type float64 c)
+		       (type color.Color start end)
+		       (values color.Color))
+	      (assign (ntuple r1 g1 b1) (start.RGBA)
+		      (ntuple r2 g2 b2) (end.RGBA))
+	      (return (curly color.RGBA
+			     (f.scaleChannel c r1 r2)
+			     (f.scaleChannel c g1 g2)
+			     (f.scaleChannel c b1 b2)
+			     "0xff")))
+
+	    (defmethod mandelbrot ((f *fractal)
+				    px py w h)
+	      (declare (type int px py w h)
+		       (values color.Color))
+	      (assign drawScale (* 3.5 f.currScale)
+		      aspect (/ (float64 h)
+				(float64 w))
+		      cRe (+ f.currX
+			     (* drawScale
+				(- (/ (float64 px)
+				      (float64 w))
+				   .5)))
+		      cIm (+ (- f.currY)
+			     (* drawScale
+				(- (/ (float64 py)
+				      (float64 w)) ;; FIXME h?
+ 				   (* aspect .5)))))
+	      (let (i
+		    x y xsq ysq)
+		(declare (type int i)
+			 (type float64 x y xsq ysq))
+		(for ((setf i 0)
+		      (and (< i f.currIterations)
+			   (<= (+ xsq ysq) 4))
+		      (incf i))
+		     (assign xNew (+ cRe (float64 (- xsq ysq)))
+			     )
+		     (setf y (+ cIm (* 2 x y))
+			   x xNew
+			   xsq (* x x)
+			   ysq (* y y)))
+		(when (== i f.currIterations)
+		  (return theme.BackgroundColor))
+		(assign mu (/ (float64 i)
+			      (flaot64 f.currIterations))
+			c (math.Sin (* mu math.Pi .5)))
+		(return (f.scaleColor c
+				      (theme.PrimaryColor)
+				      (theme.TextColor)))))
+
+	    (defmethod fractalRune ((f *fractal)
+				    r)
+	      (declare (type rune r))
+	      (when (== r (char +))
+		(/= f.currScale 1.1))
+	      (when (== r (char -))
+		(*= f.currScale 1.1))
+	      (f.refresh))
+
+	    (defmethod fractalKey ((f *fractal)
+				   ev)
+	      (declare (type *fyne.KeyEvent ev))
+	      (assign delta (* .2 f.currScale))
+	      (ecase ev.Name
+		(fyne.KeyUp (decf f.currY delta))
+		(fyne.KeyDown (incf f.currY delta))
+		(fyne.KeyLeft (incf f.currX delta))
+		(fyne.KeyRight (decf f.currX delta)))
+	      (f.refresh))
 	    
 	    
 	    (defun main ()
