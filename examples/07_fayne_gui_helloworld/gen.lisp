@@ -4,7 +4,7 @@
 (in-package :cl-golang-generator)
 
 (progn
-  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/07_fayne_helloworld")
+  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/07_fayne_gui_helloworld")
   (defparameter *code-file* "hello")
   
   (defparameter *source* (format nil "~a/source/~a" *path*  *code-file*))
