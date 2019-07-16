@@ -2,6 +2,7 @@ package main
 
 //  go get -u fyne.io/fyne
 //  go get -u github.com/fyne-io/examples/img/icon
+// GOOS=windows CC=x86_64-w64-mingw32-gcc go build fractal.go
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
