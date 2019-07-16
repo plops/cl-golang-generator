@@ -12,10 +12,22 @@
   (let* ((code
 	  `(do0
 	    (package eval)
+	    "//  go get -u fyne.io/fyne"
+	    "// the initial `go build hello.go` takes a while"
 	    
 	    (import fyne.io/fyne/app
 		    fyne.io/fyne/widget)
-	    ))
+	    (defun main ()
+	      (assign a (app.New)
+		      win (a.NewWindow (string "Hello World!"))
+		      )
+	      (win.SetContent
+	       (widget.NewVBox
+		(widget.NewLabel (string "Hello World!"))
+		(widget.NewButton (string "Quit") (lambda ()
+						    (a.Quit)))))
+	      (win.ShowAndRun)
+	      )))
 	 )
     (write-source *source* code)
     ))
