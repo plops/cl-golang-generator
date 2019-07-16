@@ -13,6 +13,7 @@
 	  `(do0
 	    (package main)
 	    "//  go get -u fyne.io/fyne"
+	    "//  go get -u github.com/fyne-io/examples/img/icon"
 	    
 	    
 	    (import
@@ -21,7 +22,7 @@
 	     fyne.io/fyne
 	     fyne.io/fyne/canvas
 	     fyne.io/fyne/theme
-	     github.com/fyne.io/examples/img/icon)
+	     github.com/fyne-io/examples/img/icon)
 	    (defstruct0 fractal
 		(currIterations int)
 	      (currScale float64)
@@ -145,8 +146,27 @@
 		(fyne.KeyLeft (incf f.currX delta))
 		(fyne.KeyRight (decf f.currX delta)))
 	      (f.refresh))
+
+	    (defun Show (app)
+	      (declare (type fyne.App app))
+	      (assign window (app.NewWindow (string "fractal")))
+	      (window.SetIcon icon.FractalBitmap)
+	      (window.SetPadded false)
+	      (assign fractal (curly &fractal :window window))
+	      (setf fractal.canvas (canvas.NewRasterWithPixels fractal.mandelbrot)
+		    fractal.currIterations 100
+		    fractal.currScale 1.0
+		    fractal.currX -.75
+		    fractal.currY 0.0)
+	      (window.SetContent (fyne.NewContainerWithLayout fractal fractal.canvas))
+	      (dot (window.Canvas)
+		   (SetOnTypedRune fractal.fractalRune))
+	      (dot (window.Canvas)
+		   (SetOnTypedKey fractal.fractalKey))
+	      (window.Show)
+	      )
 	    
-	    
+	    #+nil
 	    (defun main ()
 	      (assign a (app.New)
 		      win (a.NewWindow (string "Hello World!"))

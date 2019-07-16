@@ -1,11 +1,12 @@
 package main
 
 //  go get -u fyne.io/fyne
+//  go get -u github.com/fyne-io/examples/img/icon
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
-	"github.com/fyne.io/examples/img/icon"
+	"github.com/fyne-io/examples/img/icon"
 	"image/color"
 	"math"
 )
@@ -91,11 +92,18 @@ func (f *fractal) fractalKey(ev *fyne.KeyEvent) {
 	}
 	f.refresh()
 }
-func main() {
-	a := app.New()
-	win := a.NewWindow("Hello World!")
-	win.SetContent(widget.NewVBox(widget.NewLabel("Hello World!"), widget.NewButton("Quit", func() {
-		a.Quit()
-	})))
-	win.ShowAndRun()
+func Show(app fyne.App) {
+	window := app.NewWindow("fractal")
+	window.SetIcon(icon.FractalBitmap)
+	window.SetPadded(false)
+	fractal := &fractal{window: window}
+	fractal.canvas = canvas.NewRasterWithPixels(fractal.mandelbrot)
+	fractal.currIterations = 100
+	fractal.currScale = (1.e+0)
+	fractal.currX = (-7.499999999999999e-1)
+	fractal.currY = (0.0e+0)
+	window.SetContent(fyne.NewContainerWithLayout(fractal, fractal.canvas))
+	window.Canvas().SetOnTypedRune(fractal.fractalRune)
+	window.Canvas().SetOnTypedKey(fractal.fractalKey)
+	window.Show()
 }
