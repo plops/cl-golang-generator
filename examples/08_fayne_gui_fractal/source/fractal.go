@@ -65,7 +65,7 @@ func (f *fractal) mandelbrot(px int, py int, w int, h int) color.Color {
 	if (i) == (f.currIterations) {
 		return theme.BackgroundColor()
 	}
-	mu := ((float64(i)) / (flaot64(f.currIterations)))
+	mu := ((float64(i)) / (float64(f.currIterations)))
 	c := math.Sin(((mu) * (math.Pi) * (5.e-1)))
 	return f.scaleColor(c, theme.PrimaryColor(), theme.TextColor())
 }

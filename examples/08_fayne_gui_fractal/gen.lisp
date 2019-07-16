@@ -121,7 +121,7 @@
 		(when (== i f.currIterations)
 		  (return (theme.BackgroundColor)))
 		(assign mu (/ (float64 i)
-			      (flaot64 f.currIterations))
+			      (float64 f.currIterations))
 			c (math.Sin (* mu math.Pi .5)))
 		(return (f.scaleColor c
 				      (theme.PrimaryColor)
