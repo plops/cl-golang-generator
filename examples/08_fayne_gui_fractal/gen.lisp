@@ -22,6 +22,8 @@
 	     fyne.io/fyne
 	     fyne.io/fyne/canvas
 	     fyne.io/fyne/theme
+	     fyne.io/fyne/app
+	     fyne.io/fyne/widget
 	     github.com/fyne-io/examples/img/icon)
 	    (defstruct0 fractal
 		(currIterations int)
@@ -166,7 +168,7 @@
 	      (window.Show)
 	      )
 	    
-	    #+nil
+	    ;; https://github.com/fyne-io/examples/blob/develop/main.go
 	    (defun main ()
 	      (assign a (app.New)
 		      win (a.NewWindow (string "Hello World!"))

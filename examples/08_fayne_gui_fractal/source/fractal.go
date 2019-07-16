@@ -4,8 +4,10 @@ package main
 //  go get -u github.com/fyne-io/examples/img/icon
 import (
 	"fyne.io/fyne"
+	"fyne.io/fyne/app"
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
+	"fyne.io/fyne/widget"
 	"github.com/fyne-io/examples/img/icon"
 	"image/color"
 	"math"
@@ -106,4 +108,12 @@ func Show(app fyne.App) {
 	window.Canvas().SetOnTypedRune(fractal.fractalRune)
 	window.Canvas().SetOnTypedKey(fractal.fractalKey)
 	window.Show()
+}
+func main() {
+	a := app.New()
+	win := a.NewWindow("Hello World!")
+	win.SetContent(widget.NewVBox(widget.NewLabel("Hello World!"), widget.NewButton("Quit", func() {
+		a.Quit()
+	})))
+	win.ShowAndRun()
 }
