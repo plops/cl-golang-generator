@@ -114,4 +114,9 @@ variable has a typo in the declaration.
 
 - https://github.com/golang-standards/project-layout go directory layout
 - https://common-lisp.net/project/parse-declarations/manual/parse-declarations.html perhaps i should use this to parse type declarations in defun and let
--  https://github.com/google/grumpy python to go (i didn't look at it but it seems somewhat related)
+- https://github.com/google/grumpy python to go (i didn't look at it but it seems somewhat related)
+
+- go repl
+  - go get -u github.com/motemen/gore/cmd/gore
+  - go get -u github.com/mdempsky/gocode  
+  - go get -u github.com/k0kubun/pp  
