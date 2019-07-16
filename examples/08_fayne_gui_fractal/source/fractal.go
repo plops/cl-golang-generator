@@ -24,13 +24,13 @@ func (f *fractal) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	f.canvas.Resize(size)
 }
 func (f *fractal) MinSize(objects []fyne.CanvasObject) fyne.Size {
-	return f.NewSize(320, 240)
+	return fyne.NewSize(320, 240)
 }
 func (f *fractal) refresh() {
 	if (1.e+0) <= (f.currScale) {
 		f.currIterations = 100
 	} else {
-		f.currIterations = uint(((100) * ((1) + (math.Pow(math.Log10((1.0 / (currScale))), (1.25e+0))))))
+		f.currIterations = int(((100) * ((1) + (math.Pow(math.Log10((1.0 / (f.currScale))), (1.25e+0))))))
 	}
 	f.window.Canvas().Refresh(f.canvas)
 }
@@ -41,8 +41,8 @@ func (f *fractal) scaleChannel(c float64, start uint32, end uint32) uint8 {
 	return ((uint8(start)) + (uint8((((1.e+0) - (c)) * (float64(uint8(((end) - (start)))))))))
 }
 func (f *fractal) scaleColor(c float64, start color.Color, end color.Color) color.Color {
-	r1, g1, b1 := start.RGBA()
-	r2, g2, b2 := end.RGBA()
+	r1, g1, b1, _ := start.RGBA()
+	r2, g2, b2, _ := end.RGBA()
 	return color.RGBA{f.scaleChannel(c, r1, r2), f.scaleChannel(c, g1, g2), f.scaleChannel(c, b1, b2), 0xff}
 }
 func (f *fractal) mandelbrot(px int, py int, w int, h int) color.Color {
@@ -63,7 +63,7 @@ func (f *fractal) mandelbrot(px int, py int, w int, h int) color.Color {
 		ysq = ((y) * (y))
 	}
 	if (i) == (f.currIterations) {
-		return theme.BackgroundColor
+		return theme.BackgroundColor()
 	}
 	mu := ((float64(i)) / (flaot64(f.currIterations)))
 	c := math.Sin(((mu) * (math.Pi) * (5.e-1)))

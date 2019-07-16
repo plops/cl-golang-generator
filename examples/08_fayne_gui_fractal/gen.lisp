@@ -42,16 +42,16 @@
 			       )
 	      (declare (type "[]fyne.CanvasObject" objects)
 		       (values fyne.Size))
-	      (return (f.NewSize 320 240)))
+	      (return (fyne.NewSize 320 240)))
 
 	    (defmethod refresh ((f *fractal)
 			       )
 	      (if (<= 1.0 f.currScale)
 		  (setf f.currIterations 100)
 		  (setf f.currIterations
-			(uint (* 100 (+ 1
+			(int (* 100 (+ 1
 					(math.Pow
-					 (math.Log10 (/ currScale))
+					 (math.Log10 (/ f.currScale))
 					 1.25))))))
 	      (dot (f.window.Canvas)
 		   (Refresh f.canvas)))
@@ -79,8 +79,8 @@
 	      (declare (type float64 c)
 		       (type color.Color start end)
 		       (values color.Color))
-	      (assign (ntuple r1 g1 b1) (start.RGBA)
-		      (ntuple r2 g2 b2) (end.RGBA))
+	      (assign (ntuple r1 g1 b1 _) (start.RGBA)
+		      (ntuple r2 g2 b2 _) (end.RGBA))
 	      (return (curly color.RGBA
 			     (f.scaleChannel c r1 r2)
 			     (f.scaleChannel c g1 g2)
@@ -119,7 +119,7 @@
 			   xsq (* x x)
 			   ysq (* y y)))
 		(when (== i f.currIterations)
-		  (return theme.BackgroundColor))
+		  (return (theme.BackgroundColor)))
 		(assign mu (/ (float64 i)
 			      (flaot64 f.currIterations))
 			c (math.Sin (* mu math.Pi .5)))
