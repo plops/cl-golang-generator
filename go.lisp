@@ -560,8 +560,19 @@ entry return-values contains a list of return values"
 		(not (format nil "!(~a)" (emit (car (cdr code)))))
 		(package (format nil "package ~a" (car (cdr code))))
 		(import (let ((args (cdr code)))
-			  (format nil "import (~{~&\"~a\"~}~&)"
-				  args)))
+			  ;; import {(name|pair)}*
+			  ;; pair := nickname name
+			  (with-output-to-string (s)
+			   (format s "import ("
+				   args)
+			   (loop for e in args do
+				(if (listp e)
+				    (destructuring-bind (nick name) e
+				      (format s "~&~a \"~a\""
+					      nick name))
+				    (format s "~&\"~a\"" e))
+				)
+			   (format s "~&)"))))
 		
 		(+ (let ((args (cdr code)))
 		     ;; + {summands}*
