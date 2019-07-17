@@ -78,7 +78,20 @@
 			 (setf e (curly &entry :ready (make "chan struct{}"))
 			       (aref cache req.key) e)
 			 (go (e.call f req.key)))
-		       (go (e.deliver req.response)))))))
+		       (go (e.deliver req.response))))
+
+	    (defmethod call ((e *entry) f key)
+	      (declare (type Func f)
+		       (type string key))
+	      (setf (ntuple e.res.value
+			    e.res.err
+			    )
+		    (f key))
+	      (close e.ready))
+	    (defmethod deliver ((e *entry) response)
+	      (declare (type "chan<- result" response))
+	      (<- e.ready)
+	      (<- response e.res)))))
     (write-source *source* code)))
 
 

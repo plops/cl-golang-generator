@@ -54,3 +54,11 @@ func (memo *Memo) server(f Func) {
 		go e.deliver(req.response)
 	}
 }
+func (e *entry) call(f Func, key string) {
+	e.res.value, e.res.err = f(key)
+	close(e.ready)
+}
+func (e *entry) deliver(response chan<- result) {
+	<-e.ready
+	response <- e.res
+}
