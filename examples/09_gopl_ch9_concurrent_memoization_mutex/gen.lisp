@@ -26,6 +26,18 @@
 	     
 	    (import sync)
 	    
+	    (deftype Func ()
+	      (defun-declaration func (key)
+		(declare (type string key)
+			 (values "interface{}"
+				 error))))
+
+	    (defstruct0 result
+		(value "interface{}")
+	      (err error))
+
+
+
 	    (defstruct0 entry
 		(res result)
 	      (ready "chan struct{}"))
