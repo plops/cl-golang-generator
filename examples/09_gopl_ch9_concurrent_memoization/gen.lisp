@@ -19,7 +19,8 @@
 	    "// 1) call to Get acquires mutex lock on the cache"
 	    "// 2) is there an existing entry?"
 	    "// 3a) yes: wait for ready condition"
-	    "// 3b) no: write 'not ready' into the map, when result arrives replace with result"
+	    "// 3b) no: write 'not ready' into the map, when result arrives"
+	    "//     replace with result and broadcast ready"
 	    
 	    
 	     
@@ -27,7 +28,40 @@
 	    
 	    (defstruct0 entry
 		(res result)
-	      (ready "chan struct{}")))))
+	      (ready "chan struct{}"))
+	    (defun New (f)
+	      (declare (type Func f)
+		       (values *Memo))
+	      (return (curly &Memo
+			     :f f
+			     :cache (make "map[string]*entry"))))
+	    (defstruct0 Memo
+		(f Func)
+	      (mu sync.Mutex)
+	      (cache "map[string]*entry"))
+
+	    (defmethod Get ((memo *Memo) key)
+	      (declare (type string key)
+		       (values "interface{}" error))
+	      (memo.mu.Lock)
+	      (assign e (aref memo.cache key))
+	      (if (== e "nil")
+		  (do0
+		   "// 3b) first request for key"
+		   (setf e (curly &entry :ready (make "chan struct{}"))
+			 (aref memo.cache key) e
+			 )
+		   (memo.mu.Unlock)
+		   (setf (ntuple e.res.value
+				 e.res.err)
+			 (memo.f key))
+		   (close e.ready))
+		  (do0
+		   "// 3a) repeat request"
+		   (memo.mu.Unlock)
+		   (<- e.ready)))
+	      (return (ntuple e.res.value
+			      e.res.err))))))
     (write-source *source* code)))
 
 

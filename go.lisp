@@ -602,8 +602,10 @@ entry return-values contains a list of return values"
 		(== (destructuring-bind (a b) (cdr code)
 		      (format nil "(~a)==(~a)" (emit a) (emit b))))
 		(<- ;; send to channel channel
-		 (destructuring-bind (a b) (cdr code)
-		      (format nil "~a<-~a" (emit a) (emit b))))
+		 (destructuring-bind (a &optional b) (cdr code)
+		   (if b
+		       (format nil "~a<-~a" (emit a) (emit b))
+		       (format nil "<-~a" (emit a)))))
 		(< (destructuring-bind (a b) (cdr code)
 		     (format nil "~a<~a" (emit a) (emit b))))
 		(<< (destructuring-bind (a b) (cdr code)
