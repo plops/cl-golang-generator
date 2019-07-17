@@ -4,7 +4,7 @@
 (in-package :cl-golang-generator)
 
 (progn
-  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/09_gopl_ch9_concurrent_memoization")
+  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/09_gopl_ch9_concurrent_memoization_mutex")
   (defparameter *code-file* "memo")
   
   (defparameter *source* (format nil "~a/source/~a" *path*  *code-file*))
