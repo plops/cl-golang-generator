@@ -4,6 +4,9 @@ sudo pacman -S protobuf
 go get -u google.golang.org/grpc
 go get -u github.com/golang/protobuf/protoc-gen-go
 
+go get -u github.com/gin-gonic/gin
+
+
 ln -s ~/stage/cl-golang-generator/examples/11_grpc ~/go/src/
 
 

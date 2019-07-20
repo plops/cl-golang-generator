@@ -8,6 +8,7 @@
   (defparameter *code-file* "main")
   
   (defparameter *source-server* (format nil "~a/source/server/~a" *path*  *code-file*))
+  (defparameter *source-client* (format nil "~a/source/client/~a" *path*  *code-file*))
   (let* ((code-server
 	  `(do0
 	    (package main)
@@ -32,9 +33,7 @@
 	      (progn
 		(assign e (srv.Serve listener))
 		(unless (== e "nil")
-		  (panic e)))
-	      
-	      )
+		  (panic e))))
 	    
 	    (defmethod Add ((s *server)
 			    ctx request)
@@ -57,7 +56,26 @@
 		      result (* a b))
 	      (return (ntuple (curly &proto.Response :Result result)
 			      "nil")))
+	    ))
+	 (code-client
+	  `(do0
+	    (package main)
+	    (import google.golang.org/grpc)
+	    (defun main ()
+	      (assign (ntuple conn err)
+		      (grpc.Dial (string "localhost:4040")
+				 ;; insecure, no https
+				 (grpc.WithInsecure))
+		      )
+	      (unless (== err "nil")
+		(panic err))
+
+	      (assign client (proto.NewAddServiceClient conn)
+		      g (gin.Default))
+	    )
 	    )))
-    (write-source *source-server* code-server)))
+
+    (write-source *source-server* code-server)
+    (write-source *source-client* code-client)))
 
 
