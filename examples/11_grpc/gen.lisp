@@ -78,7 +78,13 @@
 		      g (gin.Default))
 
 	      (g.GET (string "/add/:a/:b")
-		     )
+		     (defun-declaration func
+			 (ctx)
+		       (declare (type *gin.Context ctx))))
+	      (g.GET (string "/mult/:a/:b")
+		     (defun-declaration func
+			 (ctx)
+		       (declare (type *gin.Context ctx))))
 	    )
 	    )))
 

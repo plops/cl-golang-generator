@@ -14,5 +14,6 @@ func main() {
 	}
 	client := proto.NewAddServiceClient(conn)
 	g := gin.Default()
-	g.GET("/add/:a/:b")
+	g.GET("/add/:a/:b", func(ctx *gin.Context))
+	g.GET("/mult/:a/:b", func(ctx *gin.Context))
 }
