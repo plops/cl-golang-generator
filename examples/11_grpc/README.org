@@ -1,0 +1,11 @@
+* Setup
+
+sudo pacman -S protobuf
+go get -u google.golang.org/grpc
+go get -u github.com/golang/protobuf/protoc-gen-go
+
+
+* References
+
+- https://www.youtube.com/watch?v=Y92WWaZJl24 Building an Basic API with gRPC and Protobuf
+- https://github.com/tensor-programming/grpc_tutorial
