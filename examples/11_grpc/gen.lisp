@@ -17,7 +17,7 @@
 	    
 	    (defun main ()
 	      )
-
+	    
 	    (defmethod Add ((s *server)
 			    ctx request)
 	      (declare (type context.Context ctx)
@@ -26,6 +26,17 @@
 	      (assign a (request.GetA)
 		      b (request.GetB)
 		      result (+ a b))
+	      (return (ntuple (curly &proto.Response :Result result)
+			      "nil")))
+
+	    (defmethod Multiply ((s *server)
+			    ctx request)
+	      (declare (type context.Context ctx)
+		       (type *proto.Request request)
+		       (values *proto.Response error))
+	      (assign a (request.GetA)
+		      b (request.GetB)
+		      result (* a b))
 	      (return (ntuple (curly &proto.Response :Result result)
 			      "nil")))
 	    )))

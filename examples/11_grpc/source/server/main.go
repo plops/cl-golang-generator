@@ -16,3 +16,9 @@ func (s *server) Add(ctx context.Context, request *proto.Request) (*proto.Respon
 	result := ((a) + (b))
 	return &proto.Response{Result: result}, nil
 }
+func (s *server) Multiply(ctx context.Context, request *proto.Request) (*proto.Response, error) {
+	a := request.GetA()
+	b := request.GetB()
+	result := ((a) * (b))
+	return &proto.Response{Result: result}, nil
+}
