@@ -78,9 +78,38 @@
 		      g (gin.Default))
 
 	      (g.GET (string "/add/:a/:b")
-		     (defun-declaration func
-			 (ctx)
-		       (declare (type *gin.Context ctx))))
+		     (defun func (ctx)
+		       (declare (type *gin.Context ctx))
+
+		       (do0
+			(assign (ntuple a err)
+				(strconv.ParseUint (ctx.Param (string "a"))
+						   10 ;; base
+						   64 ;; size
+						   ))
+
+			(unless (== err "nil")
+			  (ctx.JSON http.StatusBadRequest
+				    (cast gin.H (dict 
+				      ((string "error")
+				       (string "invalid parameter a")))))
+			  return))
+
+		       (do0
+			(assign (ntuple b err)
+				(strconv.ParseUint (ctx.Param (string "b"))
+						   10 ;; base
+						   64 ;; size
+						   ))
+
+			(unless (== err "nil")
+			  (ctx.JSON http.StatusBadRequest
+				    (cast gin.H
+					  (dict  
+				      ((string "error")
+				       (string "invalid parameter b")))))
+			  return))
+		       ))
 	      (g.GET (string "/mult/:a/:b")
 		     (defun-declaration func
 			 (ctx)
