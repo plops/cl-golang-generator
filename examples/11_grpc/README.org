@@ -9,7 +9,8 @@ go get -u github.com/golang/protobuf/protoc-gen-go
 - write source/service.proto and generate a go file
 
 export PATH=$PATH:~/go/bin
-protoc --go_out=. service.proto
+cd ~/stage/cl-golang-generator/examples/11_grpc/source
+protoc --proto_path=proto --go_out=plugins=grpc:proto service.proto
 
 
 * References
