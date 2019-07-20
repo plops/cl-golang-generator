@@ -78,7 +78,7 @@
 		      g (gin.Default))
 
 	      (g.GET (string "/add/:a/:b")
-		     (defun func (ctx)
+		     (lambda (ctx)
 		       (declare (type *gin.Context ctx))
 
 		       (do0
@@ -109,11 +109,71 @@
 				      ((string "error")
 				       (string "invalid parameter b")))))
 			  return))
+		         (assign req (curly &proto.Request :A (int64 a)
+					    :B (int64 b)))
+			 (progn
+			   (assign (ntuple response err)
+				   (client.Add ctx req))
+			   (if (== err "nil")
+			       (ctx.JSON http.StatusOK
+					 (cast gin.H
+					       (dict ((string "result")
+						      (fmt.Sprint response.Result)))))
+			       (ctx.JSON http.StatusInternalServerError
+					 (cast gin.H
+					       (dict  
+						((string "error")
+						 (err.Error)))))))
+			 
 		       ))
 	      (g.GET (string "/mult/:a/:b")
-		     (defun-declaration func
-			 (ctx)
-		       (declare (type *gin.Context ctx))))
+		     (lambda (ctx)
+		       (declare (type *gin.Context ctx))
+
+		       (do0
+			(assign (ntuple a err)
+				(strconv.ParseUint (ctx.Param (string "a"))
+						   10 ;; base
+						   64 ;; size
+						   ))
+
+			(unless (== err "nil")
+			  (ctx.JSON http.StatusBadRequest
+				    (cast gin.H (dict 
+				      ((string "error")
+				       (string "invalid parameter a")))))
+			  return))
+
+		       (do0
+			(assign (ntuple b err)
+				(strconv.ParseUint (ctx.Param (string "b"))
+						   10 ;; base
+						   64 ;; size
+						   ))
+
+			(unless (== err "nil")
+			  (ctx.JSON http.StatusBadRequest
+				    (cast gin.H
+					  (dict  
+				      ((string "error")
+				       (string "invalid parameter b")))))
+			  return))
+		         (assign req (curly &proto.Request :A (int64 a)
+					    :B (int64 b)))
+			 (progn
+			   (assign (ntuple response err)
+				   (client.Multiply ctx req))
+			   (if (== err "nil")
+			       (ctx.JSON http.StatusOK
+					 (cast gin.H
+					       (dict ((string "result")
+						      (fmt.Sprint response.Result)))))
+			       (ctx.JSON http.StatusInternalServerError
+					 (cast gin.H
+					       (dict  
+						((string "error")
+						 (err.Error)))))))
+		       ))
 	    )
 	    )))
 
