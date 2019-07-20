@@ -1,8 +1,11 @@
 package main
 
 import (
+	"11_grpc/source/proto"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -56,4 +59,10 @@ func main() {
 			}
 		}
 	})
+	{
+		err := g.Run(":8080")
+		if !((err) == (nil)) {
+			log.Fatalf("failed to run server: %v", err)
+		}
+	}
 }

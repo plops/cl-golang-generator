@@ -62,6 +62,9 @@
 	    (package main)
 	    (import google.golang.org/grpc
 		    github.com/gin-gonic/gin
+		    log
+		    11_grpc/source/proto
+		    fmt
 		    strconv
 		    net/http)
 	    
@@ -172,8 +175,13 @@
 					 (cast gin.H
 					       (dict  
 						((string "error")
-						 (err.Error)))))))
-		       ))
+						 (err.Error)))))))))
+
+	      (progn
+		(assign err (g.Run (string ":8080")))
+		(unless (== err "nil")
+		  (log.Fatalf (string "failed to run server: %v")
+			      err)))
 	    )
 	    )))
 
