@@ -1,7 +1,9 @@
 * Setup
 
 sudo pacman -S protobuf
+
 go get -u google.golang.org/grpc
+
 go get -u github.com/golang/protobuf/protoc-gen-go
 
 go get -u github.com/gin-gonic/gin
@@ -15,8 +17,11 @@ ln -s ~/stage/cl-golang-generator/examples/11_grpc ~/go/src/
 - write source/service.proto and generate a go file
 
 export PATH=$PATH:~/go/bin
+
 cd ~/stage/cl-golang-generator/examples/11_grpc/source
+
 protoc --proto_path=proto --go_out=plugins=grpc:proto service.proto
+
 
 
 * References
