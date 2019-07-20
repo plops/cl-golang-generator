@@ -11,17 +11,19 @@
   (let* ((code-server
 	  `(do0
 	    (package main)
-	    (import sync)
+	    (import context
+		    source/proto)
+	    (defstruct0 server)
+	    
+	    (defun main ()
+	      )
 
-	    (deftype Func ()
-	      (defun-declaration func (key)
-		(declare (type string key)
-			 (values "interface{}"
-				 error))))
-
-	    (defstruct0 result
-		(value "interface{}")
-	      (err error)))))
+	    (defmethod Add ((s *server)
+			    ctx proto)
+	      (declare (type context.Context ctx)
+		       (type *proto.Request proto)
+		       (values *proto.Response error)))
+	    )))
     (write-source *source-server* code-server)))
 
 

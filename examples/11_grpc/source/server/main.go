@@ -1,11 +1,14 @@
 package main
 
 import (
-	"sync"
+	"context"
+	"source/proto"
 )
 
-type Func func(key string) (interface{}, error)
-type result struct {
-	value interface{}
-	err   error
+type server struct {
+}
+
+func main() {
+}
+func (s *server) Add(ctx context.Context, proto *proto.Request) (*proto.Response, error) {
 }

@@ -4,6 +4,13 @@ sudo pacman -S protobuf
 go get -u google.golang.org/grpc
 go get -u github.com/golang/protobuf/protoc-gen-go
 
+* Define Protocol
+
+- write source/service.proto and generate a go file
+
+export PATH=$PATH:~/go/bin
+protoc --go_out=. service.proto
+
 
 * References
 
