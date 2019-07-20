@@ -12,10 +12,28 @@
 	  `(do0
 	    (package main)
 	    (import context
-		    source/proto)
+		    11_grpc/source/proto
+		    net
+		    google.golang.org/grpc
+		    google.golang.org/grpc/reflection)
 	    (defstruct0 server)
 	    
 	    (defun main ()
+	      (assign (ntuple listener err) (net.Listen (string "tcp")
+							(string ":4040")))
+	      (unless (== err "nil")
+		(panic err))
+
+	      (assign srv (grpc.NewServer))
+	      (proto.RegisterAddServiceServer srv (curly &server))
+	      (reflection.Register srv)
+
+
+	      (progn
+		(assign e (srv.Serve listener))
+		(unless (== e "nil")
+		  (panic e)))
+	      
 	      )
 	    
 	    (defmethod Add ((s *server)

@@ -4,6 +4,9 @@ sudo pacman -S protobuf
 go get -u google.golang.org/grpc
 go get -u github.com/golang/protobuf/protoc-gen-go
 
+ln -s ~/stage/cl-golang-generator/examples/11_grpc ~/go/src/
+
+
 * Define Protocol
 
 - write source/service.proto and generate a go file
