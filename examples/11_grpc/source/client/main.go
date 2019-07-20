@@ -1,7 +1,10 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -11,4 +14,5 @@ func main() {
 	}
 	client := proto.NewAddServiceClient(conn)
 	g := gin.Default()
+	g.GET("/add/:a/:b")
 }

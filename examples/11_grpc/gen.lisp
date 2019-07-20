@@ -60,7 +60,11 @@
 	 (code-client
 	  `(do0
 	    (package main)
-	    (import google.golang.org/grpc)
+	    (import google.golang.org/grpc
+		    github.com/gin-gonic/gin
+		    strconv
+		    net/http)
+	    
 	    (defun main ()
 	      (assign (ntuple conn err)
 		      (grpc.Dial (string "localhost:4040")
@@ -72,6 +76,9 @@
 
 	      (assign client (proto.NewAddServiceClient conn)
 		      g (gin.Default))
+
+	      (g.GET (string "/add/:a/:b")
+		     )
 	    )
 	    )))
 
