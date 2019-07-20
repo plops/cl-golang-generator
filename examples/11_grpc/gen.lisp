@@ -19,10 +19,15 @@
 	      )
 
 	    (defmethod Add ((s *server)
-			    ctx proto)
+			    ctx request)
 	      (declare (type context.Context ctx)
-		       (type *proto.Request proto)
-		       (values *proto.Response error)))
+		       (type *proto.Request request)
+		       (values *proto.Response error))
+	      (assign a (request.GetA)
+		      b (request.GetB)
+		      result (+ a b))
+	      (return (ntuple (curly &proto.Response :Result result)
+			      "nil")))
 	    )))
     (write-source *source-server* code-server)))
 
