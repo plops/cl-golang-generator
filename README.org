@@ -145,7 +145,7 @@ variable has a typo in the declaration.
 
 - Implement test cases or use the examples.
 
-
+  
 * References
 
 - https://github.com/golang-standards/project-layout go directory layout
@@ -158,3 +158,21 @@ variable has a typo in the declaration.
   - go get -u github.com/k0kubun/pp  
 
 - http://go-database-sql.org/modifying.html database
+
+
+* Books
+
+- Donovan, Kernighan: Go Programming Language
+  - introduces everything in the language
+  - not enough practical advice
+
+- Ketelsen, St Martin, Kennedy: Go in Action
+
+- Butcher, Farina: Go in Practice
+
+- Cox-Buday: Concurrency in Go: Tools and Techniques for Developers
+
+- Bischof: Das Netzbetriebssystem Plan 9
+  - some examples of how to program with channels
+  - 9P protocol, network database (ndb)
+  - panel library (gui, cut & paste)
