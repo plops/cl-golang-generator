@@ -15,6 +15,12 @@ for distributed programming.
 
 Therefore, i try dearplain/goloader.
 
+* Setup
+
+sudo cp -r /usr/lib/go/src/cmd/internal /usr/lib/go/src/cmd/objfile
+
+go build github.com/dearplain/goloader/examples/loader             
+
 
 * References
 
