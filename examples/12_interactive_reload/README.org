@@ -1,7 +1,9 @@
 * Goal
 
-I want to load and unload go code from a running golang program.
-This should allow interactive development similar to [FIXME: link to nullprogram]
+I want to load and unload go code from a running golang program.  This
+should allow interactive development similar to
+https://nullprogram.com/blog/2014/12/23/
+
 
 
 * Implementation
@@ -20,3 +22,5 @@ Therefore, i try dearplain/goloader.
 - https://medium.com/@yunabe/interactive-go-programming-with-jupyter-93fbf089aff1 golang plugin
 - https://github.com/golang/go/issues/19282 golang plugin win
 - https://golang.org/pkg/plugin/
+- https://github.com/plops/arduino_due_lisp/tree/master/interactive-display-fft
+  my previous attempt with interactive c programming
