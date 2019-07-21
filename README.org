@@ -182,9 +182,11 @@ variable has a typo in the declaration.
   - buffered channels
   - error, panic
   - debug, log
-  - log to network (logstash, heka, 12factor app treat logs as event streams), handle back pressure
+  - log to network (logstash, heka, 12factor app treat logs as event
+    streams), handle back pressure
   - stack traces
-  - unit testing, mocking, stubbing, interface canary test, parallel benchmark, detect race
+  - unit testing, mocking, stubbing, interface canary test, parallel
+    benchmark, detect race
   - webserver, handling assests, forms, post, multipart, incremental save
   - rest api, timout, versioning
   - multiple cloud providers, avoid lock-in
@@ -194,8 +196,23 @@ variable has a typo in the declaration.
   - reflection, tags in struct
 
 - Cox-Buday: Concurrency in Go: Tools and Techniques for Developers
+  - https://katherine.cox-buday.com/blog/2018/07/18/the-utility-of-a-cup/
+    describes authors state of mind, fear is the mind killer
+  - race
+  - concurrency building blocks (looks good), once, pool, channels, select 
+  - sync package
+  - benchmark
+  - concurrency pattern, prevent goroutine leaks, or channel,
+    pipeline, generators, fan-out, fan-in; or-done, tee- and
+    bridge-channel, queuing, context package (i think that's old)
+  - prime finder
+  - scale, error propagation, timeout, cancel, heartbeat, replicate
+    requests, rate limit
+  - runtime
+  
 
 - Bischof: Das Netzbetriebssystem Plan 9
   - some examples of how to program with channels
   - 9P protocol, network database (ndb)
   - panel library (gui, cut & paste)
+ 
