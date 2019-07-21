@@ -167,6 +167,13 @@ variable has a typo in the declaration.
   - not enough practical advice
 
 - Ketelsen, St Martin, Kennedy: Go in Action
+  - rss matcher
+  - packaging, vendoring, gb reproducible build
+  - interface, type embedding
+  - unbuffered and buffered channels
+  - concurrency patterns (looks useful), pool 
+  - logging, json
+  - testing
 
 - Butcher, Farina: Go in Practice
 
