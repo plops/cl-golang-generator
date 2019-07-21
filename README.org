@@ -108,6 +108,17 @@ variable has a typo in the declaration.
 
 - like a function call but without parens: go, range, chan, defer, return
 
+* Known problems:
+
+- Currently the example code generation relies on the repo being
+  /home/martin/stage/cl-golang-generator. This can should be changed
+  in each gen.lisp file by modifying the defparameter *path*. Of
+  course this is unacceptable. I haven't figured out how to get the
+  repo path using asdf or defsystem.
+
+- I don't quite understand how go directories should be layed out. I
+  guess I should read golang-standards/project-layout at some point.
+
 
 
 * References
