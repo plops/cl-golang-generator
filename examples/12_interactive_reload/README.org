@@ -10,7 +10,8 @@ https://nullprogram.com/blog/2014/12/23/
 
 pkg/plugin looks like the right tool but apparently it can't unload
 code and it also is currently (2019 Jul) only supported on linux and
-mac.
+mac. But I have lots of windows computers available that I want to use
+for distributed programming.
 
 Therefore, i try dearplain/goloader.
 
