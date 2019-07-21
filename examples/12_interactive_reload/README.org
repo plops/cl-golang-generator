@@ -1,0 +1,22 @@
+* Goal
+
+I want to load and unload go code from a running golang program.
+This should allow interactive development similar to [FIXME: link to nullprogram]
+
+
+* Implementation
+
+pkg/plugin looks like the right tool but apparently it can't unload
+code and it also is currently (2019 Jul) only supported on linux and
+mac.
+
+Therefore, i try dearplain/goloader.
+
+
+* References
+
+- https://github.com/dearplain/goloader alternative to plugin, this code can be unloaded
+- https://medium.com/learning-the-go-programming-language/writing-modular-go-programs-with-plugins-ec46381ee1a9 golang plugin
+- https://medium.com/@yunabe/interactive-go-programming-with-jupyter-93fbf089aff1 golang plugin
+- https://github.com/golang/go/issues/19282 golang plugin win
+- https://golang.org/pkg/plugin/
