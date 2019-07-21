@@ -108,7 +108,28 @@ variable has a typo in the declaration.
 
 - like a function call but without parens: go, range, chan, defer, return
 
-* Known problems:
+
+* Description of the examples
+
+- The first examples are direct translations of Go Programming
+  Language Book (Donovan, Kernighan, 2015). These have "gopl" in the
+  name.
+
+- Then I tried to create a cross platform GUI with Fayne. My goal was
+  to plot like Python xarray xrp.imshow. I'm not to
+  impressed. Documentation of Fayne is quite limited and I couldn't
+  figure out how to get a mouse cursor.
+
+- I like the later gopl chapter about memoization and the grpc example
+  I copied from some blog post.
+
+- I would like to have interactive reloading of code to be able to
+  experiment with distributed systems. Unfortunately the go ecosystem
+  isn't that mature yet.
+
+- Next I would like to link to Cuda to offload computation to GPUs.
+
+* Known problems/ToDo:
 
 - Currently the example code generation relies on the repo being
   /home/martin/stage/cl-golang-generator. This can should be changed
@@ -119,6 +140,10 @@ variable has a typo in the declaration.
 - I don't quite understand how go directories should be layed out. I
   guess I should read golang-standards/project-layout at some point.
 
+- Check if all examples still work. I changed some s-expression
+  semantics around example 07.
+
+- Implement test cases or use the examples.
 
 
 * References
