@@ -221,3 +221,32 @@ variable has a typo in the declaration.
 
 - Stanley-Marbell: Inferno programming with Limbo
   - http://doc.cat-v.org/inferno/books/inferno_programming_with_limbo/Inferno_Programming_With_Limbo.pdf
+  - limbo has slices, modules, :=
+  - types separated with colon
+  - still uses semicolons
+  - cyclic keyword in structs (adt)
+  - dynamic module loading, self-referential modules
+  - threads, channels, alt (like go select), pipeline
+  - synthetic file, file2chan
+  - file server
+  - SPIN, promela protocol meta language
+  - modeling, verification of concurrent applications
+  - generates diagrams with dot
+  - distribution of resources in the network
+  - styx rpc protocol: Attach, Clone, Walk, Clunk, Stat, Wstat, Open,
+    Create, Read, Write, Remove, Nop, Flush, Error
+  - much simpler than nfs
+  - mount driver: system calls to styx messages
+  - server registry: filesystem operations to channel in user-level
+    application
+  - filesystem filter example
+  - http server
+  - web service
+  - styx traffic through http
+  - crypto, certificates, key ring
+  - graphics
+  - Point, Rect, Context, Display, Screen, Image, Tk, Wmlib
+  - about the author:
+    - https://twitter.com/gemusehaken
+    - physcomp.eng.cam.ac.uk
+    - now works on sensors and risc-v https://arxiv.org/pdf/1804.09241.pdf
