@@ -216,3 +216,8 @@ variable has a typo in the declaration.
   - 9P protocol, network database (ndb)
   - panel library (gui, cut & paste)
  
+- Hoare: Communicating Sequential Processes
+  - http://www.usingcsp.com/cspbook.pdf
+
+- Stanley-Marbell: Inferno programming with Limbo
+  - http://doc.cat-v.org/inferno/books/inferno_programming_with_limbo/Inferno_Programming_With_Limbo.pdf
