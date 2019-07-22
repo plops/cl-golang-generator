@@ -219,6 +219,15 @@ variable has a typo in the declaration.
 - Hoare: Communicating Sequential Processes
   - http://www.usingcsp.com/cspbook.pdf
 
+- Jones, Roscoe: Reflections on the Work of C.A.R Hoare
+  - price of reliability is the utmost simplicity. it is the price
+    that the very rich find most hard to pay
+  - algol 68, PL/I, Ada
+  - Ada: his advice and judgement largely went unheeded
+  - occam: entities must not be multiplied more than necessary
+
+
+
 - Stanley-Marbell: Inferno programming with Limbo
   - http://doc.cat-v.org/inferno/books/inferno_programming_with_limbo/Inferno_Programming_With_Limbo.pdf
   - limbo has slices, modules, :=
