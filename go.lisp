@@ -563,8 +563,7 @@ entry return-values contains a list of return values"
 			  ;; import {(name|pair)}*
 			  ;; pair := nickname name
 			  (with-output-to-string (s)
-			   (format s "import ("
-				   args)
+			   (format s "import (")
 			   (loop for e in args do
 				(if (listp e)
 				    (destructuring-bind (nick name) e
