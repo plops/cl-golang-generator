@@ -354,7 +354,10 @@ entry return-values contains a list of return values"
 		 (destructuring-bind (type value) (cdr code)
 		   (format nil "~a ~a" (emit type) (emit value)))
 		 )
-		(dict
+		(comment (format nil "// ~a~%" (cadr code)))
+		(comments (let ((args (cdr code)))
+			    (format nil "~{// ~a~%~}" args)))
+	      	(dict
 		 ;; dict {pair}*
 		 (let* ((args (cdr code)))
 		      (let ((str (with-output-to-string (s)
