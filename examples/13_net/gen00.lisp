@@ -3,15 +3,18 @@
 
 (in-package :cl-golang-generator)
 
-(let ((file-count 0))
-  (defun write-go (name code)
+
+
+(progn
+  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/13_net")
+  (let ((file-count 0))
+    
+    (defun write-go (name code)
     (prog1
 	(write-source (format nil "~a/source/~2,'0d_~a" *path* file-count name)
 		      code)
       (incf file-count))))
-
-(progn
-  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/13_net")
+  
 
   (write-go "listen_test"
 	    `(do0
@@ -99,4 +102,46 @@
 		 <-done
 		 (comments "Accept will return and stop the goroutine")
 		 (listener.Close)
-		 <-done)))))
+		 <-done))))
+  (write-go "dial_timeout_test"
+	    `(do0
+	      (comments  "A Woodbeck Network Programming with Go p.53"
+			 "run with `go test dial_test.go`")
+	      (package ch03)
+	      (import net syscall testing time)
+	      (defun DialTimeout (network address timeout)
+		(declare (type "" network)
+			 (type string address)
+			 (type time.Duration timeout)
+			 (values net.Conn error))
+		(assign d (curly net.Dialer
+				 :Control (lambda (_0 addr _)
+					    (declare (type syscall.RawConn _)
+						     (type string addr)
+						     (type "" _0)
+						     (values error))
+					    (return (curly &net.DNSError
+							   :Err (string "connection timed out")
+							   :Name addr
+							   :Server (string "127.0.0.1")
+							   :IsTimeout true
+							   :IsTemporary true)))
+				 :Timeout timeout))
+		(return (d.Dial network address)))
+	      (defun TestDialTimeout (te)
+		(declare (type *testing.T te))
+		(do0 (assign (ntuple c
+				 err)
+			 (DialTimeout (string "tcp")
+				      (string "10.0.0.1:http")
+				      (* 5 time.Second)))
+		     (when (== err "nil")
+		       (c.Close)
+		       (te.Fatal (string "connection did not time out"))))
+		(do0
+		 (assign (ntuple nErr ok)
+			 (err. net.Error))
+		 (unless ok
+		   (te.Fatal err))
+		 (unless (nErr.Timeout)
+		   (te.Fatal (string "error is not a timeout"))))))))
