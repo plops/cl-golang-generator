@@ -27,3 +27,56 @@ go mod tidy
 # ~/go has 857M
 go run .
   #+end_example
+
+- the binary of a minimal example is 12M:
+  #+begin_example
+[martin@localhost source]$ ls -lh gio.test 
+-rwxrwxr-x. 1 martin martin 12M Jun 18 11:35 gio.test
+[martin@localhost source]$ bloaty gio.test 
+    FILE SIZE        VM SIZE    
+ --------------  -------------- 
+  24.8%  2.95Mi  30.8%  2.95Mi    .rodata
+  22.7%  2.70Mi  28.2%  2.70Mi    .text
+  16.4%  1.95Mi  20.4%  1.95Mi    .noptrdata
+  12.5%  1.48Mi  15.5%  1.48Mi    .gopclntab
+   6.9%   841Ki   0.0%       0    .zdebug_info
+   3.5%   428Ki   0.0%       0    .zdebug_loc
+   3.3%   396Ki   0.0%       0    .zdebug_line
+   3.1%   383Ki   0.0%       0    .strtab
+   2.0%   243Ki   0.0%       0    .symtab
+   1.6%   194Ki   2.0%   194Ki    .data
+   0.0%       0   2.0%   194Ki    .bss
+   1.2%   141Ki   0.0%       0    .zdebug_ranges
+   0.6%  73.9Ki   0.0%       0    .zdebug_frame
+   0.4%  49.9Ki   0.3%  26.5Ki    [37 Others]
+   0.2%  26.4Ki   0.0%       0    .zdebug_str
+   0.0%       0   0.2%  21.4Ki    .noptrbss
+   0.2%  21.1Ki   0.0%       0    .zdebug_loclists
+   0.2%  20.3Ki   0.2%  20.3Ki    .dynstr
+   0.1%  17.4Ki   0.2%  17.3Ki    .eh_frame
+   0.1%  16.6Ki   0.2%  16.6Ki    .dynsym
+   0.1%  8.45Ki   0.1%  8.39Ki    .typelink
+ 100.0%  11.9Mi 100.0%  9.57Mi    TOTAL
+[martin@localhost source]$ ldd gio.test 
+	linux-vdso.so.1 (0x00007ffce0bcc000)
+	libEGL.so.1 => /lib64/libEGL.so.1 (0x00007fc24bc45000)
+	libwayland-egl.so.1 => /lib64/libwayland-egl.so.1 (0x00007fc24bc40000)
+	libwayland-client.so.0 => /lib64/libwayland-client.so.0 (0x00007fc24bc2e000)
+	libwayland-cursor.so.0 => /lib64/libwayland-cursor.so.0 (0x00007fc24bc24000)
+	libxkbcommon-x11.so.0 => /lib64/libxkbcommon-x11.so.0 (0x00007fc24bc19000)
+	libxkbcommon.so.0 => /lib64/libxkbcommon.so.0 (0x00007fc24bbd0000)
+	libX11-xcb.so.1 => /lib64/libX11-xcb.so.1 (0x00007fc24bbc9000)
+	libX11.so.6 => /lib64/libX11.so.6 (0x00007fc24ba81000)
+	libxcb.so.1 => /lib64/libxcb.so.1 (0x00007fc24ba55000)
+	libXcursor.so.1 => /lib64/libXcursor.so.1 (0x00007fc24ba48000)
+	libXfixes.so.3 => /lib64/libXfixes.so.3 (0x00007fc24ba3f000)
+	libm.so.6 => /lib64/libm.so.6 (0x00007fc24b961000)
+	libc.so.6 => /lib64/libc.so.6 (0x00007fc24b75e000)
+	libGLdispatch.so.0 => /lib64/libGLdispatch.so.0 (0x00007fc24b6a5000)
+	libffi.so.8 => /lib64/libffi.so.8 (0x00007fc24b699000)
+	libxcb-xkb.so.1 => /lib64/libxcb-xkb.so.1 (0x00007fc24b67b000)
+	libXau.so.6 => /lib64/libXau.so.6 (0x00007fc24b675000)
+	libXrender.so.1 => /lib64/libXrender.so.1 (0x00007fc24b666000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007fc24bc84000)
+
+  #+end_example
