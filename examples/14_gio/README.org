@@ -5,6 +5,7 @@
 - install dependencies on fedora
 #+begin_example
 sudo dnf install gcc pkg-config wayland-devel libX11-devel libxkbcommon-x11-devel mesa-libGLES-devel mesa-libEGL-devel libXcursor-devel #mesa-vulkan-devel
+sudo dnf install libxkbcommon-x11-devel
 sudo dnf install golang
 
 cd /dev/shm
@@ -16,7 +17,13 @@ go run --tags nox11 gioui.org/example/hello@latest
 
 #+end_example
 
-- another attempt
+- another attempt https://gioui.org/doc/learn/get-started
   #+begin_example
 
+cd /dev/shm 
+go mod init gio.test
+# copy main.go from website
+go mod tidy
+# ~/go has 857M
+go run .
   #+end_example
