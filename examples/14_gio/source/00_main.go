@@ -34,6 +34,8 @@ func run(w *app.Window) error {
 			return e.Err
 		case system.FrameEvent:
 			gtx := layout.NewCotnext(&ops, e)
+			title := material.H1(th, "hello gio")
+			maroon := color.NRGBA{R: 127, G: 0, B: 0, A: 255}
 		}
 	}
 }

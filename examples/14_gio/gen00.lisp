@@ -54,7 +54,12 @@
 		       (system.DestroyEvent
 			(return e.Err))
 		       (system.FrameEvent
-			(assign gtx (layout.NewCotnext &ops e)))
+			(assign gtx (layout.NewCotnext &ops e)
+				title (material.H1 th (string "hello gio"))
+				maroon (curly color.NRGBA :R 127
+					      :G 0
+					      :B 0
+					      :A 255)))
 		       )
 		     )))
 	    )
