@@ -3,8 +3,12 @@
 
 (in-package :cl-golang-generator)
 
+
+
 (progn
-  (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/14_gio")
+  (defparameter *path*
+    (format nil "~a/stage/cl-golang-generator/examples/14_gio"
+	    (user-homedir-pathname)))
   (let ((file-count 0))
 
     (defun write-go (name code)
