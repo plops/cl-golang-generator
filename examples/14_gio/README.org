@@ -18,15 +18,14 @@ go run --tags nox11 gioui.org/example/hello@latest
 #+end_example
 
 - another attempt https://gioui.org/doc/learn/get-started
-  #+begin_example
-
+#+begin_example
 cd /dev/shm 
 go mod init gio.test
 # copy main.go from website
 go mod tidy
 # ~/go has 857M
 go run .
-  #+end_example
+#+end_example
 
 - the binary of a minimal example is 12M:
   #+begin_example
@@ -83,3 +82,10 @@ go run .
 -rwxrwxr-x. 1 martin martin 9.4M Jun 18 11:39 gio.test
 
   #+end_example
+
+** termux
+- install dependencies
+#+begin_example
+pkg install vulkan-headers mesa
+#+end_example
+ 
