@@ -1,7 +1,17 @@
 - try the cross platform gui 'gio'
+- first read about it here: https://news.ycombinator.com/item?id=31785556
 - https://gioui.org/doc/learn/get-started
 
 - install dependencies on fedora
 #+begin_example
+sudo dnf install gcc pkg-config wayland-devel libX11-devel libxkbcommon-x11-devel mesa-libGLES-devel mesa-libEGL-devel libXcursor-devel #mesa-vulkan-devel
+sudo dnf install golang
+
+cd /dev/shm
+go run gioui.org/example/hello@latest
+# only wayland:
+go run --tags nox11 gioui.org/example/hello@latest
+
+# not working, complains about missing revision
 
 #+end_example

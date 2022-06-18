@@ -8,13 +8,13 @@
 (progn
   (defparameter *path* "/home/martin/quicklisp/local-projects/cl-golang-generator/examples/13_net")
   (let ((file-count 0))
-    
+
     (defun write-go (name code)
-    (prog1
-	(write-source (format nil "~a/source/~2,'0d_~a" *path* file-count name)
-		      code)
-      (incf file-count))))
-  
+      (prog1
+	  (write-source (format nil "~a/source/~2,'0d_~a" *path* file-count name)
+			code)
+	(incf file-count))))
+
 
   (write-go "listen_test"
 	    `(do0
@@ -131,10 +131,10 @@
 	      (defun TestDialTimeout (te)
 		(declare (type *testing.T te))
 		(do0 (assign (ntuple c
-				 err)
-			 (DialTimeout (string "tcp")
-				      (string "10.0.0.1:http")
-				      (* 5 time.Second)))
+				     err)
+			     (DialTimeout (string "tcp")
+					  (string "10.0.0.1:http")
+					  (* 5 time.Second)))
 		     (when (== err "nil")
 		       (c.Close)
 		       (te.Fatal (string "connection did not time out"))))
