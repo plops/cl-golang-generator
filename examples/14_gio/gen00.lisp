@@ -48,9 +48,9 @@
 		(assign th (material.NewTheme (gofont.Collection)))
 		"var ops op.Ops"
 		(for ()
-		     (assign ev (<- (w.Events))
-			     e (dot ev "(type)"))
-		     (case e
+		     (assign e (<- (w.Events))
+			     )
+		     (typecase e
 		       (system.DestroyEvent
 			(return e.Err))
 		       (system.FrameEvent

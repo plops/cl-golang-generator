@@ -28,9 +28,8 @@ func run(w *app.Window) error {
 	th := material.NewTheme(gofont.Collection())
 	var ops op.Ops
 	for {
-		ev := <-w.Events()
-		e := ev.(type)
-		switch e {
+		e := <-w.Events()
+		switch e := e.(type) {
 		case system.DestroyEvent:
 			return e.Err
 		case system.FrameEvent:

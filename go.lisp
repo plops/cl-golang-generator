@@ -493,6 +493,7 @@ entry return-values contains a list of return values"
 					    `(do0
 					      ,@(mapcar #'emit
 							forms)))))))))))
+		
 		(case
 		    ;; case keyform {normal-clause}* [otherwise-clause]
 		    ;; normal-clause::= (keys form*) 
@@ -502,6 +503,33 @@ entry return-values contains a list of return values"
 			(cdr code)
 		      (format
 		       nil "switch ~a ~a"
+		       (emit keyform)
+		       (emit
+			`(progn
+			   ,@(loop for c in clauses collect
+				  (destructuring-bind (key &rest forms) c
+				    (if (eq key t)
+					(format nil "default:~&~a"
+						(emit
+						   `(do0
+						     ,@(mapcar #'emit
+							       forms))))
+					(format nil "case ~a:~&~a"
+						  (emit key)
+						  (emit
+						   `(do0
+						     ,@(mapcar #'emit
+							       forms))))))))))))
+		(typecase
+		    ;; typecase keyform {normal-clause}* [otherwise-clause]
+		    ;; normal-clause::= (keys form*) 
+		    ;; otherwise-clause::= (t form*) 
+		    
+		    (destructuring-bind (keyform &rest clauses)
+			(cdr code)
+		      (format
+		       nil "switch ~a := ~a.(type) ~a"
+		       (emit keyform)
 		       (emit keyform)
 		       (emit
 			`(progn
