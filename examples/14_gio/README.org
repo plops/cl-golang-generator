@@ -15,3 +15,8 @@ go run --tags nox11 gioui.org/example/hello@latest
 # not working, complains about missing revision
 
 #+end_example
+
+- another attempt
+  #+begin_example
+
+  #+end_example
