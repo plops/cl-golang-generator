@@ -23,7 +23,7 @@
 			   :if-exists :supersede
 			   :if-does-not-exist :create)
 	  (write-sequence code-str s))
-
+	#+sbcl
 	(sb-ext:run-program
 					;"/usr/local/go/bin/go"
 	 "/usr/bin/go"
