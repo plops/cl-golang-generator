@@ -24,7 +24,7 @@ func main() {
 	})()
 	app.Main()
 }
-func run() error {
+func run(w *app.Window) error {
 	th := material.NewTheme(gofont.Collection())
 	var ops op.Ops
 	for {

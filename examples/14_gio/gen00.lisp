@@ -35,7 +35,28 @@
 		      gioui.org/widget/material
 		      )
 	      (defun main ()
-		(app.Main)))
+		(go ((lambda ()
+		       (assign w (app.NewWindow)
+			       err (run w))
+		       (unless (== err "nil")
+			 (log.Fatal err))
+		       (os.Exit 0))))
+		(app.Main))
+	      (defun run (w)
+		(declare (type *app.Window w)
+			 (values error))
+		(assign th (material.NewTheme (gofont.Collection)))
+		"var ops op.Ops"
+		(for ()
+		     (assign ev (<- (w.Events))
+			     e (dot ev "(type)"))
+		     (case e
+		       (system.DestroyEvent
+			(return e.Err))
+		       (system.FrameEvent
+			(assign gtx (layout.NewCotnext &ops e)))
+		       )
+		     )))
 	    )
 
   #+nil ((write-go "listen_test"
