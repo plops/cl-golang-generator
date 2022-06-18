@@ -78,5 +78,8 @@ go run .
 	libXau.so.6 => /lib64/libXau.so.6 (0x00007fc24b675000)
 	libXrender.so.1 => /lib64/libXrender.so.1 (0x00007fc24b666000)
 	/lib64/ld-linux-x86-64.so.2 (0x00007fc24bc84000)
+[martin@localhost source]$ strip gio.test
+[martin@localhost source]$ ls -lh gio.test 
+-rwxrwxr-x. 1 martin martin 9.4M Jun 18 11:39 gio.test
 
   #+end_example
