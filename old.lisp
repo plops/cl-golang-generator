@@ -1,5 +1,5 @@
-;(ql:quickload "optima")
-;(ql:quickload "alexandria")
+					;(ql:quickload "optima")
+					;(ql:quickload "alexandria")
 
 (in-package :cl-golang-generator)
 (setf (readtable-case *readtable*) :invert)
@@ -10,24 +10,24 @@
 				 ignore-hash)
   (let* ((fn (merge-pathnames (format nil "~a.py" name)
 			      dir))
-	(code-str (emit-py
-		   :clear-env t
-		   :code code))
-	(fn-hash (sxhash fn))
+	 (code-str (emit-py
+		    :clear-env t
+		    :code code))
+	 (fn-hash (sxhash fn))
 	 (code-hash (sxhash code-str)))
     (multiple-value-bind (old-code-hash exists) (gethash fn-hash *file-hashes*)
-     (when (or (not exists) ignore-hash (/= code-hash old-code-hash))
-       ;; store the sxhash of the c source in the hash table
-       ;; *file-hashes* with the key formed by the sxhash of the full
-       ;; pathname
-       (setf (gethash fn-hash *file-hashes*) code-hash)
-       (with-open-file (s fn
-			  :direction :output
-			  :if-exists :supersede
-			  :if-does-not-exist :create)
-	 (write-sequence code-str s))
+      (when (or (not exists) ignore-hash (/= code-hash old-code-hash))
+	;; store the sxhash of the c source in the hash table
+	;; *file-hashes* with the key formed by the sxhash of the full
+	;; pathname
+	(setf (gethash fn-hash *file-hashes*) code-hash)
+	(with-open-file (s fn
+			   :direction :output
+			   :if-exists :supersede
+			   :if-does-not-exist :create)
+	  (write-sequence code-str s))
 
-       (sb-ext:run-program "/usr/local/go/bin/go" (list "fmt" (namestring fn)))))))
+	(sb-ext:run-program "/usr/local/go/bin/go" (list "fmt" (namestring fn)))))))
 
 (defun print-sufficient-digits-f64 (f)
   "print a double floating point number as a string with a given nr. of
@@ -40,9 +40,9 @@
     (assert (< (abs (- ff
 		       (read-from-string s)))
 	       1d-12))
-   (substitute #\e #\d s)))
+    (substitute #\e #\d s)))
 
-;(print-sufficient-digits-f64 1d0)
+					;(print-sufficient-digits-f64 1d0)
 
 
 (defparameter *env-functions* nil)
@@ -51,7 +51,7 @@
 
 
 (defun emit-go (&key code (str nil) (clear-env nil) (level 0))
-  ;(format t "emit ~a ~a~%" level code)
+					;(format t "emit ~a ~a~%" level code)
   (when clear-env
     (setf *env-functions* nil
 	  *env-macros* nil))
@@ -65,14 +65,14 @@
 	      (paren (let ((args (cdr code)))
 		       (format nil "(~{~a~^, ~})" (mapcar #'emit args))))
 	      (ntuple (let ((args (cdr code)))
-		       (format nil "~{~a~^, ~}" (mapcar #'emit args))))
+			(format nil "~{~a~^, ~}" (mapcar #'emit args))))
 	      (list (let ((args (cdr code)))
 		      (format nil "[~{~a~^, ~}]" (mapcar #'emit args))))
 	      (dict (let* ((args (cdr code)))
 		      (let ((str (with-output-to-string (s)
 				   (loop for (e f) in args
-				      do
-					(format s "(~a):(~a)," (emit e) (emit f))))))
+					 do
+					 (format s "(~a):(~a)," (emit e) (emit f))))))
 			(format nil "{~a}" ;; remove trailing comma
 				(subseq str 0 (- (length str) 1))))))
 	      (indent (format nil "~{~a~}~a"
@@ -90,24 +90,24 @@
 			     (emit (cadr code))
 			     (mapcar #'(lambda (x) (emit `(indent ,x) 0)) (cddr code)))))
 	      (lambda (destructuring-bind (lambda-list &rest body) (cdr code)
-		     (multiple-value-bind (req-param opt-param res-param
-						     key-param other-key-p aux-param key-exist-p)
-			 (parse-ordinary-lambda-list lambda-list)
-		       (declare (ignorable req-param opt-param res-param
-					   key-param other-key-p aux-param key-exist-p))
-		       (with-output-to-string (s)
-			 (format s "lambda ~a: ~a"
-				 (emit `(ntuple ,@(append req-param
-							 (loop for e in key-param collect 
-							      (destructuring-bind ((keyword-name name) init suppliedp)
-								  e
-								(declare (ignorable keyword-name suppliedp))
-								(if init
-								    `(= ,name ,init)
-								    `(= ,name "None")))))))
-				 (if (cdr body)
-				     (break "body ~a should have only one entry" body)
-				     (emit (car body))))))))
+			(multiple-value-bind (req-param opt-param res-param
+							key-param other-key-p aux-param key-exist-p)
+			    (parse-ordinary-lambda-list lambda-list)
+			  (declare (ignorable req-param opt-param res-param
+					      key-param other-key-p aux-param key-exist-p))
+			  (with-output-to-string (s)
+			    (format s "lambda ~a: ~a"
+				    (emit `(ntuple ,@(append req-param
+							     (loop for e in key-param collect
+								   (destructuring-bind ((keyword-name name) init suppliedp)
+								       e
+								     (declare (ignorable keyword-name suppliedp))
+								     (if init
+									 `(= ,name ,init)
+									 `(= ,name "None")))))))
+				    (if (cdr body)
+					(break "body ~a should have only one entry" body)
+					(emit (car body))))))))
 	      (def (destructuring-bind (name lambda-list &rest body) (cdr code)
 		     (multiple-value-bind (req-param opt-param res-param
 						     key-param other-key-p aux-param key-exist-p)
@@ -118,27 +118,27 @@
 			 (format s "def ~a~a:~%"
 				 name
 				 (emit `(paren ,@(append req-param
-							 (loop for e in key-param collect 
-							      (destructuring-bind ((keyword-name name) init suppliedp)
-								  e
-								(declare (ignorable keyword-name suppliedp))
-								(if init
-								    `(= ,name ,init)
-								    `(= ,name "None"))))))))
+							 (loop for e in key-param collect
+							       (destructuring-bind ((keyword-name name) init suppliedp)
+								   e
+								 (declare (ignorable keyword-name suppliedp))
+								 (if init
+								     `(= ,name ,init)
+								     `(= ,name "None"))))))))
 			 (format s "~a" (emit `(do ,@body)))))))
 	      (= (destructuring-bind (a b) (cdr code)
 		   (format nil "~a=~a" (emit a) (emit b))))
 	      (in (destructuring-bind (a b) (cdr code)
 		    (format nil "(~a in ~a)" (emit a) (emit b))))
 	      (as (destructuring-bind (a b) (cdr code)
-		   (format nil "~a as ~a" (emit a) (emit b))))
+		    (format nil "~a as ~a" (emit a) (emit b))))
 	      (setf (let ((args (cdr code)))
 		      (format nil "~a"
-			      (emit `(do0 
+			      (emit `(do0
 				      ,@(loop for i below (length args) by 2 collect
-					     (let ((a (elt args i))
-						   (b (elt args (+ 1 i))))
-					       `(= ,a ,b))))))))
+					      (let ((a (elt args i))
+						    (b (elt args (+ 1 i))))
+						`(= ,a ,b))))))))
 	      (aref (destructuring-bind (name &rest indices) (cdr code)
 		      (format nil "~a[~{~a~^,~}]" (emit name) (mapcar #'emit indices))))
 	      (slice (let ((args (cdr code)))
@@ -146,7 +146,7 @@
 			   (format nil ":")
 			   (format nil "~{~a~^:~}" (mapcar #'emit args)))))
 	      (dot (let ((args (cdr code)))
-		   (format nil "~{~a~^.~}" (mapcar #'emit args))))
+		     (format nil "~{~a~^.~}" (mapcar #'emit args))))
 	      (+ (let ((args (cdr code)))
 		   (format nil "(~{(~a)~^+~})" (mapcar #'emit args))))
 	      (- (let ((args (cdr code)))
@@ -158,25 +158,25 @@
 	      (<< (let ((args (cdr code)))
 		    (format nil "(~{(~a)~^<<~})" (mapcar #'emit args))))
 	      (!= (let ((args (cdr code)))
-		   (format nil "(~{(~a)~^!=~})" (mapcar #'emit args))))
+		    (format nil "(~{(~a)~^!=~})" (mapcar #'emit args))))
 	      (< (let ((args (cdr code)))
 		   (format nil "(~{(~a)~^<~})" (mapcar #'emit args))))
 	      (<= (let ((args (cdr code)))
 		    (format nil "(~{(~a)~^<=~})" (mapcar #'emit args))))
 	      (>> (let ((args (cdr code)))
-		   (format nil "(~{(~a)~^>>~})" (mapcar #'emit args))))
+		    (format nil "(~{(~a)~^>>~})" (mapcar #'emit args))))
 	      (/ (let ((args (cdr code)))
 		   (format nil "((~a)/(~a))"
 			   (emit (first args))
 			   (emit (second args)))))
 	      (** (let ((args (cdr code)))
-		   (format nil "((~a)**(~a))"
-			   (emit (first args))
-			   (emit (second args)))))
+		    (format nil "((~a)**(~a))"
+			    (emit (first args))
+			    (emit (second args)))))
 	      (// (let ((args (cdr code)))
-		   (format nil "((~a)//(~a))"
-			   (emit (first args))
-			   (emit (second args)))))
+		    (format nil "((~a)//(~a))"
+			    (emit (first args))
+			    (emit (second args)))))
 	      (% (let ((args (cdr code)))
 		   (format nil "((~a)%(~a))"
 			   (emit (first args))
@@ -186,7 +186,7 @@
 	      (& (let ((args (cdr code)))
 		   (format nil "(~{(~a)~^ & ~})" (mapcar #'emit args))))
 	      (|\|| (let ((args (cdr code)))
-		     (format nil "(~{(~a)~^ | ~})" (mapcar #'emit args))))
+		      (format nil "(~{(~a)~^ | ~})" (mapcar #'emit args))))
 	      (or (let ((args (cdr code)))
 		    (format nil "(~{(~a)~^ or ~})" (mapcar #'emit args))))
 	      (string (format nil "\"~a\"" (cadr code)))
@@ -197,16 +197,16 @@
 			(format nil "~a" (emit `(return_ ,args)))))
 	      (for (destructuring-bind ((vs ls) &rest body) (cdr code)
 		     (with-output-to-string (s)
-		       ;(format s "~a" (emit '(indent)))
+					;(format s "~a" (emit '(indent)))
 		       (format s "for ~a in ~a:~%"
 			       (emit vs)
 			       (emit ls))
 		       (format s "~a" (emit `(do ,@body))))))
 	      (while (destructuring-bind (vs &rest body) (cdr code)
-		     (with-output-to-string (s)
-		       (format s "while ~a:~%"
-			       (emit `(paren ,vs)))
-		       (format s "~a" (emit `(do ,@body))))))
+		       (with-output-to-string (s)
+			 (format s "while ~a:~%"
+				 (emit `(paren ,vs)))
+			 (format s "~a" (emit `(do ,@body))))))
 
 	      (if (destructuring-bind (condition true-statement &optional false-statement) (cdr code)
 		    (with-output-to-string (s)
@@ -225,51 +225,51 @@
 			 (format nil "~{~a~}" (mapcar #'(lambda (x) (emit `(import ,x))) args))))
 	      (with (destructuring-bind (form &rest body) (cdr code)
 		      (with-output-to-string (s)
-		       (format s "~a~a:~%~a"
-			       (emit "with ")
-			       (emit form)
-			       (emit `(do ,@body))))))
+			(format s "~a~a:~%~a"
+				(emit "with ")
+				(emit form)
+				(emit `(do ,@body))))))
 	      (try (destructuring-bind (prog &rest exceptions) (cdr code)
 		     (with-output-to-string (s)
 		       (format s "~&~a:~%~a"
 			       (emit "try")
 			       (emit `(do ,prog)))
 		       (loop for e in exceptions do
-			    (destructuring-bind (form &rest body) e
-			      (if (member form '(else finally))
-				  (format s "~&~a~%"
-					  (emit `(indent ,(format nil "~a:" form))))
-				  (format s "~&~a~%"
-				       (emit `(indent ,(format nil "except ~a:" (emit form))))))
-			      (format s "~a" (emit `(do ,@body)))))))
-	       
-	       #+nil (let ((body (cdr code)))
-		     (with-output-to-string (s)
-		       (format s "~a:~%" (emit "try"))
-		       (format s "~a" (emit `(do ,@body)))
-		       (format s "~a~%~a"
-			       (emit "except Exception as e:")
-			       (emit `(do "print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)"))))))
+			     (destructuring-bind (form &rest body) e
+			       (if (member form '(else finally))
+				   (format s "~&~a~%"
+					   (emit `(indent ,(format nil "~a:" form))))
+				   (format s "~&~a~%"
+					   (emit `(indent ,(format nil "except ~a:" (emit form))))))
+			       (format s "~a" (emit `(do ,@body)))))))
+
+		   #+nil (let ((body (cdr code)))
+			   (with-output-to-string (s)
+			     (format s "~a:~%" (emit "try"))
+			     (format s "~a" (emit `(do ,@body)))
+			     (format s "~a~%~a"
+				     (emit "except Exception as e:")
+				     (emit `(do "print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)"))))))
 	      (t (destructuring-bind (name &rest args) code
-		   
+
 		   (if (listp name)
 		       ;; lambda call and similar complex constructs
 		       (format nil "(~a)(~a)" (emit name) (if args
 							      (emit `(paren ,@args))
 							      ""))
 		       #+nil(if (eq 'lambda (car name))
-			   (format nil "(~a)(~a)" (emit name) (emit `(paren ,@args)))
-			   (break "error: unknown call"))
+				(format nil "(~a)(~a)" (emit name) (emit `(paren ,@args)))
+				(break "error: unknown call"))
 		       ;; function call
 		       (let* ((positional (loop for i below (length args) until (keywordp (elt args i)) collect
-					       (elt args i)))
+						(elt args i)))
 			      (plist (subseq args (length positional)))
 			      (props (loop for e in plist by #'cddr collect e)))
 			 (format nil "~a~a" name
 				 (emit `(paren ,@(append
 						  positional
 						  (loop for e in props collect
-						       `(= ,(format nil "~a" e) ,(getf plist e))))))))))))
+							`(= ,(format nil "~a" e) ,(getf plist e))))))))))))
 	    (cond
 	      ((or (symbolp code)
 		   (stringp code)) ;; print variable
