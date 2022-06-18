@@ -13,6 +13,7 @@
 			code)
 	(incf file-count))))
 
+  ;; overwriting this file makes it necessary to call setup01_tidy again
   (with-open-file (s (format nil "~a/source/go.mod" *path*)
 		     :direction :output
 		     :if-exists :supersede
@@ -45,6 +46,7 @@
 	      (defun run (w)
 		(declare (type *app.Window w)
 			 (values error))
+		(comments "applications define fonts and color settings in themes")
 		(assign th (material.NewTheme (gofont.Collection)))
 		"var ops op.Ops"
 		(for ()
@@ -52,14 +54,22 @@
 			     )
 		     (typecase e
 		       (system.DestroyEvent
+			(comments "user pressed the close button")
 			(return e.Err))
 		       (system.FrameEvent
-			(assign gtx (layout.NewCotnext &ops e)
+			(comments "program should handle input and render a new frame")
+			(assign gtx (layout.NewContext &ops e)
 				title (material.H1 th (string "hello gio"))
 				maroon (curly color.NRGBA :R 127
 					      :G 0
 					      :B 0
-					      :A 255)))
+					      :A 255)
+				)
+			(setf title.Color maroon
+			      title.Alignment text.Middle
+			      )
+			(title.Layout gtx)
+			(e.Frame gtx.Ops))
 		       )
 		     )))
 	    )
