@@ -1,0 +1,7 @@
+- try the cross platform gui 'gio'
+- https://gioui.org/doc/learn/get-started
+
+- install dependencies on fedora
+#+begin_example
+
+#+end_example
