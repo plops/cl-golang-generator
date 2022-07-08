@@ -1,0 +1,2 @@
+try to plot something
+https://github.com/gonum/plot/wiki/Example-plots
