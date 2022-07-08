@@ -23,9 +23,9 @@
   ;; overwriting this file makes it necessary to call setup01_tidy again
   (with-open-file (s (format nil "~a/source/go.mod" *path*)
 		     :direction :output
-		     :if-exists :supersede
+		     :if-exists nil
 		     :if-does-not-exist :create)
-    (format s "module gio.test~%")
+    (format s "module plot~%")
     (format s "go 1.18~%"))
 
   (write-go "main"
@@ -38,9 +38,10 @@
 		      gonum.org/v1/plot/vg
 		      )
 	      (defun randomPoints (n)
-		(declare (type int n))
+		(declare (type int n)
+			 (values plotter.XYs))
 		(assign pts (make plotter.XYs n))
-		(for (i (range pts))
+		(foreach (i (range pts))
 		     (if (== 0 i)
 			 (setf (dot (aref pts i)
 				    X)
@@ -68,12 +69,12 @@
 			 (string "First")
 			 (randomPoints 30))
 			)
-		(when (== err "nil")
+		(when (!= err "nil")
 		  (panic err))
 		(progn
 		  (assign err (p.Save (* 4 vg.Inch)
 				      (* 4 vg.Inch)
 				      (string "/dev/shm/img.png")))
-		  (when (== err "nil")
+		  (when (!= err "nil")
 		    (panic err)))))
 	    ))
