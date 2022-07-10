@@ -1,0 +1,9 @@
+* Synopsis
+
+Try to make a decoder for the forward error correction in DVB-S2.
+
+
+* References
+ - ETSI EN 302 307 G.2 FEC decoding
+
+   
