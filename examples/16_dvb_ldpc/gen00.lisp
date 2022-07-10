@@ -14,10 +14,14 @@
 	    (user-homedir-pathname)))
   (defun lprint (&key (msg "") vars)
     `(fmt.Printf (string ,(format nil "%v ~a ~{~a=%v~^ ~}\\n" msg vars))
+		 
 		 (dot time
 		      (Now)
-		      (Format
-		       (string "2017-09-07 17:06:04.000000")))
+		      #+nil (Format
+		       (string
+			"2017-09-07 17:06:04"
+					;"2017-09-07 17:06:04.000000"
+			)))
 		 
 		 ,@vars
 		 ))
@@ -59,6 +63,9 @@
 	 (do0
 	  "var bit_nodes big.Int"
 	  "var check_nodes big.Int"
+	  ,(lprint :vars `(bit_nodes))
+	  #+nil (assign bit_nodes (big.NewInt 0)
+		  check_nodes (big.NewInt 0))
 	  ,@(loop for i in `(0 3 4 7)
 		  collect
 		  (progn
@@ -67,6 +74,7 @@
 		      &bit_nodes
 		      ,i
 		      1)))
+	 ,(lprint :vars `(bit_nodes)) 
 	  ,@(loop
 	      for m below H-M
 	      collect
@@ -88,7 +96,7 @@
 			  ,m
 			  (logior ,@parity)))))
 	  )
-	 ,(lprint :vars `(bit_nodes (time.Now)))
+	 
 	 ,(lprint :vars `(check_nodes))
 	 )
        ))))
