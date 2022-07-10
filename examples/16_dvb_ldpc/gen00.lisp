@@ -21,39 +21,59 @@
 	(incf file-count))))
 
   ;; overwriting this file makes it necessary to call setup01_tidy again
-  (with-open-file (s (format nil "~a/source/go.mod" *path*)
+  (with-open-file (s (format nil "~a/source/go.mod"
+			     *path*)
 		     :direction :output
 		     :if-exists nil
 		     :if-does-not-exist :create)
     (format s "module ldpc~%")
     (format s "go 1.18~%"))
-
-  (write-go "main"
-	    `(do0
-	      (package main)
-	      (import math/rand
-		      )
-	      (defun randomPoints (n)
-		(declare (type int n)
-			 (values plotter.XYs))
-		(assign pts (make plotter.XYs n))
-		(foreach (i (range pts))
-		     (if (== 0 i)
-			 (setf (dot (aref pts i)
-				    X)
-			       (rand.Float64))
-			 (setf (dot (aref pts i)
-				    X)
-			       (+ (dot (aref pts (- i 1))
-				       X)
-				  (rand.Float64))))
-		     (setf (dot (aref pts i)
-				Y)
-			   (+ (* 10 (rand.Float64))
-			      (dot (aref pts i)
-				   X))))
-		(return pts))
-	      (defun main ()
-		(rand.Seed (int64 0))
-		))
-	    ))
+  (let* (;; parity check matrix (n-k) x m
+	 ;; length N=8, m=4 check nodes
+	 (H `((1 0 0 1 1 0 0 1)
+	      (0 1 1 0 1 0 1 0)
+	      (1 0 1 0 0 1 0 1)
+	      (0 1 0 1 0 1 1 0)))
+	 (H-N (length (elt H 0)))
+	 (H-M (length H)))
+    (write-go
+     "main"
+     `(do0
+       (package main)
+       (import math/rand
+	       math/big)
+       
+       (defun main ()
+	 (rand.Seed (int64 0))
+	 (do0
+	  "var bit_nodes big.Int"
+	  "var check_nodes big.Int"
+	  ,@(loop for i in `(0 3 4 7)
+		  collect
+		  (progn
+		    (assert (< i H-N))
+		    `(bit_nodes.SetBit
+		      &bit_nodes
+		      ,i
+		      1)))
+	  ,@(loop
+	      for m below H-M
+	      collect
+	      (let ((parity
+		      (remove-if
+		       #'null
+		       (loop
+			 for val
+			   in (elt H m)
+			   and val-i from 0
+			 collect
+			 (when (eq val 1)
+			   `(dot bit_nodes
+				 (Bit
+				  ,val-i)))))))
+		   `(dot check_nodes
+			 (SetBit
+			  &check_nodes
+			  ,m
+			  (logior ,@parity))))))
+	 )))))
