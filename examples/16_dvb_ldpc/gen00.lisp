@@ -12,6 +12,15 @@
   (defparameter *path*
     (format nil "~a/stage/cl-golang-generator/examples/16_dvb_ldpc"
 	    (user-homedir-pathname)))
+  (defun lprint (&key (msg "") vars)
+    `(fmt.Printf (string ,(format nil "%v ~a ~{~a=%v~^ ~}\\n" msg vars))
+		 (dot time
+		      (Now)
+		      (Format
+		       (string "2017-09-07 17:06:04.000000")))
+		 
+		 ,@vars
+		 ))
   (let ((file-count 0))
 
     (defun write-go (name code)
@@ -40,7 +49,9 @@
      "main"
      `(do0
        (package main)
-       (import math/rand
+       (import fmt
+	       time
+	       math/rand
 	       math/big)
        
        (defun main ()
@@ -75,5 +86,9 @@
 			 (SetBit
 			  &check_nodes
 			  ,m
-			  (logior ,@parity))))))
-	 )))))
+			  (logior ,@parity)))))
+	  )
+	 ,(lprint :vars `(bit_nodes (time.Now)))
+	 ,(lprint :vars `(check_nodes))
+	 )
+       ))))
