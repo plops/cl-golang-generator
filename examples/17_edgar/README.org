@@ -1,0 +1,13 @@
+|       |   |                                  |
+| gen00 |   | https://github.com/piquette/edgr |
+|       |   |                                  |
+
+* Synopsis
+
+Try to download SEC filings.
+
+* References
+
+- github.com/plops/cl-py-generator/example/61_edgar
+  - i tried it before in python but the xml documents are ~400MB and
+    python a bit too slow
