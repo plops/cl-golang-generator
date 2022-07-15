@@ -4,10 +4,22 @@
 
 * Synopsis
 
-Try to download SEC filings.
+Try to download SEC filings and parse the XML.  First I try to use
+edgr and if that doesn't work try to convert xsd to golang with xgen.
+
 
 * References
 
 - github.com/plops/cl-py-generator/example/61_edgar
   - i tried it before in python but the xml documents are ~400MB and
     python a bit too slow
+
+
+* Install dependency
+
+
+#+begin_example
+cd ~/stage/cl-golang-generator/examples/17_edgar/source
+cd ~/src
+git clone https://github.com/piquette/edgr
+#+end_example
