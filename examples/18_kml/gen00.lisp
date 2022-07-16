@@ -85,7 +85,9 @@
 	     satplan/schema
 	     io/ioutil
 	     os
+	     golang.org/x/net/html/charset
 	     encoding/xml
+	     bytes
 	     )
      
      (defun main ()
@@ -104,11 +106,18 @@
 		     :msg "read KML file as bytes")
 		   :cmd (ioutil.ReadAll kml)
 		   ))
+	 (assign reader
+		 (bytes.NewReader kmlbytes))
+	 (assign decoder
+		 (xml.NewDecoder reader))
+	 (setf decoder.CharsetReader
+	       charset.NewReaderLabel)
+	 
 	 (do0
 	  ,(lprint :msg "unmarshall KML with go code based on kml21.xsd")
 	  "var kmldoc schema.Kml"
-	  ,(panic0 `(
-		     :cmd (xml.Unmarshal kmlbytes
+	  ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
+	  #+nil ,(panic0 `(:cmd (xml.Unmarshal kmlbytes
 					 &kmldoc))))
 	 ,(lprint :vars `(kmldoc))
 	 )))))

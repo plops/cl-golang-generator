@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
+	"golang.org/x/net/html/charset"
 	"io/ioutil"
 	"os"
 	"satplan/schema"
@@ -24,9 +26,12 @@ func main() {
 		panic(err01)
 	}
 
+	reader := bytes.NewReader(kmlbytes)
+	decoder := xml.NewDecoder(reader)
+	decoder.CharsetReader = charset.NewReaderLabel
 	fmt.Printf("%v unmarshall KML with go code based on kml21.xsd \n", time.Now().Format("2006-01-02 15:04:05.000"))
 	var kmldoc schema.Kml
-	err02 := xml.Unmarshal(kmlbytes, &kmldoc)
+	err02 := decoder.Decode(&kmldoc)
 	if !((err02) == (nil)) {
 		panic(err02)
 	}
