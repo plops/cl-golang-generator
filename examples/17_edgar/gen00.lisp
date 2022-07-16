@@ -18,6 +18,8 @@
 		 
 		 (dot time
 		      (Now)
+		      (Format
+		       (string "2022-07-16 00:24:34.169080068"))
 		      #+nil (Format
 		       (string
 			"2017-09-07 17:06:04"
@@ -58,5 +60,10 @@
      
      (defun main ()
        ,(lprint :msg "main")
+       (assign (ntuple companies err)
+	       (core.GetPublicCompanies))
+       (unless (== err "nil")
+	 (panic err))
+       ,(lprint :msg "" :vars `(companies))
        )
      )))

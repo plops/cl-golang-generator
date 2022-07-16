@@ -1,2 +1,2 @@
 
-go build
+go build -v -o edgar .
