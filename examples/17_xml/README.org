@@ -19,7 +19,13 @@ edgr and if that doesn't work try to convert xsd to golang with xgen.
 
 
 #+begin_example
-cd ~/stage/cl-golang-generator/examples/17_edgar/source
+cd ~/stage/cl-golang-generator/examples/17_xml/source
 cd ~/src
 git clone https://github.com/piquette/edgr
+
+go install github.com/xuri/xgen/cmd/...@latest
+~/go/bin/xgen \
+  -i /home/martn/stage/cl-py-generator/example/61_edgar/source/xml_all/nvda-20220501.xsd \
+  -o xmlBind -l Go
 #+end_example
+

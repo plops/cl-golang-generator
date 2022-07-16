@@ -5,7 +5,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/17_edgar"
+    (format nil "~a/stage/cl-golang-generator/examples/17_xml"
 	    (user-homedir-pathname)))
   (defparameter *idx* "01")
   (defun lprint (&key (msg "") vars)

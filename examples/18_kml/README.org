@@ -12,12 +12,12 @@ published at [XMLXSD].
 
 
 #+begin_example
-curl https://developers.google.com/kml/schema/kml21.xsd -o source00/kml21.xsd
+curl https://developers.google.com/kml/schema/kml21.xsd -O
 curl https://sentinel.esa.int/documents/247904/4742706/S1A_MP_USER_20220715T160000_20220804T180000.kml -O
 go install github.com/xuri/xgen/cmd/...@latest
 
 ~/go/bin/xgen \
-  -i kml21.xsd \
+  -i kml22.xsd \
   -o xmlBind -l Go
 
 #+end_example
