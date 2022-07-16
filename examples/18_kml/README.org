@@ -4,7 +4,32 @@ I want to open KML files with satellite acquisition plans
 [SATPLAN]. This is how ESA distributes information the regions where
 the Sentinel-1 satellites will acquire data. 
 
-KML is a file format based on XML.
+KML is a file format based on XML. The XSD definition file is
+published at [XMLXSD].
+
+
+* Generate Go code to parse XML using the xgen tool
+
+
+#+begin_example
+curl https://developers.google.com/kml/schema/kml21.xsd -o source00/kml21.xsd
+curl https://sentinel.esa.int/documents/247904/4742706/S1A_MP_USER_20220715T160000_20220804T180000.kml -O
+go install github.com/xuri/xgen/cmd/...@latest
+
+~/go/bin/xgen \
+  -i kml21.xsd \
+  -o xmlBind -l Go
+
+#+end_example
+
+* Appendix
+** Unrelated note on emacs with termux
+I have issues with an external keyboard on the Phone. It is connected
+via an USB OTG adapter. C-Space doesn't work in emacs that runs inside
+a termux terminal window. This key combination performs the
+set-mark-command and is important for copy and paste. For the fix
+uncomment the last line (starting with ctrl-space...) in
+~/.termux/termux.properties.
 
 
 * References 
