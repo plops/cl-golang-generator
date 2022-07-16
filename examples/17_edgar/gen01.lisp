@@ -14,13 +14,10 @@
 		 (dot time
 		      (Now)
 		      (Format
-		       time.StampMilli
-		       #+nil (string "Jan _2 15:04:05.000"))
-		      #+nil (Format
+		       #+nil time.StampMilli
+		       #+nil (string "Jan _2 15:04:05.000")
 		       (string
-			"2017-09-07 17:06:04"
-					;"2017-09-07 17:06:04.000000"
-			)))
+			"2006-01-02 15:04:05.000")))
 		 
 		 ,@vars
 		 ))
