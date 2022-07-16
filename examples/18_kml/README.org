@@ -1,0 +1,17 @@
+* Synopsis
+
+I want to open KML files with satellite acquisition plans
+[SATPLAN]. This is how ESA distributes information the regions where
+the Sentinel-1 satellites will acquire data. 
+
+KML is a file format based on XML.
+
+
+* References 
+
+|           |                                                                                                     |
+|-----------+-----------------------------------------------------------------------------------------------------|
+| [GOXML]   | https://github.com/twpayne/go-kml                                                                   |
+| [XMLXSD]  | https://developers.google.com/kml/schema/kml21.xsd                                                  |
+| [SATPLAN] | https://sentinel.esa.int/web/sentinel/missions/sentinel-1/observation-scenario/acquisition-segments |
+|           |                                                                                                     |
