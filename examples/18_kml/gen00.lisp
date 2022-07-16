@@ -13,16 +13,19 @@
     (format nil "~a/stage/cl-golang-generator/examples/18_kml"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
+  (defun lprint-init ()
+    `(defun timeNow ()
+       (dot time
+	    (Now)
+	    (Format
+	     (string
+	      "2006-01-02 15:04:05.000")))))
   (defun lprint (&key (msg "") vars)
     `(fmt.Printf
       (string
        ,(format nil "%v ~a ~{~a=%v~^ ~}\\n"
 		msg vars))
-      (dot time
-	   (Now)
-	   (Format
-	    (string
-	     "2006-01-02 15:04:05.000")))
+      (timeNow)
       ,@vars
       ))
   (let ((err-nr 0))
@@ -89,7 +92,7 @@
 	     encoding/xml
 	     bytes
 	     )
-     
+     ,(lprint-init)
      (defun main ()
        ,(lprint :msg "main")
        (let ((fn

@@ -22,6 +22,40 @@ go install github.com/xuri/xgen/cmd/...@latest
 
 #+end_example
 
+* Contents of the KML file
+#+begin_example
+xmlstarlet el -u S1A*.kml
+
+kml
+kml/Document
+kml/Document/Folder
+kml/Document/Folder/Folder
+kml/Document/Folder/Folder/Placemark
+kml/Document/Folder/Folder/Placemark/ExtendedData
+kml/Document/Folder/Folder/Placemark/ExtendedData/Data
+kml/Document/Folder/Folder/Placemark/ExtendedData/Data/value
+kml/Document/Folder/Folder/Placemark/LinearRing
+kml/Document/Folder/Folder/Placemark/LinearRing/altitudeMode
+kml/Document/Folder/Folder/Placemark/LinearRing/coordinates
+kml/Document/Folder/Folder/Placemark/LinearRing/tessellate
+kml/Document/Folder/Folder/Placemark/TimeSpan
+kml/Document/Folder/Folder/Placemark/TimeSpan/begin
+kml/Document/Folder/Folder/Placemark/TimeSpan/end
+kml/Document/Folder/Folder/Placemark/name
+kml/Document/Folder/Folder/Placemark/styleUrl
+kml/Document/Folder/Folder/name
+kml/Document/Folder/name
+kml/Document/NetworkLink
+kml/Document/NetworkLink/Link
+kml/Document/NetworkLink/Link/href
+kml/Document/NetworkLink/name
+kml/Document/Style
+kml/Document/Style/LineStyle
+kml/Document/Style/LineStyle/color
+kml/Document/Style/LineStyle/width
+kml/Document/name
+#+end_example
+
 * Appendix
 ** Unrelated note on emacs with termux
 I have issues with an external keyboard on the Phone. It is connected
