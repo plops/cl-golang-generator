@@ -245,9 +245,14 @@
 	  "var kmldoc KML"
 	  ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
 	  )
+	 #+nil
+
+
 	 ,(lprint :msg "result" :vars `(kmldoc ))
-	 ,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
-	 ,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
+					;,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
+	 (foreach ((ntuple idx f) (range kmldoc.Document.Folder.Folders))
+		  ,(lprint :vars `(idx f)))
+	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
 	 
 	 
