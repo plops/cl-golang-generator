@@ -94,8 +94,10 @@
      (defun main ()
        ,(lprint :msg "main")
        (let ((fn
-	       (string ;;"../source00/KML_Samples.kml"
-		       "../source00/S1A_MP_USER_20220715T160000_20220804T180000.kml"
+	       (string ;;"../source00/KML_Samples.kml" i think the
+		;; following file isn't decoded properly because it is
+		;; not in UTF-8:
+		"../source00/S1A_MP_USER_20220715T160000_20220804T180000.kml"
 		)))
 	 ,(panic
 	   `(:var kml

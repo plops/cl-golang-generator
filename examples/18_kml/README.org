@@ -6,9 +6,9 @@
 * Synopsis
 
 I want to open KML files with satellite acquisition plans
-[SATPLAN]. This is how ESA distributes information the regions on
-earth where the Sentinel-1 satellites will acquire data in the next
-days.
+[SATPLAN]. This is how ESA distributes information the footprints on
+earth where the Sentinel-1 satellites will acquire data in a period of
+20 days.
 
 KML is a file format based on XML. The XSD definition file is
 published at [XMLXSD].
