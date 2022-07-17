@@ -209,8 +209,8 @@
 
      ,(xml-struct
        `(ExtendedData
-	      ((:name Data)
-	       )))
+	 ((:name Data
+	   :type "[]Data"))))
      ,(xml-struct
        `(Data
 	 ((:name Key
@@ -266,15 +266,12 @@
 	 (foreach ((ntuple idx f) (range kmldoc.Document.Folder.Folders))
 		  ,(lprint :vars `(idx f.Name))
 		  (foreach ((ntuple jdx p) (range f.Placemarks))
-			   (let ((k (dot p
-					 ExtendedData
-					 Data
-					 Key))
-				 (v (dot p
-					 ExtendedData
-					 Data
-					 Value)))
-			    ,(lprint :vars `(jdx p.Name k v)))))
+			   (foreach ((ntuple kdx d) (range (dot p ExtendedData Data)))
+			    (let ((k (dot d
+					  Key))
+				  (v (dot d
+					  Value)))
+			      ,(lprint :vars `(jdx kdx p.Name k v))))))
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
 	 
