@@ -156,6 +156,9 @@
 	  (:name Placemarks
 	   :type "[]Placemark"
 	   :xml "Placemark")
+	  (:name Folders
+	   :type "[]Folder"
+	   :xml "Folder")
 	  )))
 
      ,(xml-struct
@@ -242,7 +245,9 @@
 	  "var kmldoc KML"
 	  ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
 	  )
-	 ,(lprint :msg "result" :vars `(kmldoc))
+	 ,(lprint :msg "result" :vars `(kmldoc ))
+	 ,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
+	 ,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
 	 
 	 
