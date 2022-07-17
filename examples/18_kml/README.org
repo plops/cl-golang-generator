@@ -84,6 +84,19 @@ kml/Document/Folder/Document/LookAt/altitude                                    
 
 #+end_example
 
+* Store parsed results in sqlite3
+
+
+go install github.com/mattn/go-sqlite3
+
+The go-sqlite3 package contains a 5MB c file, which takes a long time
+to compile. With go install we only need to compile it once.
+
+The following command will install dependencies of a project
+go test -v -i
+
+This shall speed up subsequent builds.
+
 * Appendix
 ** godef for emacs go-mode
 go get github.com/rogpeppe/godef

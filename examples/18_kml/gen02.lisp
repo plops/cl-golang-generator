@@ -37,6 +37,7 @@
 		(assign (ntuple ,var ,err)
 			,cmd)
 		(unless (== ,err "nil")
+		  ,(lprint :vars `(,err))
 		  (panic ,err))
 		,post)
 	    (incf err-nr)))))
@@ -102,7 +103,8 @@
 	     golang.org/x/net/html/charset
 	     encoding/xml
 	     bytes
-	     ;github.com/amundsentech/kml-decode
+	     database/sql
+	     github.com/mattn/go-sqlite3
 	     )
 
      ;; i have to define the following structures
@@ -164,7 +166,7 @@
 
      ,(xml-struct
        `(Placemark
-	 ((:name Name
+	 ((:name DateTime
 	   :type string
 	   :xml "name")
 	  (:name Style)
@@ -223,8 +225,20 @@
 
      
      ,(lprint-init)
+     
+
      (defun main ()
        ,(lprint :msg "main")
+
+       (let ((dbfn (string "plan.db")))
+	 ,(panic `(:var db
+		   :cmd (sql.Open (string "sqlite3") dbfn)))
+	 ,(panic `(:var exec_res_create
+		   :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS activities (id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT, value TEXT);"))))
+	 (assign (ntuple version version_nr src_id)
+		 (sqlite3.Version))
+	 ,(lprint :vars `(exec_res_create version version_nr src_id)))
+       
        (let ((fn
 	       (string ;;"../source00/KML_Samples.kml" i think the
 		;; following file isn't decoded properly because it is
@@ -271,7 +285,11 @@
 					  Key))
 				  (v (dot d
 					  Value)))
-			      ,(lprint :vars `(jdx kdx p.Name k v))))))
+			      ,(panic `(:var exec_res_insert
+					:cmd (db.Exec (string "INSERT INTO activities VALUES(NULL,?,?,?);")
+						      p.DateTime k v)))
+			      ,(lprint :vars `(exec_res_insert jdx kdx p.DateTime k v))
+			      ))))
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
 	 
