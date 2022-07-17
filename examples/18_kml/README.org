@@ -64,6 +64,15 @@ kml/Document/Style/LineStyle
 kml/Document/Style/LineStyle/color
 kml/Document/Style/LineStyle/width
 kml/Document/name
+
+~/stage/cl-golang-generator/examples/18_kml/source00 $ xmlstarlet el -u KML_Samples.kml |head
+kml
+kml/Document
+kml/Document/Folder
+kml/Document/Folder/Document
+kml/Document/Folder/Document/LookAt
+kml/Document/Folder/Document/LookAt/altitude                                                                 kml/Document/Folder/Document/LookAt/heading
+
 #+end_example
 
 * Appendix
