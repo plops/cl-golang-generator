@@ -3,7 +3,7 @@
 |-------+-------+-----------------------------------------------------------------------|
 | gen00 |   20% | try to use xgen to generate go code from xsd file, not working so far |
 | gen01 |   10% | try reading kml with https://github.com/amundsentech/kml-decode       |
-| gen03 |       | try to parse sentinel kml file manually                               |
+| gen03 |   80% | try to parse sentinel kml file manually, this seems to work           |
 
 * Synopsis
 

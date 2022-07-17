@@ -251,7 +251,19 @@
 	 ,(lprint :msg "result" :vars `(kmldoc ))
 					;,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
 	 (foreach ((ntuple idx f) (range kmldoc.Document.Folder.Folders))
-		  ,(lprint :vars `(idx f)))
+		  ,(lprint :vars `(idx f.Name))
+		  (foreach ((ntuple jdx p) (range f.Placemarks))
+			   (let ((k (dot p
+					 ExtendedData
+					 SchemaData
+					 SimpleData
+					 Key))
+				 (v (dot p
+					 ExtendedData
+					 SchemaData
+					 SimpleData
+					 Value)))
+			    ,(lprint :vars `(jdx p.Name k v)))))
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
 	 
