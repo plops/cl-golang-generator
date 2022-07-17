@@ -86,6 +86,8 @@ kml/Document/Folder/Document/LookAt/altitude                                    
 
 * Store parsed results in sqlite3
 
+I learned how to store information in a sqlite3 database from Go using
+the tutorial [SQLEX].
 
 go install github.com/mattn/go-sqlite3
 
@@ -96,6 +98,8 @@ The following command will install dependencies of a project
 go test -v -i
 
 This shall speed up subsequent builds.
+
+
 
 * Appendix
 ** godef for emacs go-mode
@@ -119,4 +123,4 @@ working just call M-x set-mark-command.
 | [GOXML]   | https://github.com/twpayne/go-kml                                                                   |
 | [XMLXSD]  | http://schemas.opengis.net/kml/2.2.0/ogckml22.xsd                                                                                                    |
 | [SATPLAN] | https://sentinel.esa.int/web/sentinel/missions/sentinel-1/observation-scenario/acquisition-segments |
-|           |                                                                                                     |
+| [SQLEX]   | https://earthly.dev/blog/golang-sqlite/                                                                                                    |

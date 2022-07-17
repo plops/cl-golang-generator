@@ -277,10 +277,13 @@
 
 	 ,(lprint :msg "result" :vars `(kmldoc ))
 					;,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
-	 (foreach ((ntuple idx f) (range kmldoc.Document.Folder.Folders))
+	 (foreach ;(f kmldoc.Document.Folder.Folders)
+		  ((ntuple idx f) (range kmldoc.Document.Folder.Folders))
 		  ,(lprint :vars `(idx f.Name))
-		  (foreach ((ntuple jdx p) (range f.Placemarks))
-			   (foreach ((ntuple kdx d) (range (dot p ExtendedData Data)))
+		  (foreach ;(p f.Placemarks) ;
+			   ((ntuple jdx p) (range f.Placemarks))
+			   (foreach ;(d p.ExtendedData.Data) ;
+				    ((ntuple kdx d) (range (dot p ExtendedData Data)))
 			    (let ((k (dot d
 					  Key))
 				  (v (dot d
@@ -288,8 +291,10 @@
 			      ,(panic `(:var exec_res_insert
 					:cmd (db.Exec (string "INSERT INTO activities VALUES(NULL,?,?,?);")
 						      p.DateTime k v)))
-			      ,(lprint :vars `(exec_res_insert jdx kdx p.DateTime k v))
-			      ))))
+			      (when false
+			       ,(lprint :vars `(exec_res_insert jdx kdx p.DateTime k v)))
+			      )))
+		  )
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
 	 
