@@ -23,7 +23,9 @@ curl http://schemas.opengis.net/kml/2.2.0/ogckml22.xsd -O
 curl http://schemas.opengis.net/kml/2.2.0/atom-author-link.xsd -O
 curl http://docs.oasis-open.org/election/external/xAL.xsd -O
 
-curl https://sentinel.esa.int/documents/247904/4742706/S1A_MP_USER_20220715T160000_20220804T180000.kml -O
+
+curl -H "Accept: text/xml; charset=utf-8" https://sentinel.esa.int/documents/247904/4742706/S1A_MP_USER_20220715T160000_20220804T180000.kml -O
+curl -H "Accept-Charset: UTF-8" https://sentinel.esa.int/documents/247904/4742706/S1A_MP_USER_20220715T160000_20220804T180000.kml -O
 go install github.com/xuri/xgen/cmd/...@latest
 
 ~/go/bin/xgen -i xsd -o schema -l Go
