@@ -111,6 +111,7 @@
      ;; kml Document Folder Placemark
      ;; ExtendedData Data value
      ;; LinearRing altitudeMode coordinates tesselate
+     ;; TimeSpan
      ;; styleUrl
      ;; NetworkLink
      ;; Style LineStyle color width
@@ -167,6 +168,9 @@
 	   :type string
 	   :xml "name")
 	  (:name Style)
+	  (:name styleUrl
+	   :type string)
+	  (:name TimeSpan)
 	  (:name ExtendedData)
 	  )))
 
@@ -175,6 +179,18 @@
 	 ((:name LineStyle
 	   )
 	  )))
+     
+     
+     ,(xml-struct
+       `(TimeSpan
+	 ((:name Begin
+	   :type string
+	   :xml begin)
+	  (:name End
+	   :type string
+	   :xml end)
+	  )))
+     
      ,(xml-struct
        `(LineStyle
 	      ((:name Color
@@ -185,27 +201,24 @@
 	      ((:name StringCoords
 		:type string
 		:xml coordinates)
+	       (:name altitudeMode
+		:type string)
+	       (:name tessellate
+		:type string)
 	       )))
 
      ,(xml-struct
        `(ExtendedData
-	      ((:name SchemaData)
+	      ((:name Data)
 	       )))
      ,(xml-struct
-       `(SchemaData
-	 ((:name Schema
-	   :type string
-	   :xml "schemaUrl,attr")
-	  (:name SimpleData)
-	  )))
-     ,(xml-struct
-       `(SimpleData
+       `(Data
 	 ((:name Key
 	   :type string
 	   :xml "name,attr")
 	  (:name Value
 	   :type string
-	   :xml ",chardata")
+	   :xml "value")
 	  )))
 
      
@@ -255,13 +268,11 @@
 		  (foreach ((ntuple jdx p) (range f.Placemarks))
 			   (let ((k (dot p
 					 ExtendedData
-					 SchemaData
-					 SimpleData
+					 Data
 					 Key))
 				 (v (dot p
 					 ExtendedData
-					 SchemaData
-					 SimpleData
+					 Data
 					 Value)))
 			    ,(lprint :vars `(jdx p.Name k v)))))
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
