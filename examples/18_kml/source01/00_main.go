@@ -14,7 +14,7 @@ func timeNow() string {
 }
 func main() {
 	fmt.Printf("%v main \n", timeNow())
-	var fn = "../source00/KML_Samples.kml"
+	var fn = "../source00/S1A_MP_USER_20220715T160000_20220804T180000.kml"
 	fmt.Printf("%v open KML file fn=%v\n", timeNow(), fn)
 	kml, err00 := os.Open(fn)
 	if !((err00) == (nil)) {

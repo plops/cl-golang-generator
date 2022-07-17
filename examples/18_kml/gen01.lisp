@@ -3,16 +3,11 @@
 
 (in-package :cl-golang-generator)
 
-;; call
-;; go mod tidy
-;; on first run
-
-
 (progn
   (defparameter *path*
     (format nil "~a/stage/cl-golang-generator/examples/18_kml"
 	    (user-homedir-pathname)))
-  (defparameter *idx* "00")
+  (defparameter *idx* "01")
   (defun lprint-init ()
     `(defun timeNow ()
        (declare (values string))
@@ -87,19 +82,20 @@
      (package main)
      (import fmt
 	     time
-	     satplan/schema
+	     
 	     io/ioutil
 	     os
 	     ;golang.org/x/net/html/charset
-	     encoding/xml
-	     ;bytes
+	     ;encoding/xml
+	     bytes
+	     github.com/amundsentech/kml-decode
 	     )
      ,(lprint-init)
      (defun main ()
        ,(lprint :msg "main")
        (let ((fn
-	       (string "KML_Samples.kml"
-					; "S1A_MP_USER_20220715T160000_20220804T180000.kml"
+	       (string ;;"../source00/KML_Samples.kml"
+		       "../source00/S1A_MP_USER_20220715T160000_20220804T180000.kml"
 		)))
 	 ,(panic
 	   `(:var kml
@@ -113,20 +109,14 @@
 		     :msg "read KML file as bytes")
 		   :cmd (ioutil.ReadAll kml)
 		   ))
-	 #+nil (do0
-	  (assign reader
-		  (bytes.NewReader kmlbytes))
-	  (assign decoder
-		  (xml.NewDecoder reader))
-	  (setf decoder.Strict false)
-	  (setf decoder.CharsetReader
-		charset.NewReaderLabel))
-	 
+	 (assign kmlbuf (bytes.NewBuffer kmlbytes))
+	 	 
 	 (do0
-	  ,(lprint :msg "unmarshall KML with go code based on kml21.xsd")
-	  "var kmldoc schema.Kml"
-	  #+nil ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
-	  #-nil ,(panic0 `(:cmd (xml.Unmarshal kmlbytes
-					       &kmldoc))))
-	 ,(lprint :vars `(kmldoc))
+	  "var kmlstruct kmldecode.KML"
+	  (kmldecode.KMLDecode kmlbuf 
+			       &kmlstruct)
+	  #+nil
+	  ,(panic0 `(:cmd (kmldecode.KMLDecode kmlbuf 
+					       &kmlstruct))))
+	 ,(lprint :vars `(kmlstruct))
 	 )))))

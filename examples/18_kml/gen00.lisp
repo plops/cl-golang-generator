@@ -15,11 +15,13 @@
   (defparameter *idx* "00")
   (defun lprint-init ()
     `(defun timeNow ()
-       (dot time
-	    (Now)
-	    (Format
-	     (string
-	      "2006-01-02 15:04:05.000")))))
+       (declare (values string))
+       (return
+	 (dot time
+	     (Now)
+	     (Format
+	      (string
+	       "2006-01-02 15:04:05.000"))))))
   (defun lprint (&key (msg "") vars)
     `(fmt.Printf
       (string
@@ -88,15 +90,17 @@
 	     satplan/schema
 	     io/ioutil
 	     os
-	     golang.org/x/net/html/charset
+	     ;golang.org/x/net/html/charset
 	     encoding/xml
-	     bytes
+	     ;bytes
 	     )
      ,(lprint-init)
      (defun main ()
        ,(lprint :msg "main")
        (let ((fn
-	       (string "S1A_MP_USER_20220715T160000_20220804T180000.kml")))
+	       (string "KML_Samples.kml"
+					; "S1A_MP_USER_20220715T160000_20220804T180000.kml"
+		)))
 	 ,(panic
 	   `(:var kml
 	     :pre ,(lprint :msg "open KML file"
@@ -109,18 +113,20 @@
 		     :msg "read KML file as bytes")
 		   :cmd (ioutil.ReadAll kml)
 		   ))
-	 (assign reader
-		 (bytes.NewReader kmlbytes))
-	 (assign decoder
-		 (xml.NewDecoder reader))
-	 (setf decoder.CharsetReader
-	       charset.NewReaderLabel)
+	 #+nil (do0
+	  (assign reader
+		  (bytes.NewReader kmlbytes))
+	  (assign decoder
+		  (xml.NewDecoder reader))
+	  (setf decoder.Strict false)
+	  (setf decoder.CharsetReader
+		charset.NewReaderLabel))
 	 
 	 (do0
 	  ,(lprint :msg "unmarshall KML with go code based on kml21.xsd")
 	  "var kmldoc schema.Kml"
-	  ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
-	  #+nil ,(panic0 `(:cmd (xml.Unmarshal kmlbytes
-					 &kmldoc))))
+	  #+nil ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
+	  #-nil ,(panic0 `(:cmd (xml.Unmarshal kmlbytes
+					       &kmldoc))))
 	 ,(lprint :vars `(kmldoc))
 	 )))))
