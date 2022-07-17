@@ -1,7 +1,9 @@
-|       |     |                                                                       |
-| gen00 | 20% | try to use xgen to generate go code from xsd file, not working so far |
-| gen01 |     | try reading kml with https://github.com/amundsentech/kml-decode       |
-|       |     |                                                                       |
+
+| file  | level | comment                                                               |
+|-------+-------+-----------------------------------------------------------------------|
+| gen00 |   20% | try to use xgen to generate go code from xsd file, not working so far |
+| gen01 |   10% | try reading kml with https://github.com/amundsentech/kml-decode       |
+| gen03 |       | try to parse sentinel kml file manually                               |
 
 * Synopsis
 
@@ -31,6 +33,13 @@ go install github.com/xuri/xgen/cmd/...@latest
 ~/go/bin/xgen -i xsd -o schema -l Go
 
 #+end_example
+
+kml Document Folder Placemark
+ExtendedData Data value
+LinearRing altitudeMode coordinates tesselate
+styleUrl
+NetworkLink
+Style LineStyle color width
 
 * Contents of the KML file
 #+begin_example

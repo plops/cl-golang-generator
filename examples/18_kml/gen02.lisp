@@ -76,6 +76,20 @@
 		     :if-does-not-exist :create)
     (format s "module satplan~%")
     (format s "go 1.18~%"))
+  (defun xml-struct (name-defs)
+    (destructuring-bind (struct-name defs) name-defs
+     `(defstruct0
+	  ,struct-name
+	  ,@(loop for e in
+		  defs
+		  collect
+		  (destructuring-bind
+		      (&key name (type name)
+			 (xml name)) e
+		    `(,name ,(format
+			      nil
+			      "~a `xml:\"~a\"`"
+			      type xml)))))))
   (write-go
    "main"
    `(do0
@@ -90,6 +104,108 @@
 	     bytes
 	     ;github.com/amundsentech/kml-decode
 	     )
+
+     ;; i have to define the following structures
+     ;; then i shall be able to read the sentinel kml
+
+     ;; kml Document Folder Placemark
+     ;; ExtendedData Data value
+     ;; LinearRing altitudeMode coordinates tesselate
+     ;; styleUrl
+     ;; NetworkLink
+     ;; Style LineStyle color width
+
+     
+     ,(xml-struct
+       `(KML ((:name XMLName
+	       :type xml.Name
+	       :xml kml)
+	      (:name Document ))))
+     ,(xml-struct
+       `(Document ((:name Id
+		    :type string
+		    :xml "id,attr")
+		   ;(:name Schema )
+		   (:name Folder ))))
+
+     #+nil ,(xml-struct
+       `(Schema ((:name Name
+		    :type string
+		  :xml "name,attr")
+		 (:name ID
+		  :type string
+		  :xml "id,attr")
+		 (:name SimpleField
+		  :type "[]SimpleField"
+		  )
+		 )))
+     #+nil ,(xml-struct
+       `(SimpleField
+	 ((:name Name
+	   :type string
+	   :xml "name,attr")
+	  (:name Type
+	   :type string
+	   :xml "type,attr")
+	  )))
+     ,(xml-struct
+       `(Folder
+	 ((:name Name
+	   :type string
+	   :xml "name")
+	  (:name Placemarks
+	   :type "[]Placemark"
+	   :xml "Placemark")
+	  )))
+
+     ,(xml-struct
+       `(Placemark
+	 ((:name Name
+	   :type string
+	   :xml "name")
+	  (:name Style)
+	  (:name ExtendedData)
+	  )))
+
+     ,(xml-struct
+       `(Style
+	 ((:name LineStyle
+	   )
+	  )))
+     ,(xml-struct
+       `(LineStyle
+	      ((:name Color
+		:type string
+		:xml color))))
+     ,(xml-struct
+       `(LinearRing
+	      ((:name StringCoords
+		:type string
+		:xml coordinates)
+	       )))
+
+     ,(xml-struct
+       `(ExtendedData
+	      ((:name SchemaData)
+	       )))
+     ,(xml-struct
+       `(SchemaData
+	 ((:name Schema
+	   :type string
+	   :xml "schemaUrl,attr")
+	  (:name SimpleData)
+	  )))
+     ,(xml-struct
+       `(SimpleData
+	 ((:name Key
+	   :type string
+	   :xml "name,attr")
+	  (:name Value
+	   :type string
+	   :xml ",chardata")
+	  )))
+
+     
      ,(lprint-init)
      (defun main ()
        ,(lprint :msg "main")
@@ -113,14 +229,21 @@
 		   ))
 
 	 (do0
-	  (assign kmlbuf (bytes.NewBuffer kmlbytes))
+	  ;(assign kmlbuf (bytes.NewBuffer kmlbytes))
 	  (assign reader
-		  (bytes.NewReader kmlbuf))
+		  (bytes.NewReader kmlbytes))
 	  (assign decoder
 		  (xml.NewDecoder reader))
 	  (setf decoder.Strict false)
 	  (setf decoder.CharsetReader
 		charset.NewReaderLabel))
+	 (do0
+	  ,(lprint :msg "unmarshall KML with manually constructed go types")
+	  "var kmldoc KML"
+	  ,(panic0 `(:cmd (decoder.Decode &kmldoc)))
+	  )
+	 ,(lprint :msg "result" :vars `(kmldoc))
+	 
 	 
 	 
 	 	 
