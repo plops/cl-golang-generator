@@ -331,6 +331,10 @@ entry return-values contains a list of return values"
 	      (case (car code)
 		(ntuple (let ((args (cdr code)))
 			  (format nil "~{~a~^, ~}" (mapcar #'emit args))))
+		(space
+		 ;; space {args}*
+		 (let ((args (cdr code)))
+		   (format nil "~{~a~^ ~}" (mapcar #'emit args))))
 		(paren
 		 ;; paren {args}*
 		 (let ((args (cdr code)))
@@ -588,7 +592,9 @@ entry return-values contains a list of return values"
 					(< ,var ,end)
 					(incf ,var))
 				       ,@body))))
-		(not (format nil "!(~a)" (emit (car (cdr code)))))
+		(not (format nil "(!(~a))" (emit (car (cdr code)))))
+		(ref (format nil "(&(~a))" (emit (car (cdr code)))))
+		(deref (format nil "(*(~a))" (emit (car (cdr code)))))
 		(package (format nil "package ~a" (car (cdr code))))
 		(import (let ((args (cdr code)))
 			  ;; import {(name|pair)}*
