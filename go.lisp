@@ -331,6 +331,10 @@ entry return-values contains a list of return values"
 	      (case (car code)
 		(ntuple (let ((args (cdr code)))
 			  (format nil "~{~a~^, ~}" (mapcar #'emit args))))
+		(space
+		 ;; space {args}*
+		 (let ((args (cdr code)))
+		   (format nil "~{~a~^ ~}" (mapcar #'emit args))))
 		(paren
 		 ;; paren {args}*
 		 (let ((args (cdr code)))
