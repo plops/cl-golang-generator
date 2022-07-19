@@ -1,0 +1,6 @@
+|       |   |   |
+| gen00 |   |   |
+
+* Synopsis
+
+Example of how to read a binary file with golang.
