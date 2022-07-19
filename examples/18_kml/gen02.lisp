@@ -18,6 +18,7 @@
 	      (string
 	       "2006-01-02 15:04:05.000"))))))
   (defun lprint (&key (msg "") vars)
+    "generate go code to print variables in log output"
     `(fmt.Printf
       (string
        ,(format nil "%v ~a ~{~a=%v~^ ~}\\n"
@@ -25,6 +26,16 @@
       (timeNow)
       ,@vars
       ))
+  (defun tprint (&key (msg "") vars)
+    "generate go code to print variables in log output with their types"
+    `(fmt.Printf
+      (string
+       ,(format nil "%v ~a ~{~a=%v (%T)~^ ~}\\n"
+		msg vars))
+      (timeNow)
+      ,@(loop for e in vars
+	      appending
+	      `(,e ,e))))
   (let ((err-nr 0))
     (defun panic (var-cmd)
       (let ((err (format nil "err~2,'0d" err-nr)))
@@ -106,6 +117,8 @@
 	     database/sql
 	     github.com/mattn/go-sqlite3
 	     github.com/samber/lo
+	     github.com/schollz/progressbar/v3
+	     ;; github.com/sbwhitecap/tqdm
 	     )
 
      ;; i have to define the following structures
@@ -213,6 +226,7 @@
        (let ((dbfn (string "plan.db")))
 	 ,(panic `(:var db
 		   :cmd (sql.Open (string "sqlite3") dbfn)))
+	 ,(tprint :msg "open database" :vars `(dbfn db))
 	 ,(panic `(:var exec_res_create
 		   :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS activities (id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT, value TEXT);"))))
 	 (assign (ntuple version version_nr src_id)
@@ -257,12 +271,13 @@
 	 ,(lprint :msg "result" :vars `(kmldoc ))
 					;,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
 	 (foreach ;(f kmldoc.Document.Folder.Folders)
-		  ((ntuple idx f) (range kmldoc.Document.Folder.Folders))
-		  ,(lprint :vars `(idx f.Name))
+		  ((ntuple idx_folder f) (range kmldoc.Document.Folder.Folders))
+		  ,(lprint :vars `(idx_folder f.Name))
+		  (assign bar (progressbar.Default (int64 (len f.Placemarks))))
 		  (foreach ;(p f.Placemarks) ;
 			   ((ntuple jdx p) (range f.Placemarks))
-
-			   ,(lprint :vars `(p))
+			   (bar.Add 1)
+			   ;,(lprint :vars `(p))
 			   (;foreach ((ntuple kdx d) (range (dot p ExtendedData Data)))
 			    lo.ForEach (dot p ExtendedData Data)
 				       (lambda (d i)
@@ -272,6 +287,9 @@
 						      Key))
 					      (v (dot d
 						      Value)))
+
+					  ;; batch insert could be done but maybe not necessary
+					  ;; https://stackoverflow.com/questions/12486436/how-do-i-batch-sql-statements-with-package-database-sql
 					  ,(panic `(:var exec_res_insert
 						    :cmd (db.Exec (string "INSERT INTO activities VALUES(NULL,?,?,?);")
 								  p.DateTime k v)))
