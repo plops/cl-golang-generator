@@ -118,7 +118,7 @@
 	     github.com/mattn/go-sqlite3
 	     github.com/samber/lo
 	     github.com/schollz/progressbar/v3
-	     ;; github.com/sbwhitecap/tqdm
+	     runtime/pprof
 	     )
 
      ;; i have to define the following structures
@@ -223,6 +223,16 @@
      (defun main ()
        ,(lprint :msg "main")
 
+       (let ((prof_fn (string "satplan.prof")))
+
+	 ;; go tool pprof satplan satplan.prof
+	 ,(lprint :msg "start profiling" :vars `(prof_fn))
+	 ,(lprint :msg "you can view the profile with: go tool pprof satplan satplan.prof")
+	 ,(panic `(:var prof_f
+		   :cmd (os.Create prof_fn)))
+	 (pprof.StartCPUProfile prof_f)
+	 (defer (pprof.StopCPUProfile)))
+       
        (let ((dbfn (string "plan.db")))
 	 ,(panic `(:var db
 		   :cmd (sql.Open (string "sqlite3") dbfn)))
@@ -272,7 +282,10 @@
 					;,(lprint :msg "result" :vars `( kmldoc.Document.Folder))
 	 (foreach ;(f kmldoc.Document.Folder.Folders)
 		  ((ntuple idx_folder f) (range kmldoc.Document.Folder.Folders))
+		  (when (== idx_folder 3)
+		    break)
 		  ,(lprint :vars `(idx_folder f.Name))
+		  
 		  (assign bar (progressbar.Default (int64 (len f.Placemarks))))
 		  (foreach ;(p f.Placemarks) ;
 			   ((ntuple jdx p) (range f.Placemarks))
