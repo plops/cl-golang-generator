@@ -105,6 +105,7 @@
 	     bytes
 	     database/sql
 	     github.com/mattn/go-sqlite3
+	     github.com/samber/lo
 	     )
 
      ;; i have to define the following structures
@@ -130,27 +131,6 @@
 		    :xml "id,attr")
 		   ;(:name Schema )
 		   (:name Folder ))))
-
-     #+nil ,(xml-struct
-       `(Schema ((:name Name
-		    :type string
-		  :xml "name,attr")
-		 (:name ID
-		  :type string
-		  :xml "id,attr")
-		 (:name SimpleField
-		  :type "[]SimpleField"
-		  )
-		 )))
-     #+nil ,(xml-struct
-       `(SimpleField
-	 ((:name Name
-	   :type string
-	   :xml "name,attr")
-	  (:name Type
-	   :type string
-	   :xml "type,attr")
-	  )))
      ,(xml-struct
        `(Folder
 	 ((:name Name
@@ -240,9 +220,7 @@
 	 ,(lprint :vars `(exec_res_create version version_nr src_id)))
        
        (let ((fn
-	       (string ;;"../source00/KML_Samples.kml" i think the
-		;; following file isn't decoded properly because it is
-		;; not in UTF-8:
+	       (string 
 		"../source00/S1A_MP_USER_20220715T160000_20220804T180000.kml"
 		)))
 	 ,(panic
@@ -259,6 +237,7 @@
 		   ))
 
 	 (do0
+	  ,(lprint :msg "read file with CharsetReader because file is in iso-8859-1 (instead of utf-8)")
 	  ;(assign kmlbuf (bytes.NewBuffer kmlbytes))
 	  (assign reader
 		  (bytes.NewReader kmlbytes))
@@ -282,18 +261,24 @@
 		  ,(lprint :vars `(idx f.Name))
 		  (foreach ;(p f.Placemarks) ;
 			   ((ntuple jdx p) (range f.Placemarks))
-			   (foreach ;(d p.ExtendedData.Data) ;
-				    ((ntuple kdx d) (range (dot p ExtendedData Data)))
-			    (let ((k (dot d
-					  Key))
-				  (v (dot d
-					  Value)))
-			      ,(panic `(:var exec_res_insert
-					:cmd (db.Exec (string "INSERT INTO activities VALUES(NULL,?,?,?);")
-						      p.DateTime k v)))
-			      (when false
-			       ,(lprint :vars `(exec_res_insert jdx kdx p.DateTime k v)))
-			      )))
+
+			   ,(lprint :vars `(p))
+			   (;foreach ((ntuple kdx d) (range (dot p ExtendedData Data)))
+			    lo.ForEach (dot p ExtendedData Data)
+				       (lambda (d i)
+				         (declare (type Data d)
+						  (type int i))
+					(let ((k (dot d
+						      Key))
+					      (v (dot d
+						      Value)))
+					  ,(panic `(:var exec_res_insert
+						    :cmd (db.Exec (string "INSERT INTO activities VALUES(NULL,?,?,?);")
+								  p.DateTime k v)))
+					  (when false
+					    ,(lprint :vars `(exec_res_insert jdx p.DateTime k v)))
+					  
+					  ))))
 		  )
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
