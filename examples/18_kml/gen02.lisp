@@ -285,7 +285,9 @@
 		  (when (== idx_folder 3)
 		    break)
 		  ,(lprint :vars `(idx_folder f.Name))
-		  
+		  ,(panic `(:var stmt
+				      :cmd (db.Prepare
+					    (string "INSERT INTO activities VALUES(NULL,?,?,?);"))))
 		  (assign bar (progressbar.Default (int64 (len f.Placemarks))))
 		  (foreach ;(p f.Placemarks) ;
 			   ((ntuple jdx p) (range f.Placemarks))
@@ -294,9 +296,7 @@
 			   (do0
 			    ,(panic `(:var tx
 				      :cmd (db.Begin)))
-			    ,(panic `(:var stmt
-				      :cmd (db.Prepare
-					    (string "INSERT INTO activities VALUES(NULL,?,?,?);")))))
+			    )
 			   (;foreach ((ntuple kdx d) (range (dot p ExtendedData Data)))
 
 			    lo.ForEach (dot p ExtendedData Data)
@@ -322,7 +322,8 @@
 					  
 					  )))
 			   ,(panic0 `(:cmd (tx.Commit)))
-			   (stmt.Close))
+			   )
+		  (stmt.Close)
 		  )
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
