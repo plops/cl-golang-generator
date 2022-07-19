@@ -291,7 +291,10 @@
 			   ((ntuple jdx p) (range f.Placemarks))
 			   (bar.Add 1)
 			   ;,(lprint :vars `(p))
+			   ,(panic `(:var tx
+				     :cmd (db.Begin)))
 			   (;foreach ((ntuple kdx d) (range (dot p ExtendedData Data)))
+
 			    lo.ForEach (dot p ExtendedData Data)
 				       (lambda (d i)
 				         (declare (type Data d)
@@ -303,13 +306,15 @@
 
 					  ;; batch insert could be done but maybe not necessary
 					  ;; https://stackoverflow.com/questions/12486436/how-do-i-batch-sql-statements-with-package-database-sql
-					  ,(panic `(:var exec_res_insert
+					  ,(panic `(:var last_inserted_line_id
 						    :cmd (db.Exec (string "INSERT INTO activities VALUES(NULL,?,?,?);")
 								  p.DateTime k v)))
 					  (when false
-					    ,(lprint :vars `(exec_res_insert jdx p.DateTime k v)))
+					    ,(lprint :vars `(last_inserted_line_id
+							     jdx p.DateTime k v)))
 					  
-					  ))))
+					  )))
+			   ,(panic0 `(:cmd (tx.Commit))))
 		  )
 	 ;,(lprint :msg "result" :vars `( kmldoc.Document.Folder.Placemarks))
 	 
