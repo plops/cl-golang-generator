@@ -22,7 +22,9 @@
     `(fmt.Printf
       (string
        ,(format nil "%v ~a ~{~a=%v~^ ~}\\n"
-		msg vars))
+		msg (loop for v in vars
+			  collect
+			  (emit-go :code v))))
       (timeNow)
       ,@vars
       ))
@@ -110,61 +112,100 @@
      ,(lprint-init)
 
      ,(let ((l `((:field Settings :type uint8)
-			     (:field Stratum :type uint8)
-			     (:field Poll :type int8)
-			     (:field Precision :type int8)
-			     RootDelay RootDispersion ReferenceID
-			     RefTimeSec RefTimeFrac
-			     OrigTimeSec OrigTimeFrac
-			     RxTimeSec RxTimeFrac
-			     TxTimeSec TxTimeFrac)))
-	`(defstruct0 packet
-	     ,@(loop for e in l
-		     collect
-		     (let ((ftype 'uint32)
-			   (fname e))
-		       (when (listp e)
-			 (destructuring-bind (&key field type) e
-			   (setf ftype type
-				 fname field)))
-		       `(,fname ,ftype)))))
-     
-     (const ntpEpochOffset 2208988800)
-     (defun main ()
-       ,(lprint :msg "main")
+		 (:field Stratum :type uint8)
+		 (:field Poll :type int8)
+		 (:field Precision :type int8)
+		 RootDelay RootDispersion
+		 ReferenceID
+		 RefTimeSec RefTimeFrac
+		 OrigTimeSec OrigTimeFrac
+		 RxTimeSec RxTimeFrac
+		 TxTimeSec TxTimeFrac)))
+	`(do0 (defstruct0 packet
+	      ,@(loop for e in l
+		      collect
+		      (let ((ftype 'uint32)
+			    (fname e))
+			(when (listp e)
+			  (destructuring-bind (&key field type) e
+			    (setf ftype type
+				  fname field)))
+			`(,fname ,ftype))))
+	      
+	      (const ntpEpochOffset 2208988800)
+	      (defun main ()
+		,(lprint :msg "main")
 
-       (do0
-	"var host string"
-	(flag.StringVar &host (string "e")
-			(string "us.pool.ntp.org:123")
-			(string "NTP host"))
-	(flag.Parse))
-       
-       (let ((prof_fn (string "ntp.prof")))
+		(do0
+		 "var host string"
+		 (flag.StringVar &host (string "e")
+				 (string "nl.pool.ntp.org:123")
+				 (string "NTP host"))
+		 (flag.Parse))
+		
+		(let ((prof_fn (string "ntp.prof")))
 
-	 ;; go tool pprof satpla satplan.prof
-	 ,(lprint :msg "start profiling" :vars `(prof_fn))
-	 ,(lprint :msg "you can view the profile with: go tool pprof satplan ntp.prof")
-	 ,(panic `(:var prof_f
-		   :cmd (os.Create prof_fn)))
-	 (pprof.StartCPUProfile prof_f)
-	 (defer (pprof.StopCPUProfile)))
+		  ;; go tool pprof satpla satplan.prof
+		  ,(lprint :msg "start profiling" :vars `(prof_fn))
+		  ,(lprint :msg "you can view the profile with: go tool pprof main ntp.prof")
+		  ,(panic `(:var prof_f
+			    :cmd (os.Create prof_fn)))
+		  (pprof.StartCPUProfile prof_f)
+		  (defer (pprof.StopCPUProfile)))
 
-       (do0
-	,(panic `(:var conn
-		  :cmd (net.Dial (string "udp")
-				 host)))
-	(defer (conn.Close))
-	,(panic0 `(conn.SetDeadline
-		  (dot time
-		       (Now)
-		       (Add (* 15 time.Second))))))
+		(do0
+		 ,(lprint :msg "open connection")
+		 ,(panic `(:var conn
+			   :cmd (net.Dial (string "udp")
+					  host)))
+		 (defer (conn.Close))
+		 ,(panic0 `(conn.SetDeadline
+			    (dot time
+				 (Now)
+				 (Add (* 15 time.Second))))))
 
-       (do0
-	(assign request (curly &packet
-			       :Settings #x1b))
-	,(panic0 `(binary.Write
-		  conn
-		  binary.BigEndian
-		  request)))
-       ))))
+		(for ()
+		     (do0
+		      (do0
+		       (assign request (curly &packet
+					      :Settings #x1b))
+		       ,(panic0 `(binary.Write
+				  conn
+				  binary.BigEndian
+				  request)))
+
+		      (do0
+		       (assign response (curly &packet))
+		       ,(panic0 `(binary.Read conn
+					      binary.BigEndian
+					      response)))
+
+		      (do0
+		       (do0
+			(assign secs (- (float64 response.TxTimeSec)
+					ntpEpochOffset)
+				nanos (>> (* (int64 response.TxTimeFrac)
+					     1e9)
+					  32))
+			(assign tx (time.Unix (int64 secs)
+						  nanos)))
+		       (do0
+			(setf secs (- (float64 response.RxTimeSec)
+					ntpEpochOffset)
+				nanos (>> (* (int64 response.RxTimeFrac)
+					     1e9)
+					  32))
+			(assign rx (time.Unix (int64 secs)
+						  nanos)))
+		       ,(lprint :vars `(tx rx))
+		       #+nil ,@(loop for e in `(
+					 RefTimeSec RefTimeFrac
+						    OrigTimeSec OrigTimeFrac
+						    RxTimeSec RxTimeFrac
+						    TxTimeSec TxTimeFrac)
+			      collect
+			       `(do0
+				 ,(lprint :vars `((dot response ,e)))))
+		       (time.Sleep (* 1 time.Second)))))
+		
+		))))))
