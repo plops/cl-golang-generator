@@ -1,0 +1,11 @@
+
+* Synopsis
+
+NTP client in Go
+
+
+* References
+
+- https://medium.com/learning-the-go-programming-language/lets-make-an-ntp-client-in-go-287c4b9a969f
+- https://github.com/vladimirvivien/go-ntp-client
+  
