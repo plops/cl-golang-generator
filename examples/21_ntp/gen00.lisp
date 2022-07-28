@@ -5,7 +5,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/20_pentest"
+    (format nil "~a/stage/cl-golang-generator/examples/21_ntp"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defun lprint-init ()
@@ -98,39 +98,73 @@
       time
       ;io/ioutil
       os
-      ;encoding/binary
+      flag
+      encoding/binary
+      ;log
+      net
+      
 					;github.com/samber/lo
 					;github.com/schollz/progressbar/v3
-	     runtime/pprof
-	     )
+      runtime/pprof
+      )
      ,(lprint-init)
 
-     (defstruct0 Greeter
-	 (expression string)
-       (subject string))
-
-     (defmethod greet ((g Greeter))
-       ,(lprint :vars `(g.expression
-			g.subject)))
+     ,(let ((l `((:field Settings :type uint8)
+			     (:field Stratum :type uint8)
+			     (:field Poll :type int8)
+			     (:field Precision :type int8)
+			     RootDelay RootDispersion ReferenceID
+			     RefTimeSec RefTimeFrac
+			     OrigTimeSec OrigTimeFrac
+			     RxTimeSec RxTimeFrac
+			     TxTimeSec TxTimeFrac)))
+	`(defstruct0 packet
+	     ,@(loop for e in l
+		     collect
+		     (let ((ftype 'uint32)
+			   (fname e))
+		       (when (listp e)
+			 (destructuring-bind (&key field type) e
+			   (setf ftype type
+				 fname field)))
+		       `(,fname ,ftype)))))
+     
+     (const ntpEpochOffset 2208988800)
      (defun main ()
        ,(lprint :msg "main")
 
-       (let ((prof_fn (string "satplan.prof")))
+       (do0
+	"var host string"
+	(flag.StringVar &host (string "e")
+			(string "us.pool.ntp.org:123")
+			(string "NTP host"))
+	(flag.Parse))
+       
+       (let ((prof_fn (string "ntp.prof")))
 
 	 ;; go tool pprof satpla satplan.prof
 	 ,(lprint :msg "start profiling" :vars `(prof_fn))
-	 ,(lprint :msg "you can view the profile with: go tool pprof satplan satplan.prof")
+	 ,(lprint :msg "you can view the profile with: go tool pprof satplan ntp.prof")
 	 ,(panic `(:var prof_f
 		   :cmd (os.Create prof_fn)))
 	 (pprof.StartCPUProfile prof_f)
 	 (defer (pprof.StopCPUProfile)))
 
        (do0
-	(let ((g (curly Greeter
-			:expression (string "hello")
-			:subject (string "you"))))
-	  (g.greet)
-	  #+nil
-	  ,(lprint :vars `(g.expression
-			   g.subject))))
+	,(panic `(:var conn
+		  :cmd (net.Dial (string "udp")
+				 host)))
+	(defer (conn.Close))
+	,(panic0 `(conn.SetDeadline
+		  (dot time
+		       (Now)
+		       (Add (* 15 time.Second))))))
+
+       (do0
+	(assign request (curly &packet
+			       :Settings #x1b))
+	,(panic0 `(binary.Write
+		  conn
+		  binary.BigEndian
+		  request)))
        ))))
