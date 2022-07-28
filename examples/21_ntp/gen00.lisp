@@ -169,16 +169,20 @@
 		      (do0
 		       (assign request (curly &packet
 					      :Settings #x1b))
+		       (assign ctx0 (time.Now))
 		       ,(panic0 `(binary.Write
 				  conn
 				  binary.BigEndian
-				  request)))
-
+				  request))
+		       (assign ctx1 (time.Now)))
+		      
 		      (do0
 		       (assign response (curly &packet))
+		       (assign crx0 (time.Now))
 		       ,(panic0 `(binary.Read conn
 					      binary.BigEndian
-					      response)))
+					      response))
+		       (assign crx1 (time.Now)))
 
 		      (do0
 		       (do0
@@ -196,8 +200,14 @@
 					     1e9)
 					  32))
 			(assign rx (time.Unix (int64 secs)
-						  nanos)))
-		       ,(lprint :vars `(tx rx))
+					      nanos)))
+		       ,@(loop for e in `(ctx0 ctx1 crx0 crx1)
+			       collect
+			       `(assign ,(format nil "~a_" e)
+					(dot ,e (Format
+						 (string
+						  "2006-01-02 15:04:05.000")))))
+		       ,(lprint :vars `(ctx0_ ctx1_ rx crx0_ tx crx1_))
 		       #+nil ,@(loop for e in `(
 					 RefTimeSec RefTimeFrac
 						    OrigTimeSec OrigTimeFrac
