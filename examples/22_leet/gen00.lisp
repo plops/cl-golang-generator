@@ -90,54 +90,57 @@
 	(incf file-count))))
 
   (let ((name "main674longestSubsequence"))
-   (write-go
-    name
-    `(do0
-      (package main)
-      (import
+    (write-go
+     name
+     `(do0
+       (package main)
+       (import
 					;io
 					;bufio
-       fmt
-       time
+	fmt
+	time
 					;io/ioutil
 					;os
 					;flag
 					;encoding/binary
 					;log
 					;net
-       ;github.com/samber/lo
+					;github.com/samber/lo
 					;github.com/samber/lo
 					;github.com/schollz/progressbar/v3
 					;runtime/pprof
-       )
-      ,(lprint-init)
+	)
+       ,(lprint-init)
 
-      (defun traverse (nums)
-	(declare (type []int nums)
-		 (values int))
-	(when (== 0 (len nums))
-	  (return 0))
+       (defun traverse (nums)
+	 (declare (type []int nums)
+		  (values int))
+	 (when (== 0 (len nums))
+	   (return 0))
 
-	(let ((res 1)
-	      (length 1)
-	      (old (aref nums 0)))
-	  (foreach (el (range nums))
-		   (if (< old el)
-		       (incf length)
-		       (do0
-			(setf res (max res length)
-			      length 1)))
-		   (setf old el))
-	  (return (max res length))))
-      (defun max (a b)
-	(declare (type int a b)
-		 (values int))
-	(if (< b a)
-	    (return a))
-	(return b))
+	 (let ((res 1)
+	       (length 1)
+	       (old (aref nums 0)))
+	   (foreach ((ntuple idx el) (range (aref nums (slice 1 ""))))
+		    (if (< old el)
+			(incf length)
+			(do0
+			 ,(lprint :msg "sequence broken" :vars `(old el idx res length))
+			 (setf res (max res length)
+			       length 1)))
+		    (setf old el))
+	   (return (max res length))))
+       (defun max (a b)
+	 (declare (type int a b)
+		  (values int))
+	 (if (< b a)
+	     (return a))
+	 (return b))
 
-      (defun main ()
-	,(lprint :msg (format nil "~a" name))
-	,(lprint :vars `((traverse (curly []int 1 3 5 4 7))))
-       
-	)))))
+       (defun main ()
+	 ,(lprint :msg (format nil "~a" name))
+	 ,(lprint :msg "should be 3" :vars `((traverse (curly []int 1 3 5 4 7))))
+	 ,(lprint :msg "should be 1" :vars `((traverse (curly []int  2 2 2 2 2
+							      ))))
+
+	 )))))
