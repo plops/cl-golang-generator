@@ -71,9 +71,9 @@
       (prog1
 	  (progn
      	    (ensure-directories-exist
-	     (format nil "~a/source~a/"
+	     (format nil "~a/source~2,'0d/"
 		     *path*
-		     *idx*))
+		     file-count))
 	    (with-open-file (s (format nil "~a/source~2,'0d/go.mod"
 				       *path*
 				       file-count)
@@ -95,20 +95,8 @@
      `(do0
        (package main)
        (import
-					;io
-					;bufio
 	fmt
 	time
-					;io/ioutil
-					;os
-					;flag
-					;encoding/binary
-					;log
-					;net
-					;github.com/samber/lo
-					;github.com/samber/lo
-					;github.com/schollz/progressbar/v3
-					;runtime/pprof
 	)
        ,(lprint-init)
 
@@ -143,4 +131,44 @@
 	 ,(lprint :msg "should be 1" :vars `((traverse (curly []int  2 2 2 2 2
 							      ))))
 
-	 )))))
+	 ))))
+  (let ((name "main946validateStack"))
+    (write-go
+     name
+     `(do0
+       (package main)
+       (import
+	fmt
+	time
+	)
+       ,(lprint-init)
+
+       (defun validate (pushed popped)
+	 (declare (type []int pushed popped)
+		  (values bool))
+	 
+
+	 (let ((stack (curly []int))
+	       (j 0)
+	       (N (len pushed)))
+	   (foreach ((ntuple _ el) (range pushed))
+		    (setf stack (append stack el))
+		    (while (logand
+			  (!= (len stack) 0)
+			  (< j N)
+			  (== (aref stack
+				    (- (len stack)
+				       1))
+			      (aref popped j)))
+			 (setf stack (aref stack (slice 0 (- (len stack)
+							     1))))
+			 (incf j)))
+	   (return (== j N))))
+       
+
+       (defun main ()
+	 ,(lprint :msg (format nil "~a" name))
+	 ,(lprint :msg "should be true" :vars `((validate (curly []int 1 2 3 4 5)
+							  (curly []int 5 4 3 2 1))))
+	 ,(lprint :msg "should be false" :vars `((validate (curly []int 1 2 3 4 5)
+							   (curly []int 4 3 5 1 2)))))))))
