@@ -146,25 +146,25 @@
        (defun validate (pushed popped)
 	 (declare (type []int pushed popped)
 		  (values bool))
-	 
+
 
 	 (let ((stack (curly []int))
 	       (j 0)
 	       (N (len pushed)))
 	   (foreach ((ntuple _ el) (range pushed))
 		    (setf stack (append stack el))
-		    (while (logand
-			  (!= (len stack) 0)
-			  (< j N)
-			  (== (aref stack
-				    (- (len stack)
-				       1))
-			      (aref popped j)))
-			 (setf stack (aref stack (slice 0 (- (len stack)
-							     1))))
-			 (incf j)))
+		    (while (and
+			    (!= (len stack) 0)
+			    (< j N)
+			    (== (aref stack
+				      (- (len stack)
+					 1))
+				(aref popped j)))
+		      (setf stack (aref stack (slice 0 (- (len stack)
+							  1))))
+		      (incf j)))
 	   (return (== j N))))
-       
+
 
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
