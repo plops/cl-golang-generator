@@ -679,6 +679,15 @@ entry return-values contains a list of return values"
 			(format nil "~a[~{~a~^,~}]" (emit name) (mapcar #'emit indices))))
 		(dot (let ((args (cdr code)))
 		       (format nil "~{~a~^.~}" (mapcar #'emit args))))
+		(hex (let ((arg (car (cdr code))))
+		       (format nil "0x~x" (emit arg))))
+		(bin (let ((arg (car (cdr code))))
+		       (format nil "0b~b" (emit arg))))
+		(oct (let ((arg (car (cdr code))))
+		       (format nil "0o~o" (emit arg))))
+
+
+
 		#+nil (-> (let ((forms (cdr code)))
 			    ;; clojure's thread first macro, thrush operator
 			    ;; http://blog.fogus.me/2010/09/28/thrush-in-clojure-redux/

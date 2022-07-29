@@ -13,10 +13,10 @@
        (declare (values string))
        (return
 	 (dot time
-	     (Now)
-	     (Format
-	      (string
-	       "2006-01-02 15:04:05.000"))))))
+	      (Now)
+	      (Format
+	       (string
+		"2006-01-02 15:04:05.000"))))))
   (defun lprint (&key (msg "") vars)
     "generate go code to print variables in log output"
     `(fmt.Printf
@@ -42,9 +42,9 @@
     (defun panic (var-cmd)
       (let ((err (format nil "err~2,'0d" err-nr)))
 	(destructuring-bind
-	    (&key (var "_") cmd)
+	      (&key (var "_") cmd)
 	    var-cmd
-	  (prog1	
+	  (prog1
 	      `(do0
 		(assign (ntuple ,var ,err)
 			,cmd)
@@ -55,17 +55,17 @@
 	    (incf err-nr)))))
     (defun panic0 (cmd)
       (let ((err (format nil "err~2,'0d" err-nr)))
-	(prog1	
+	(prog1
 	    `(do0
 	      (assign ,err
 		      ,cmd)
 	      (unless (== ,err "nil")
 		,(lprint :msg (substitute #\' #\" (emit-go :code cmd))
-			   :vars `(,err))
+			 :vars `(,err))
 		(panic ,err))
 	      )
 	  (incf err-nr)))))
-  
+
   (let ((file-count 0))
     (defun write-go (name code)
       (prog1
@@ -79,7 +79,7 @@
    (format nil "~a/source~a/"
 	   *path*
 	   *idx*))
-  
+
   ;; overwriting this file makes it necessary to call setup01_tidy again
   (with-open-file (s (format nil "~a/source~a/go.mod"
 			     *path*
@@ -94,17 +94,17 @@
    `(do0
      (package main)
      (import
-      ;io
-      ;bufio
+					;io
+					;bufio
       fmt
       time
-      ;io/ioutil
+					;io/ioutil
       os
       flag
       encoding/binary
-      ;log
+					;log
       net
-      
+
 					;github.com/samber/lo
 					;github.com/schollz/progressbar/v3
       runtime/pprof
@@ -122,16 +122,16 @@
 		 RxTimeSec RxTimeFrac
 		 TxTimeSec TxTimeFrac)))
 	`(do0 (defstruct0 packet
-	      ,@(loop for e in l
-		      collect
-		      (let ((ftype 'uint32)
-			    (fname e))
-			(when (listp e)
-			  (destructuring-bind (&key field type) e
-			    (setf ftype type
-				  fname field)))
-			`(,fname ,ftype))))
-	      
+		  ,@(loop for e in l
+			  collect
+			  (let ((ftype 'uint32)
+				(fname e))
+			    (when (listp e)
+			      (destructuring-bind (&key field type) e
+				(setf ftype type
+				      fname field)))
+			    `(,fname ,ftype))))
+
 	      (const ntpEpochOffset 2208988800)
 	      (defun main ()
 		,(lprint :msg "main")
@@ -142,40 +142,41 @@
 				 (string "nl.pool.ntp.org:123")
 				 (string "NTP host"))
 		 (flag.Parse))
-		
+
 		(let ((prof_fn (string "ntp.prof")))
 
 		  ;; go tool pprof satpla satplan.prof
 		  ,(lprint :msg "start profiling" :vars `(prof_fn))
 		  ,(lprint :msg "you can view the profile with: go tool pprof main ntp.prof")
 		  ,(panic `(:var prof_f
-			    :cmd (os.Create prof_fn)))
+				 :cmd (os.Create prof_fn)))
 		  (pprof.StartCPUProfile prof_f)
 		  (defer (pprof.StopCPUProfile)))
 
 		(do0
 		 ,(lprint :msg "open connection")
 		 ,(panic `(:var conn
-			   :cmd (net.Dial (string "udp")
-					  host)))
+				:cmd (net.Dial (string "udp")
+					       host)))
 		 (defer (conn.Close))
-		 ,(panic0 `(conn.SetDeadline
-			    (dot time
-				 (Now)
-				 (Add (* 15 time.Second))))))
+		 )
 
 		(for ()
 		     (do0
 		      (do0
 		       (assign request (curly &packet
-					      :Settings #x1b))
+					      :Settings (hex #x1b)))
+		       ,(panic0 `(conn.SetDeadline
+				  (dot time
+				       (Now)
+				       (Add (* 15 time.Second)))))
 		       (assign ctx0 (time.Now))
 		       ,(panic0 `(binary.Write
 				  conn
 				  binary.BigEndian
 				  request))
 		       (assign ctx1 (time.Now)))
-		      
+
 		      (do0
 		       (assign response (curly &packet))
 		       (assign crx0 (time.Now))
@@ -192,13 +193,13 @@
 					     1e9)
 					  32))
 			(assign tx (time.Unix (int64 secs)
-						  nanos)))
+					      nanos)))
 		       (do0
 			(setf secs (- (float64 response.RxTimeSec)
-					ntpEpochOffset)
-				nanos (>> (* (int64 response.RxTimeFrac)
-					     1e9)
-					  32))
+				      ntpEpochOffset)
+			      nanos (>> (* (int64 response.RxTimeFrac)
+					   1e9)
+					32))
 			(assign rx (time.Unix (int64 secs)
 					      nanos)))
 		       ,@(loop for e in `(ctx0 ctx1 crx0 crx1)
@@ -209,13 +210,13 @@
 						  "2006-01-02 15:04:05.000")))))
 		       ,(lprint :vars `(ctx0_ ctx1_ rx crx0_ tx crx1_))
 		       #+nil ,@(loop for e in `(
-					 RefTimeSec RefTimeFrac
-						    OrigTimeSec OrigTimeFrac
-						    RxTimeSec RxTimeFrac
-						    TxTimeSec TxTimeFrac)
-			      collect
-			       `(do0
-				 ,(lprint :vars `((dot response ,e)))))
+						RefTimeSec RefTimeFrac
+						OrigTimeSec OrigTimeFrac
+						RxTimeSec RxTimeFrac
+						TxTimeSec TxTimeFrac)
+				     collect
+				     `(do0
+				       ,(lprint :vars `((dot response ,e)))))
 		       (time.Sleep (* 1 time.Second)))))
-		
+
 		))))))
