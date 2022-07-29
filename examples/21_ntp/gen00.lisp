@@ -99,15 +99,15 @@
       fmt
       time
       ;io/ioutil
-      os
+      ;os
       flag
       encoding/binary
       ;log
       net
-      
+      context
 					;github.com/samber/lo
 					;github.com/schollz/progressbar/v3
-      runtime/pprof
+      ;runtime/pprof
       )
      ,(lprint-init)
 
@@ -138,11 +138,15 @@
 
 		(do0
 		 "var host string"
+		 "var port string"
 		 (flag.StringVar &host (string "e")
-				 (string "nl.pool.ntp.org:123")
+				 (string "nl.pool.ntp.org")
 				 (string "NTP host"))
+		 (flag.StringVar &port (string "p")
+				 (string "123")
+				 (string "NTP port"))
 		 (flag.Parse))
-		
+		#+nil
 		(let ((prof_fn (string "ntp.prof")))
 
 		  ;; go tool pprof satpla satplan.prof
@@ -154,10 +158,28 @@
 		  (defer (pprof.StopCPUProfile)))
 
 		(do0
+		 ,(lprint :msg "prepare DNS resolution with 8.8.8.8")
+		 (assign resolv (curly &net.Resolver
+				       :PreferGo true
+				       :Dial (lambda (ctx network address)
+					       (declare (type context.Context ctx)
+							(type string address)
+							(values net.Conn error))
+					       (assign d (curly net.Dialer
+								:Timeout (* time.Millisecond
+									    (time.Duration 10000))))
+					       (return (d.DialContext ctx network
+								      (string "8.8.8.8:53"))))))
+		 ,(panic `(:var ip
+			   :cmd (resolv.LookupHost (context.Background)
+						   host)))
+		 ,(lprint :vars `(host ip)))
+
+		(do0
 		 ,(lprint :msg "open connection")
 		 ,(panic `(:var conn
 			   :cmd (net.Dial (string "udp")
-					  host)))
+					  (+ (aref ip 0) (string ":") port))))
 		 (defer (conn.Close))
 		 ,(panic0 `(conn.SetDeadline
 			    (dot time
