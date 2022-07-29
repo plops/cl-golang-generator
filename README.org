@@ -259,3 +259,22 @@ variable has a typo in the declaration.
     - https://twitter.com/gemusehaken
     - physcomp.eng.cam.ac.uk
     - now works on sensors and risc-v https://arxiv.org/pdf/1804.09241.pdf
+* VSCode
+
+#+begin_example
+Installing 7 tools at /home/martin/go/bin in module mode.
+  gotests
+  gomodifytags
+  impl
+  goplay
+  dlv
+  staticcheck
+  gopls
+
+Installing github.com/cweill/gotests/gotests@latest (/home/martin/go/bin/gotests) SUCCEEDED
+Installing github.com/fatih/gomodifytags@latest (/home/martin/go/bin/gomodifytags) SUCCEEDED
+Installing github.com/josharian/impl@latest (/home/martin/go/bin/impl) SUCCEEDED
+Installing github.com/haya14busa/goplay/cmd/goplay@latest (/home/martin/go/bin/goplay) SUCCEEDED
+Installing github.com/rogpeppe/godef@latest (/home/martin/go/bin/godef) SUCCEEDED
+
+#+end_example
