@@ -1,0 +1,5 @@
+* Synopsys
+
+  Maybe I can learn a bit more go by looking at some (solved) leetcode.
+
+- https://github.com/halfrost/LeetCode-Go/tree/master/leetcode/0674.Longest-Continuous-Increasing-Subsequence
