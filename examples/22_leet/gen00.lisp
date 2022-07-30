@@ -171,4 +171,34 @@
 	 ,(lprint :msg "should be true" :vars `((validate (curly []int 1 2 3 4 5)
 							  (curly []int 5 4 3 2 1))))
 	 ,(lprint :msg "should be false" :vars `((validate (curly []int 1 2 3 4 5)
-							   (curly []int 4 3 5 1 2)))))))))
+							   (curly []int 4 3 5 1 2))))))))
+
+
+  (let ((name "main004median"))
+    (write-go
+     name
+     `(do0
+       (package main)
+       (import
+	fmt
+	time
+	github.com/montanaflynn/stats
+	)
+       ,(lprint-init)
+
+       (comments "median of two sorted arrays")
+
+       (defun median_slow (a b)
+	 (declare (type []float64 a b)
+		  (values float64))
+	 (assign c (append a b...))
+	 ,(panic `(:var med
+			:cmd (stats.Median c)))
+	 (return med ))
+
+
+       (defun main ()
+	 ,(lprint :msg (format nil "~a" name))
+	 ,(lprint :msg "should be 2" :vars `((median_slow (curly []float64 1 3)
+							  (curly []float64 2)
+		))))))))
