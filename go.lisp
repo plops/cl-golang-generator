@@ -652,13 +652,13 @@ entry return-values contains a list of return values"
 			 (format nil "(1.0/(~a))" (emit (car args))) ;; py
 			 (format nil "(~{(~a)~^/~})" (mapcar #'emit args)))))
 		(logior (let ((args (cdr code))) ;; py
-			  (format nil "(~{(~a)~^|~})" (mapcar #'emit args))))
+			  (format nil "(~{(~a)~^||~})" (mapcar #'emit args))))
 		(logand (let ((args (cdr code))) ;; py
-			  (format nil "(~{(~a)~^&~})" (mapcar #'emit args))))
+			  (format nil "(~{(~a)~^&&~})" (mapcar #'emit args))))
 		(or (let ((args (cdr code)))
-		      (format nil "(~{(~a)~^||~})" (mapcar #'emit args))))
+		      (format nil "(~{(~a)~^|~})" (mapcar #'emit args))))
 		(and (let ((args (cdr code)))
-		       (format nil "(~{(~a)~^&&~})" (mapcar #'emit args))))
+		       (format nil "(~{(~a)~^&~})" (mapcar #'emit args))))
 		(= (destructuring-bind (a b) (cdr code)
 		     ;; = pair
 		     (format nil "~a=~a" (emit a) (emit b))))

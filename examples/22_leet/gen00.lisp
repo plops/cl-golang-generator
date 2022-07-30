@@ -196,9 +196,38 @@
 			:cmd (stats.Median c)))
 	 (return med ))
 
+       (defun median (a b)
+	 (declare (type []float64 a b)
+		  (values float64))
+
+	 (assign A a
+		 B b)
+	 (when (< (len B) (len A))
+	   ,(lprint :msg "swap arrays so that A is the shorter one")
+	   (setf B a
+		 A b))
+
+	 (do0
+	  
+	  (assign midA (/ (len A) 2)
+		midB (/ (len B) 2))
+	  (assign condition
+	   (and
+	    (<= (aref A (- midA 1))
+		(aref B midB)
+		)
+	    (<= (aref B (- midB 1))
+		(aref A midA)
+		)))
+	  ,(lprint :msg "search for split line in both arrays"
+		   :vars `(midA midB condition)))
+	 
+	 (return 0.0))
+
+       
 
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
-	 ,(lprint :msg "should be 2" :vars `((median_slow (curly []float64 1 3)
+	 ,(lprint :msg "should be 2" :vars `((median (curly []float64 1 3)
 							  (curly []float64 2)
 		))))))))
