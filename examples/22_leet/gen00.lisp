@@ -282,12 +282,18 @@
 	     (assign midLeft 0
 		     midRight 0)
 	     (if (== 0 nums1Mid)
-		 (setf midLeft (aref nums2 (- nums2Mid 1)))
+		 (do0 (setf midLeft (aref nums2 (- nums2Mid 1)))
+		      ,(show :color 'GREEN :a 0 :b `(- nums2Mid 1)))
 		 (if (== 0 nums2Mid)
-		     (setf midLeft (aref nums1 (- nums1Mid 1)))
-		     (setf midLeft (mm.Max (aref nums1 (- nums1Mid 1))
-					   (aref nums2 (- nums2Mid 1))
-					   ))))
+		     (do0
+		      (setf midLeft (aref nums1 (- nums1Mid 1)))
+		      ,(show :color 'GREEN :a `(- nums1Mid 1) :b 0))
+		     (do0
+		      (setf midLeft (mm.Max (aref nums1 (- nums1Mid 1))
+					    (aref nums2 (- nums2Mid 1))
+					    ))
+		      ,(show :color 'GREEN :a `(- nums1Mid 1) :b `(- nums2Mid 1))
+		      )))
 	     ,(lprint :vars `(midLeft))
 	     (when (== 1 (and (+ (len nums1)
 				 (len nums2))
