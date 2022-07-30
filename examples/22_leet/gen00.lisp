@@ -183,7 +183,7 @@
 	fmt
 	time
 	github.com/montanaflynn/stats
-	;github.com/Kycklingar/MinMax
+	github.com/kycklingar/MinMax
 	)
        ,(lprint-init)
 
@@ -213,29 +213,51 @@
 		      2)
 		 nums1Mid 0
 		 nums2Mid 0)
-	 (while (<= low high)
-		,(lprint :vars `(low high k nums1Mid nums2Mid))
-		(setf nums1Mid (+ low
-				  (/ (- high
-					low)
-				     2)))
-		(setf nums2Mid (- k
-				  nums1Mid))
-		(if (logand (< 0 nums1Mid)
-			    (< (aref nums2 nums2Mid)
-			       (aref nums1 nums1Mid)))
-		    (setf high (- nums1Mid
-				  1))
-		    (if (logand (!= nums1Mid
-				    (len nums1))
-				(< (aref nums1 nums1Mid)
-				   (aref nums2 (- nums2Mid
-						  1))))
-			(setf low (+ 1 nums1Mid))
-			break)))
-
-	 
-	 (return 0.0))
+	 (while
+	  (<= low high)
+	  ,(lprint :vars `(low high k nums1Mid nums2Mid))
+	  (setf nums1Mid (+ low
+			    (/ (- high
+				  low)
+			       2)))
+	  (setf nums2Mid (- k
+			    nums1Mid))
+	  (if (logand (< 0 nums1Mid)
+		      (< (aref nums2 nums2Mid)
+			 (aref nums1 (- nums1Mid 1))))
+	      (setf high (- nums1Mid
+			    1))
+	      (if (logand (!= nums1Mid
+			      (len nums1))
+			  (< (aref nums1 nums1Mid)
+			     (aref nums2 (- nums2Mid
+					    1))))
+		  (setf low (+ 1 nums1Mid))
+		  break)))
+	 (assign midLeft 0
+		 midRight 0)
+	 (if (== 0 nums1Mid)
+	     (setf midLeft (aref nums2 (- nums2Mid 1)))
+	     (if (== 0 nums2Mid)
+		 (setf midLeft (aref nums1 (- nums1Mid 1)))
+		 (setf midLeft (mm.Max (aref nums1 (- nums1Mid 1))
+				       (aref nums2 (- nums2Mid 1))
+				       ))))
+	 (when (== 1 (and (+ (len nums1)
+			     (len nums2))
+			  1))
+	   (return (float64 midLeft)))
+	 (if (== nums1Mid
+		 (len nums1))
+	     (setf midRight (aref nums2 nums2Mid))
+	     (if (== (len nums2)
+		     nums2Mid)
+		 (setf midRight (aref nums1 nums1Mid))
+		 (setf midRight (mm.Min (aref nums1 nums1Mid)
+					(aref nums2 nums2Mid)))))
+	 (return (* .5
+		    (float64 (+ midLeft
+				midRight)))))
        
        #+nil
        (defun median (a b)
@@ -270,9 +292,8 @@
 
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
-
-	 
-	 ,(let ((l `((:result 2 :A (1 3) :B (2)))))
+	 ,(let ((l `((:result 2.5 :A (1 2) :B (3 4))
+		     (:result 2 :A (1 3) :B (2)))))
 	    `(do0
 	      ,@(loop for e in l
 		      collect
