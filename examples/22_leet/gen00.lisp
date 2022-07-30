@@ -183,6 +183,7 @@
 	fmt
 	time
 	github.com/montanaflynn/stats
+	;github.com/Kycklingar/MinMax
 	)
        ,(lprint-init)
 
@@ -196,6 +197,47 @@
 			:cmd (stats.Median c)))
 	 (return med ))
 
+
+       (defun median (nums1 nums2)
+	 (declare (type []int nums1 nums2)
+		  (values float64))
+
+	 (when (< (len nums2)
+		  (len nums1))
+	   (return (median nums2 nums1)))
+	 (assign low 0
+ 		 high (len nums1)
+		 k (/ (+ 1
+			 (len nums1)
+			 (len nums2))
+		      2)
+		 nums1Mid 0
+		 nums2Mid 0)
+	 (while (<= low high)
+		,(lprint :vars `(low high k nums1Mid nums2Mid))
+		(setf nums1Mid (+ low
+				  (/ (- high
+					low)
+				     2)))
+		(setf nums2Mid (- k
+				  nums1Mid))
+		(if (logand (< 0 nums1Mid)
+			    (< (aref nums2 nums2Mid)
+			       (aref nums1 nums1Mid)))
+		    (setf high (- nums1Mid
+				  1))
+		    (if (logand (!= nums1Mid
+				    (len nums1))
+				(< (aref nums1 nums1Mid)
+				   (aref nums2 (- nums2Mid
+						  1))))
+			(setf low (+ 1 nums1Mid))
+			break)))
+
+	 
+	 (return 0.0))
+       
+       #+nil
        (defun median (a b)
 	 (declare (type []float64 a b)
 		  (values float64))
@@ -212,7 +254,7 @@
 	  (assign midA (/ (len A) 2)
 		midB (/ (len B) 2))
 	  (assign condition
-	   (and
+	   (logand
 	    (<= (aref A (- midA 1))
 		(aref B midB)
 		)
@@ -228,6 +270,19 @@
 
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
-	 ,(lprint :msg "should be 2" :vars `((median (curly []float64 1 3)
-							  (curly []float64 2)
-		))))))))
+
+	 
+	 ,(let ((l `((:result 2 :A (1 3) :B (2)))))
+	    `(do0
+	      ,@(loop for e in l
+		      collect
+		      (destructuring-bind (&key result A B) e
+			`(do0
+			  ,(lprint :msg (format nil "should be ~a" result)
+				  :vars `((median_slow (curly []float64 ,@A)
+						       (curly []float64 ,@B)
+						       )))
+			  ,(lprint :msg (format nil "should be ~a" result)
+				  :vars `((median (curly []int ,@A)
+						  (curly []int ,@B)
+						  )))))))))))))
