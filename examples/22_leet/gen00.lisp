@@ -210,7 +210,7 @@
 		     (white 37))
 		appending
 		`(,(string-upcase (format nil "~a" name))
-		   (string ,(format nil "\\033[1;~am%d\\033[0m" code))))
+		   (string ,(format nil "\\033[1;~am%02d\\033[0m" code))))
 	)
 
        ,(flet ((show (&key color (a "nums1Mid") (b "nums2Mid"))
@@ -347,7 +347,8 @@
 	 ,(lprint :msg (format nil "~a" name))
 	 ,(let ((l `((:result 2.5 :A (1 2) :B (3 4))
 		     (:result 2 :A (1 3) :B (2))
-		     (:result 5 :A (1 3 4 5 6 7 8 ) :B (2 3 5 7 8 9)))))
+		     (:result 5 :A (1 3 4 5 6 7 8 ) :B (2 3 5 7 8 9))
+		     (:result 8.5 :A (1 3 4 5 6 7 8 9 10 11 12 17 90 91 92 93 99) :B (1 2 3 4 5 5 5 5 20 30 33 34 45)))))
 	    `(do0
 	      ,@(loop for e in l
 		      collect
