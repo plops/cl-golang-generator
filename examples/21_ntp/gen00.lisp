@@ -111,7 +111,7 @@
 
 					;github.com/samber/lo
 					;github.com/schollz/progressbar/v3
-      ;runtime/pprof
+      runtime/pprof
       )
      ,(lprint-init)
 
@@ -150,6 +150,43 @@
 				 (string "123")
 				 (string "NTP port"))
 		 (flag.Parse))
+
+		(let ((prof_fn (string "ntp.prof")))
+
+		  ;; go tool pprof satpla satplan.prof
+		  ,(lprint :msg "start profiling" :vars `(prof_fn))
+		  ,(lprint :msg "you can view the profile with: go tool pprof main ntp.prof")
+		  ,(panic `(:var prof_f
+				 :cmd (os.Create prof_fn)))
+		  (pprof.StartCPUProfile prof_f)
+		  (defer (pprof.StopCPUProfile)))
+
+		(do0
+		 ,(lprint :msg "prepare DNS resolution with 8.8.8.8")
+		 (assign resolv (curly &net.Resolver
+				       :PreferGo true
+				       :Dial (lambda (ctx network address)
+					       (declare (type context.Context ctx)
+							(type string address)
+							(values net.Conn error))
+					       (assign d (curly net.Dialer
+								:Timeout (* time.Millisecond
+									    (time.Duration 10000))))
+					       (return (d.DialContext ctx network
+								      (string "8.8.8.8:53"))))))
+		 ,(panic `(:var ip
+			   :cmd (resolv.LookupHost (context.Background)
+						   host)))
+		 ,(lprint :vars `(host ip)))
+
+		(do0
+		 ,(lprint :msg "open connection")
+		 ,(panic `(:var conn
+
+			   :cmd (net.Dial (string "udp")
+					  (+ (aref ip 0) (string ":") port))))
+
+
 		 (defer (conn.Close))
 		 )
 
