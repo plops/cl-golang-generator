@@ -254,16 +254,16 @@
 		     nums2Mid 0)
 	     (while
 		 (<= low high)
-					;
-
+		 
 	       (setf nums1Mid (+ low
 				 (/ (- high
 				       low)
 				    2)))
 	       (setf nums2Mid (- k
 				 nums1Mid))
-	       ,(show :color 'RED)
 	       ,(lprint :vars `(low high k nums1Mid nums2Mid))
+	       ,(show :color 'RED :a `(- nums1Mid 1)
+		      :b `(- nums2Mid 1))
 	       (if (logand (< 0 nums1Mid)
 			   (< (aref nums2 nums2Mid)
 			      (aref nums1 (- nums1Mid 1))))
@@ -275,10 +275,7 @@
 				  (aref nums2 (- nums2Mid
 						 1))))
 		       (setf low (+ 1 nums1Mid))
-		       break))
-					;,(lprint :vars `(low high k nums1Mid nums2Mid))
-					;,(show :color 'RED )
-	       )
+		       break)))
 	     (assign midLeft 0
 		     midRight 0)
 	     (if (== 0 nums1Mid)
@@ -287,12 +284,12 @@
 		 (if (== 0 nums2Mid)
 		     (do0
 		      (setf midLeft (aref nums1 (- nums1Mid 1)))
-		      ,(show :color 'GREEN :a `(- nums1Mid 1) :b 0))
+		      ,(show :color 'YELLOW :a `(- nums1Mid 1) :b 0))
 		     (do0
 		      (setf midLeft (mm.Max (aref nums1 (- nums1Mid 1))
 					    (aref nums2 (- nums2Mid 1))
 					    ))
-		      ,(show :color 'GREEN :a `(- nums1Mid 1) :b `(- nums2Mid 1))
+		      ,(show :color 'MAGENTA :a `(- nums1Mid 1) :b `(- nums2Mid 1))
 		      )))
 	     ,(lprint :vars `(midLeft))
 	     (when (== 1 (and (+ (len nums1)
