@@ -201,106 +201,111 @@
        (const
 
 	,@(loop for (name code )
-		    in `((red 31)
-			   (green 32)
-			   (yellow 33)
-			   (blue 34)
-			   (magenta 35)
-			   (cyan 36)
-			 (white 37))
+		in `((red 31)
+		     (green 32)
+		     (yellow 33)
+		     (blue 34)
+		     (magenta 35)
+		     (cyan 36)
+		     (white 37))
 		appending
 		`(,(string-upcase (format nil "~a" name))
-		  (string ,(format nil "\\033[1;~am%d\\033[0m" code))))
+		   (string ,(format nil "\\033[1;~am%d\\033[0m" code))))
 	)
 
-       ,(flet ((show (&key color)
+       ,(flet ((show (&key color (a "nums1Mid") (b "nums2Mid"))
 		 (if color
 		     `(progn
 			(foreach ((ntuple idx v) (range nums1))
-				 (if (== idx nums1Mid)
-				     (fmt.Printf RED v)
+				 (if (== idx ,a)
+				     (fmt.Printf ,color v)
 				     (fmt.Printf WHITE v)))
 			(fmt.Printf (string "|"))
 			(foreach ((ntuple idx v) (range nums2))
-				 (if (== idx nums2Mid)
-				     (fmt.Printf RED v)
+				 (if (== idx ,b)
+				     (fmt.Printf ,color v)
 				     (fmt.Printf WHITE v)))
 			(fmt.Printf (string "\\n")))
 		     `(progn
-		     (foreach ((ntuple _ v) (range nums1))
-			      (fmt.Printf WHITE v))
-		     (fmt.Printf (string "|"))
-		     (foreach ((ntuple _ v) (range nums2))
-			      (fmt.Printf WHITE v))
-		     (fmt.Printf (string "\\n"))))
+			(foreach ((ntuple _ v) (range nums1))
+				 (fmt.Printf WHITE v))
+			(fmt.Printf (string "|"))
+			(foreach ((ntuple _ v) (range nums2))
+				 (fmt.Printf WHITE v))
+			(fmt.Printf (string "\\n"))))
 		 ))
 	  `(defun median (nums1 nums2)
-	    (declare (type []int nums1 nums2)
-		   (values float64))
+	     (declare (type []int nums1 nums2)
+		      (values float64))
 
-	     ,(show :color nil)
-	 
-	 
-	  (when (< (len nums2)
-		   (len nums1))
-	    (return (median nums2 nums1)))
-	  (assign low 0
- 		  high (len nums1)
-		  k (/ (+ 1
-			  (len nums1)
-			  (len nums2))
-		       2)
-		  nums1Mid 0
-		  nums2Mid 0)
-	  (while
-	   (<= low high)
-	   ,(show :color t)
-	   
-	   (setf nums1Mid (+ low
-			     (/ (- high
-				   low)
-				2)))
-	   (setf nums2Mid (- k
-			     nums1Mid))
-	   ,(lprint :vars `(low high k nums1Mid nums2Mid))
-	   (if (logand (< 0 nums1Mid)
-		       (< (aref nums2 nums2Mid)
-			  (aref nums1 (- nums1Mid 1))))
-	       (setf high (- nums1Mid
-			     1))
-	       (if (logand (!= nums1Mid
-			       (len nums1))
-			   (< (aref nums1 nums1Mid)
-			      (aref nums2 (- nums2Mid
-					     1))))
-		   (setf low (+ 1 nums1Mid))
-		   break))
-	   ,(lprint :vars `(low high k nums1Mid nums2Mid)))
-	  (assign midLeft 0
-		  midRight 0)
-	  (if (== 0 nums1Mid)
-	      (setf midLeft (aref nums2 (- nums2Mid 1)))
-	      (if (== 0 nums2Mid)
-		  (setf midLeft (aref nums1 (- nums1Mid 1)))
-		  (setf midLeft (mm.Max (aref nums1 (- nums1Mid 1))
-					(aref nums2 (- nums2Mid 1))
-					))))
-	  (when (== 1 (and (+ (len nums1)
-			      (len nums2))
-			   1))
-	    (return (float64 midLeft)))
-	  (if (== nums1Mid
-		  (len nums1))
-	      (setf midRight (aref nums2 nums2Mid))
-	      (if (== (len nums2)
-		      nums2Mid)
-		  (setf midRight (aref nums1 nums1Mid))
-		  (setf midRight (mm.Min (aref nums1 nums1Mid)
-					 (aref nums2 nums2Mid)))))
-	  (return (* .5
-		     (float64 (+ midLeft
-				 midRight))))))
-       
+					;,(show :color nil)
+
+
+	     (when (< (len nums2)
+		      (len nums1))
+	       (return (median nums2 nums1)))
+	     (assign low 0
+ 		     high (len nums1)
+		     k (/ (+ 1
+			     (len nums1)
+			     (len nums2))
+			  2)
+		     nums1Mid 0
+		     nums2Mid 0)
+	     (while
+		 (<= low high)
+					;
+
+	       (setf nums1Mid (+ low
+				 (/ (- high
+				       low)
+				    2)))
+	       (setf nums2Mid (- k
+				 nums1Mid))
+	       ,(show :color 'RED)
+	       ,(lprint :vars `(low high k nums1Mid nums2Mid))
+	       (if (logand (< 0 nums1Mid)
+			   (< (aref nums2 nums2Mid)
+			      (aref nums1 (- nums1Mid 1))))
+		   (setf high (- nums1Mid
+				 1))
+		   (if (logand (!= nums1Mid
+				   (len nums1))
+			       (< (aref nums1 nums1Mid)
+				  (aref nums2 (- nums2Mid
+						 1))))
+		       (setf low (+ 1 nums1Mid))
+		       break))
+					;,(lprint :vars `(low high k nums1Mid nums2Mid))
+					;,(show :color 'RED )
+	       )
+	     (assign midLeft 0
+		     midRight 0)
+	     (if (== 0 nums1Mid)
+		 (setf midLeft (aref nums2 (- nums2Mid 1)))
+		 (if (== 0 nums2Mid)
+		     (setf midLeft (aref nums1 (- nums1Mid 1)))
+		     (setf midLeft (mm.Max (aref nums1 (- nums1Mid 1))
+					   (aref nums2 (- nums2Mid 1))
+					   ))))
+	     ,(lprint :vars `(midLeft))
+	     (when (== 1 (and (+ (len nums1)
+				 (len nums2))
+			      1))
+	       (return (float64 midLeft)))
+	     (if (== nums1Mid
+		     (len nums1))
+		 (setf midRight (aref nums2 nums2Mid))
+		 (if (== (len nums2)
+			 nums2Mid)
+		     (setf midRight (aref nums1 nums1Mid))
+		     (setf midRight (mm.Min (aref nums1 nums1Mid)
+					    (aref nums2 nums2Mid)))))
+	     ,(lprint :vars `(midRight))
+	     (return (* .5
+			(float64 (+ midLeft
+				    midRight))))))
+
        #+nil
        (defun median (a b)
 	 (declare (type []float64 a b)
@@ -314,23 +319,23 @@
 		 A b))
 
 	 (do0
-	  
+
 	  (assign midA (/ (len A) 2)
-		midB (/ (len B) 2))
+		  midB (/ (len B) 2))
 	  (assign condition
-	   (logand
-	    (<= (aref A (- midA 1))
-		(aref B midB)
-		)
-	    (<= (aref B (- midB 1))
-		(aref A midA)
-		)))
+		  (logand
+		   (<= (aref A (- midA 1))
+		       (aref B midB)
+		       )
+		   (<= (aref B (- midB 1))
+		       (aref A midA)
+		       )))
 	  ,(lprint :msg "search for split line in both arrays"
 		   :vars `(midA midB condition)))
-	 
+
 	 (return 0.0))
 
-       
+
 
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
@@ -344,8 +349,8 @@
 			`(do0
 			  (progn
 			    (assign res (median_slow (curly []float64 ,@A)
-							  (curly []float64 ,@B)
-							  )
+						     (curly []float64 ,@B)
+						     )
 				    )
 			    ,(lprint :msg (format nil "should be ~a" result)
 				     :vars `((median_slow (curly []float64 ,@A)
@@ -354,11 +359,11 @@
 					     (== res ,result))))
 			  (progn
 			    (assign res (median (curly []int ,@A)
-							  (curly []int ,@B)
-							  )
+						(curly []int ,@B)
+						)
 				    )
 			    ,(lprint :msg (format nil "should be ~a" result)
-				    :vars `((median (curly []int ,@A)
-						    (curly []int ,@B)
-						    )
-					    (== res ,result))))))))))))))
+				     :vars `((median (curly []int ,@A)
+						     (curly []int ,@B)
+						     )
+					     (== res ,result))))))))))))))
