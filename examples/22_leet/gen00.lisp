@@ -261,7 +261,7 @@
 				    2)))
 	       (setf nums2Mid (- k
 				 nums1Mid))
-	       ,(lprint :vars `(low high k nums1Mid nums2Mid))
+	       ,(lprint :msg "l264" :vars `(low high k nums1Mid nums2Mid))
 	       ,(show :color 'RED :a `(- nums1Mid 1)
 		      :b `(- nums2Mid 1))
 	       (if (logand (< 0 nums1Mid)
@@ -291,7 +291,7 @@
 					    ))
 		      ,(show :color 'MAGENTA :a `(- nums1Mid 1) :b `(- nums2Mid 1))
 		      )))
-	     ,(lprint :vars `(midLeft))
+	     ,(lprint :msg "L294" :vars `(midLeft))
 	     (when (== 1 (and (+ (len nums1)
 				 (len nums2))
 			      1))
@@ -304,7 +304,7 @@
 		     (setf midRight (aref nums1 nums1Mid))
 		     (setf midRight (mm.Min (aref nums1 nums1Mid)
 					    (aref nums2 nums2Mid)))))
-	     ,(lprint :vars `(midRight))
+	     ,(lprint :msg "L307" :vars `(midRight))
 	     (return (* .5
 			(float64 (+ midLeft
 				    midRight))))))
@@ -367,7 +367,7 @@
 						)
 				    )
 			    ,(lprint :msg (format nil "should be ~a" result)
-				     :vars `((median (curly []int ,@A)
+				     :vars `(#+nil (median (curly []int ,@A)
 						     (curly []int ,@B)
 						     )
 					     (== res ,result))))))))))))))
