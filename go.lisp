@@ -704,7 +704,7 @@ entry return-values contains a list of return values"
 			     (format nil ":")
 			     (format nil "~{~a~^:~}" (mapcar #'emit args)))))
 		(aref (destructuring-bind (name &rest indices) (cdr code)
-			(format nil "~a[~{~a~^,~}]" (emit name) (mapcar #'emit indices))))
+			(format nil "~a~{[~a]~}" (emit name) (mapcar #'emit indices))))
 		(dot (let ((args (cdr code)))
 		       (format nil "~{~a~^.~}" (mapcar #'emit args))))
 		(hex (let ((arg (car (cdr code))))
