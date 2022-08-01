@@ -149,8 +149,10 @@
 							 (- ,ii (/ ,nn 2)))))))
 				(assign r2 (+ fi2 fj2 fk2)
 					r (math.Sqrt r2)
-					s (/ (math.Sin r)
-					     r))
+					s (math.Sin r)
+					)
+				(unless (== r 0.0)
+				  (setf s (/ s r)))
 				(setf (aref ,name i j k) (float32 s)))))))
 		     ,(panic0 `(cw.AddVar (string ,name)
 					  (curly api.Variable
