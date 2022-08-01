@@ -708,11 +708,11 @@ entry return-values contains a list of return values"
 		(dot (let ((args (cdr code)))
 		       (format nil "~{~a~^.~}" (mapcar #'emit args))))
 		(hex (let ((arg (car (cdr code))))
-		       (format nil "0x~x" (emit arg))))
+		       (format nil "0x~x" arg)))
 		(bin (let ((arg (car (cdr code))))
-		       (format nil "0b~b" (emit arg))))
+		       (format nil "0b~b" arg)))
 		(oct (let ((arg (car (cdr code))))
-		       (format nil "0o~o" (emit arg))))
+		       (format nil "0o~o" arg)))
 
 
 
