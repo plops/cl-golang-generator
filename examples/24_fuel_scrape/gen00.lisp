@@ -103,7 +103,8 @@
 
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
-	 (assign c (colly.NewCollector))
+	 (assign c (colly.NewCollector
+		    (colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
 	 (c.Limit
 	  (curly &colly.LimitRule
 		 :DomainGlob (string "www.makro.nl/*")
