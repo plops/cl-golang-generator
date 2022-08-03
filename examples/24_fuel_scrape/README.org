@@ -1,9 +1,11 @@
 https://m.youtube.com/watch?v=sU_BwzOxl54
 
-- i want interaction, try with a golang repl
+- i want interaction, try with a golang repl, runs go run on each input
 
   #+begin_example
 go install github.com/mdempsky/gocode@latest
 go install github.com/x-motemen/gore/cmd/gore@latest
 ~/go/bin/gore
   #+end_example
+
+- an alternative is https://github.com/traefik/yaegi
