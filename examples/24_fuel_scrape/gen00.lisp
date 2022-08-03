@@ -113,12 +113,19 @@
 	  )
 
 	 ,@(loop for e in `((:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
-			    (:name OnHTML :params ((string "a[href]"))
-			     :cb-types (*colly.HTMLElement)
-			     :cb-code (p0.Request.Visit (p0.Attr (string "href"))))
-			    (:name OnHTML :params ((string "tr td:nth-of-type(1)"))
+			    #+nil (:name OnHTML :params ((string "a[href]"))
+				   :cb-types (*colly.HTMLElement)
+				   ; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
+				   )
+			    #+nil (:name OnHTML :params ((string "div.field-price"))
 			     :cb-types (*colly.HTMLElement)
 			     :vars (p0.Text))
+			    #+nil (:name OnHTML :params ((string "div.field-name"))
+			     :cb-types (*colly.HTMLElement)
+			     :vars (p0.Text))
+			    (:name OnHTML :params ((string "div.price.slide.element-position"))
+			     :cb-types (*colly.HTMLElement)
+			     :vars (p0))
 			    (:name OnError :params ()
 			     :cb-types (*colly.Response error)
 			     :vars (p0.Request.URL p1))
@@ -147,7 +154,7 @@
 				    and f-i from 0
 				    collect
 				    `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
-			    ,(lprint :msg (format nil "~a" name)
+			    ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
 				     :vars vars)
 			    ,cb-code))))
 		 
