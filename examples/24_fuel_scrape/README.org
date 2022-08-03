@@ -3,6 +3,7 @@ https://m.youtube.com/watch?v=sU_BwzOxl54
 - i want interaction, try with a golang repl
 
   #+begin_example
-
-  go install github.com/x-motemen/gore/cmd/gore@latest
+go install github.com/mdempsky/gocode@latest
+go install github.com/x-motemen/gore/cmd/gore@latest
+~/go/bin/gore
   #+end_example
