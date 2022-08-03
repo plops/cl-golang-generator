@@ -104,10 +104,52 @@
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
 	 (assign c (colly.NewCollector))
-	 (c.OnRequest
-	  (lambda (r)
-	    (declare (type *colly.Request r))
-	    ,(lprint :msg "visiting"
-		     :vars `(r.URL))))
+	 (c.Limit
+	  (curly &colly.LimitRule
+		 :DomainGlob (string "www.makro.nl/*")
+		 :Delay (* 3 time.Second)
+		 :RandomDelay (* 1 time.Second))
+	  )
+
+	 ,@(loop for e in `((:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
+			    (:name OnHTML :params ((string "a[href]"))
+			     :cb-types (*colly.HTMLElement)
+			     :cb-code (p0.Request.Visit (p0.Attr (string "href"))))
+			    (:name OnHTML :params ((string "tr td:nth-of-type(1)"))
+			     :cb-types (*colly.HTMLElement)
+			     :vars (p0.Text))
+			    (:name OnError :params ()
+			     :cb-types (*colly.Response error)
+			     :vars (p0.Request.URL p1))
+			    #+nil (:name OnResponseHeaders :params ()
+			     :cb-types (*colly.Response)
+			     :vars (p0.Request.URL)
+			     )
+			    (:name OnResponse :params ()
+			     :cb-types (*colly.Response)
+			     :vars (p0.Request.URL)
+			     )
+			    (:name OnScraped :params ()
+			     :cb-types (*colly.Response)
+			     :vars (p0.Request.URL)
+			     ))
+		 collect
+		 (destructuring-bind (&key name params cb-types cb-code vars)
+		     e
+		   `(dot c
+			 (,name
+			  ,@params
+			  (lambda ,(loop for f in cb-types
+					 and f-i from 0
+					 collect (intern (string-upcase (format nil "p~a" f-i))))
+			    ,@(loop for f in cb-types
+				    and f-i from 0
+				    collect
+				    `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
+			    ,(lprint :msg (format nil "~a" name)
+				     :vars vars)
+			    ,cb-code))))
+		 
+		 )
 	 (c.Visit (string "https://www.makro.nl/vestigingen/best"))
 	 )))))
