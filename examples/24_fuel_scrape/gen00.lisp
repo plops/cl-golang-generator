@@ -95,7 +95,7 @@
        (package main)
        (import
 	fmt
-	;math
+					;math
 	time
 	"github.com/gocolly/colly"
 	)
@@ -114,33 +114,33 @@
 
 	 ,@(loop for e in `((:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
 			    #+nil (:name OnHTML :params ((string "a[href]"))
-				   :cb-types (*colly.HTMLElement)
-				   ; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
-				   )
+					 :cb-types (*colly.HTMLElement)
+					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
+					 )
 			    #+nil (:name OnHTML :params ((string "div.field-price"))
-			     :cb-types (*colly.HTMLElement)
-			     :vars (p0.Text))
+					 :cb-types (*colly.HTMLElement)
+					 :vars (p0.Text))
 			    #+nil (:name OnHTML :params ((string "div.field-name"))
-			     :cb-types (*colly.HTMLElement)
-			     :vars (p0.Text))
+					 :cb-types (*colly.HTMLElement)
+					 :vars (p0.Text))
 			    (:name OnHTML :params ((string "div.price.slide.element-position"))
-			     :cb-types (*colly.HTMLElement)
-			     :vars (p0))
+				   :cb-types (*colly.HTMLElement)
+				   :vars (p0))
 			    (:name OnError :params ()
-			     :cb-types (*colly.Response error)
-			     :vars (p0.Request.URL p1))
+				   :cb-types (*colly.Response error)
+				   :vars (p0.Request.URL p1))
 			    #+nil (:name OnResponseHeaders :params ()
-			     :cb-types (*colly.Response)
-			     :vars (p0.Request.URL)
-			     )
+					 :cb-types (*colly.Response)
+					 :vars (p0.Request.URL)
+					 )
 			    (:name OnResponse :params ()
-			     :cb-types (*colly.Response)
-			     :vars (p0.Request.URL)
-			     )
+				   :cb-types (*colly.Response)
+				   :vars (p0.Request.URL)
+				   )
 			    (:name OnScraped :params ()
-			     :cb-types (*colly.Response)
-			     :vars (p0.Request.URL)
-			     ))
+				   :cb-types (*colly.Response)
+				   :vars (p0.Request.URL)
+				   ))
 		 collect
 		 (destructuring-bind (&key name params cb-types cb-code vars)
 		     e
@@ -157,7 +157,7 @@
 			    ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
 				     :vars vars)
 			    ,cb-code))))
-		 
+
 		 )
 	 (c.Visit (string "https://www.makro.nl/vestigingen/best"))
 	 )))))

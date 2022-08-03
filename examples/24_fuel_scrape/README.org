@@ -1,1 +1,8 @@
 https://m.youtube.com/watch?v=sU_BwzOxl54
+
+- i want interaction, try with a golang repl
+
+  #+begin_example
+
+  go install github.com/x-motemen/gore/cmd/gore@latest
+  #+end_example
