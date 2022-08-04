@@ -98,6 +98,7 @@
 					;math
 	time
 	"github.com/gocolly/colly"
+	strings
 	)
        ,(lprint-init)
 
@@ -112,7 +113,7 @@
 		 :RandomDelay (* 1 time.Second))
 	  )
 
-	 ,@(loop for e in `((:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
+	 ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
 			    #+nil (:name OnHTML :params ((string "a[href]"))
 					 :cb-types (*colly.HTMLElement)
 					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
@@ -125,19 +126,23 @@
 					 :vars (p0.Text))
 			    (:name OnHTML :params ((string "div.price.slide.element-position"))
 				   :cb-types (*colly.HTMLElement)
-				   :vars (p0.Text))
-			    (:name OnError :params ()
+				   :cb-code (do0
+					     (assign spl (strings.Split p0.Text (string "€"))
+						     name (aref spl 0)
+						     price (aref spl 2))
+					     ,(lprint :vars `(name price))))
+			    #+nil (:name OnError :params ()
 				   :cb-types (*colly.Response error)
 				   :vars (p0.Request.URL p1))
 			    #+nil (:name OnResponseHeaders :params ()
 					 :cb-types (*colly.Response)
 					 :vars (p0.Request.URL)
 					 )
-			    (:name OnResponse :params ()
+			    #+nil (:name OnResponse :params ()
 				   :cb-types (*colly.Response)
 				   :vars (p0.Request.URL)
 				   )
-			    (:name OnScraped :params ()
+			   #+nil (:name OnScraped :params ()
 				   :cb-types (*colly.Response)
 				   :vars (p0.Request.URL)
 				   ))
@@ -159,5 +164,26 @@
 			    ,cb-code))))
 
 		 )
-	 (c.Visit (string "https://www.makro.nl/vestigingen/best"))
+	 ,@(loop for e in `(
+			    amsterdam
+			    best
+			    breda
+					;barendrecht
+					;beverwijk
+			    delft
+					;dordrecht
+			    duiven
+			    groningen
+					; hengelo
+					; leeuwarden
+			    nuth
+					; nijmegen
+					; nieuwegein
+					; vianen
+					; wateringen
+					; s-hertogenbosch
+			    )
+		 collect
+		 
+		 `(c.Visit (string ,(format nil "https://www.makro.nl/vestigingen/~a" e))))
 	 )))))

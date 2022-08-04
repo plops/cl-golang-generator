@@ -9,3 +9,5 @@ go install github.com/x-motemen/gore/cmd/gore@latest
   #+end_example
 
 - an alternative is https://github.com/traefik/yaegi
+
+- or use vs code debugger
