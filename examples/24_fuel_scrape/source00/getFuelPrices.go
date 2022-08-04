@@ -18,7 +18,7 @@ func main() {
 
 	})
 	c.OnHTML("div.price.slide.element-position", func(p0 *colly.HTMLElement) {
-		fmt.Printf("%v OnHTML 'div.price.slide.element-position' p0=%v\n", timeNow(), p0)
+		fmt.Printf("%v OnHTML 'div.price.slide.element-position' p0.Text=%v\n", timeNow(), p0.Text)
 
 	})
 	c.OnError(func(p0 *colly.Response, p1 error) {

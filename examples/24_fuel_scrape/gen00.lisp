@@ -125,7 +125,7 @@
 					 :vars (p0.Text))
 			    (:name OnHTML :params ((string "div.price.slide.element-position"))
 				   :cb-types (*colly.HTMLElement)
-				   :vars (p0))
+				   :vars (p0.Text))
 			    (:name OnError :params ()
 				   :cb-types (*colly.Response error)
 				   :vars (p0.Request.URL p1))
