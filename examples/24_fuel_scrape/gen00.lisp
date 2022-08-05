@@ -113,77 +113,92 @@
 		 :RandomDelay (* 1 time.Second))
 	  )
 
-	 ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
-			    #+nil (:name OnHTML :params ((string "a[href]"))
-					 :cb-types (*colly.HTMLElement)
-					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
-					 )
-			    #+nil (:name OnHTML :params ((string "div.field-price"))
-					 :cb-types (*colly.HTMLElement)
-					 :vars (p0.Text))
-			    #+nil (:name OnHTML :params ((string "div.field-name"))
-					 :cb-types (*colly.HTMLElement)
-					 :vars (p0.Text))
-			    (:name OnHTML :params ((string "div.price.slide.element-position"))
-				   :cb-types (*colly.HTMLElement)
-				   :cb-code (do0
-					     (assign spl (strings.Split p0.Text (string "€"))
-						     name (aref spl 0)
-						     price (aref spl 2))
-					     ,(lprint :vars `(name price))))
-			    #+nil (:name OnError :params ()
-				   :cb-types (*colly.Response error)
-				   :vars (p0.Request.URL p1))
-			    #+nil (:name OnResponseHeaders :params ()
-					 :cb-types (*colly.Response)
-					 :vars (p0.Request.URL)
-					 )
-			    #+nil (:name OnResponse :params ()
-				   :cb-types (*colly.Response)
-				   :vars (p0.Request.URL)
-				   )
-			   #+nil (:name OnScraped :params ()
-				   :cb-types (*colly.Response)
-				   :vars (p0.Request.URL)
-				   ))
-		 collect
-		 (destructuring-bind (&key name params cb-types cb-code vars)
-		     e
-		   `(dot c
-			 (,name
-			  ,@params
-			  (lambda ,(loop for f in cb-types
-					 and f-i from 0
-					 collect (intern (string-upcase (format nil "p~a" f-i))))
-			    ,@(loop for f in cb-types
-				    and f-i from 0
-				    collect
-				    `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
-			    ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
-				     :vars vars)
-			    ,cb-code))))
+	 (do0
+	  (assign cityName (string "None"))
 
-		 )
-	 ,@(loop for e in `(
-			    amsterdam
-			    best
-			    breda
+	  ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
+				   #+nil (:name OnHTML :params ((string "a[href]"))
+						:cb-types (*colly.HTMLElement)
+					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
+						)
+				   #+nil (:name OnHTML :params ((string "div.field-price"))
+						:cb-types (*colly.HTMLElement)
+						:vars (p0.Text))
+				   #+nil (:name OnHTML :params ((string "div.field-name"))
+						:cb-types (*colly.HTMLElement)
+						:vars (p0.Text))
+				   (:name OnHTML :params ((string "div.price.slide.element-position"))
+					  :cb-types (*colly.HTMLElement)
+					  :cb-code (do0
+						    (assign spl (strings.Split p0.Text (string "€"))
+							   
+							    )
+						    (when (<= 3 (len spl))
+						      (do0
+						       (assign name (aref spl 0)
+							       price (aref spl 2))
+						       ,(lprint :vars `(cityName name price))))))
+				   #+nil (:name OnError :params ()
+						:cb-types (*colly.Response error)
+						:vars (p0.Request.URL p1))
+				   #+nil (:name OnResponseHeaders :params ()
+						:cb-types (*colly.Response)
+						:vars (p0.Request.URL)
+						)
+				   #+nil (:name OnResponse :params ()
+						:cb-types (*colly.Response)
+						:vars (p0.Request.URL)
+						)
+				   #+nil (:name OnScraped :params ()
+						:cb-types (*colly.Response)
+						:vars (p0.Request.URL)
+						))
+		  collect
+		  (destructuring-bind (&key name params cb-types cb-code vars)
+		      e
+		    `(dot c
+			  (,name
+			   ,@params
+			   (lambda ,(loop for f in cb-types
+					  and f-i from 0
+					  collect (intern (string-upcase (format nil "p~a" f-i))))
+			     ,@(loop for f in cb-types
+				     and f-i from 0
+				     collect
+				     `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
+			     ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
+				      :vars vars)
+			     ,cb-code))))
+
+		  ))
+	 (do0
+	  (assign makros_with_gas_station
+		  (curly []string
+			 
+			 ,@(loop for e in `(
+					    amsterdam
+					    best
+					    breda
 					;barendrecht
 					;beverwijk
-			    delft
+					    delft
 					;dordrecht
-			    duiven
-			    groningen
+					    duiven
+					    groningen
 					; hengelo
 					; leeuwarden
-			    nuth
+					    nuth
 					; nijmegen
 					; nieuwegein
 					; vianen
 					; wateringen
 					; s-hertogenbosch
-			    )
-		 collect
-		 
-		 `(c.Visit (string ,(format nil "https://www.makro.nl/vestigingen/~a" e))))
+					    )
+				 collect
+				 `(string ,e)
+				 )))
+	  (foreach ((ntuple _ name) (range makros_with_gas_station))
+		   (setf cityName name)
+		   (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+			       name))))
 	 )))))
