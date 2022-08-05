@@ -131,13 +131,25 @@
 					  :cb-types (*colly.HTMLElement)
 					  :cb-code (do0
 						    (assign spl (strings.Split p0.Text (string "€"))
-							   
+
 							    )
-						    (when (<= 3 (len spl))
+						    (if (<= 3 (len spl))
 						      (do0
 						       (assign name (aref spl 0)
 							       price (aref spl 2))
-						       ,(lprint :vars `(cityName name price))))))
+						       ,(lprint :vars `(cityName name price)))
+						      (do0
+						       (assign spl (strings.Split p0.Text
+										  (string "€ / liter")))
+						       (if (<= 2 (len spl))
+							   (do0
+							       (assign name (aref spl 0)
+								       price (aref spl 1))
+							       ,(lprint :vars `(cityName name price)))
+							   (do0
+							    ,(lprint :msg "cant parse"
+								     :vars `(cityName p0.Text))))
+						       ))))
 				   #+nil (:name OnError :params ()
 						:cb-types (*colly.Response error)
 						:vars (p0.Request.URL p1))
@@ -174,7 +186,7 @@
 	 (do0
 	  (assign makros_with_gas_station
 		  (curly []string
-			 
+
 			 ,@(loop for e in `(
 					    amsterdam
 					    best

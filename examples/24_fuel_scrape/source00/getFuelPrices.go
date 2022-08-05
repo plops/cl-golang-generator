@@ -22,6 +22,15 @@ func main() {
 			name := spl[0]
 			price := spl[2]
 			fmt.Printf("%v  cityName=%v name=%v price=%v\n", timeNow(), cityName, name, price)
+		} else {
+			spl := strings.Split(p0.Text, "€ / liter")
+			if (2) <= (len(spl)) {
+				name := spl[0]
+				price := spl[1]
+				fmt.Printf("%v  cityName=%v name=%v price=%v\n", timeNow(), cityName, name, price)
+			} else {
+				fmt.Printf("%v cant parse cityName=%v p0.Text=%v\n", timeNow(), cityName, p0.Text)
+			}
 		}
 	})
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
