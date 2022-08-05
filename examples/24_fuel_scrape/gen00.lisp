@@ -98,6 +98,10 @@
 					;math
 	time
 	"github.com/gocolly/colly"
+					;"github.com/mattn/go-sqlite3"
+	database/sql
+					;modernc.org/sqlite
+	(_ github.com/mattn/go-sqlite3)
 	strings
 	)
        ,(lprint-init)
@@ -134,22 +138,22 @@
 
 							    )
 						    (if (<= 3 (len spl))
-						      (do0
-						       (assign name (aref spl 0)
-							       price (aref spl 2))
-						       ,(lprint :vars `(cityName name price)))
-						      (do0
-						       (assign spl (strings.Split p0.Text
-										  (string "€ / liter")))
-						       (if (<= 2 (len spl))
-							   (do0
-							       (assign name (aref spl 0)
-								       price (aref spl 1))
-							       ,(lprint :vars `(cityName name price)))
-							   (do0
-							    ,(lprint :msg "cant parse"
-								     :vars `(cityName p0.Text))))
-						       ))))
+							(do0
+							 (assign name (aref spl 0)
+								 price (aref spl 2))
+							 ,(lprint :vars `(cityName name price)))
+							(do0
+							 (assign spl (strings.Split p0.Text
+										    (string "€ / liter")))
+							 (if (<= 2 (len spl))
+							     (do0
+							      (assign name (aref spl 0)
+								      price (aref spl 1))
+							      ,(lprint :vars `(cityName name price)))
+							     (do0
+							      ,(lprint :msg "cant parse"
+								       :vars `(cityName p0.Text))))
+							 ))))
 				   #+nil (:name OnError :params ()
 						:cb-types (*colly.Response error)
 						:vars (p0.Request.URL p1))
@@ -183,6 +187,15 @@
 			     ,cb-code))))
 
 		  ))
+
+	 (do0
+	  ,(panic `(:var db
+			 :cmd (sql.Open (string "sqlite3")
+					(string "fuel.db"))))
+	  ,(panic `(:var _
+			 :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );")))))
+
+	 
 	 (do0
 	  (assign makros_with_gas_station
 		  (curly []string

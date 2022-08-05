@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gocolly/colly"
+	_ "github.com/mattn/go-sqlite3"
 	"strings"
 	"time"
 )
@@ -33,6 +35,16 @@ func main() {
 			}
 		}
 	})
+	db, err00 := sql.Open("sqlite3", "fuel.db")
+	if !((err00) == (nil)) {
+		fmt.Printf("%v sql.Open('sqlite3', 'fuel.db') err00=%v\n", timeNow(), err00)
+		panic(err00)
+	}
+	_, err01 := db.Exec("CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );")
+	if !((err01) == (nil)) {
+		fmt.Printf("%v db.Exec('CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );') err01=%v\n", timeNow(), err01)
+		panic(err01)
+	}
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
 	for _, name := range makros_with_gas_station {
 		cityName = name
