@@ -192,10 +192,11 @@
 	  ,(panic `(:var db
 			 :cmd (sql.Open (string "sqlite3")
 					(string "fuel.db"))))
+	  (defer (db.Close))
 	  ,(panic `(:var _
 			 :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );")))))
 
-	 
+
 	 (do0
 	  (assign makros_with_gas_station
 		  (curly []string

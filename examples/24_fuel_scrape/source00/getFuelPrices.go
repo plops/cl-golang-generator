@@ -40,6 +40,7 @@ func main() {
 		fmt.Printf("%v sql.Open('sqlite3', 'fuel.db') err00=%v\n", timeNow(), err00)
 		panic(err00)
 	}
+	defer db.Close()
 	_, err01 := db.Exec("CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );")
 	if !((err01) == (nil)) {
 		fmt.Printf("%v db.Exec('CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );') err01=%v\n", timeNow(), err01)
