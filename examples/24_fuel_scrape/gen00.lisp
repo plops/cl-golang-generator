@@ -120,6 +120,16 @@
 	 (do0
 	  (assign cityName (string "None"))
 
+
+	  (do0
+	  ,(panic `(:var db
+			 :cmd (sql.Open (string "sqlite3")
+					(string "fuel.db"))))
+	  (defer (db.Close))
+	  ,(panic `(:var _
+			 :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, rseponse TEXT, city TEXT );")))))
+
+	  
 	  ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
 				   #+nil (:name OnHTML :params ((string "a[href]"))
 						:cb-types (*colly.HTMLElement)
@@ -188,13 +198,7 @@
 
 		  ))
 
-	 (do0
-	  ,(panic `(:var db
-			 :cmd (sql.Open (string "sqlite3")
-					(string "fuel.db"))))
-	  (defer (db.Close))
-	  ,(panic `(:var _
-			 :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, description TEXT );")))))
+	 
 
 
 	 (do0
