@@ -106,129 +106,162 @@
 	)
        ,(lprint-init)
 
-       (defun main ()
-	 ,(lprint :msg (format nil "~a" name))
-	 (assign c (colly.NewCollector
-		    (colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
-	 (c.Limit
-	  (curly &colly.LimitRule
-		 :DomainGlob (string "www.makro.nl/*")
-		 :Delay (* 3 time.Second)
-		 :RandomDelay (* 1 time.Second))
-	  )
+       ,(let ((table `((:name id :db-type "INTEGER NOT NULL PRIMARY KEY")
+		       (:name time :db-type "DATETIME NOT NULL")
+		       (:name city :db-type "TEXT")
+		       (:name response :db-type "TEXT")
+		       (:name fuel :db-type "TEXT")
+		       (:name price :db-type "TEXT")
 
-	 (do0
-	  (assign cityName (string "None"))
+		       )))
+	  `(defun main ()
+	     ,(lprint :msg (format nil "~a" name))
+	     (assign c (colly.NewCollector
+			(colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
+	     (c.Limit
+	      (curly &colly.LimitRule
+		     :DomainGlob (string "www.makro.nl/*")
+		     :Delay (* 3 time.Second)
+		     :RandomDelay (* 1 time.Second))
+	      )
+
+	     (do0
+	      (assign cityName (string "None"))
 
 
-	  (do0
-	  ,(panic `(:var db
-			 :cmd (sql.Open (string "sqlite3")
-					(string "fuel.db"))))
-	  (defer (db.Close))
-	  ,(panic `(:var _
-			 :cmd (db.Exec (string "CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY, time DATETIME NOT NULL, rseponse TEXT, city TEXT );")))))
+	      (do0
+	       ,(panic `(:var db
+			      :cmd (sql.Open (string "sqlite3")
+					     (string "fuel.db"))))
+	       (defer (db.Close))
+	       ,(panic `(:var _
+			      :cmd (db.Exec (string ,(format nil "CREATE TABLE IF NOT EXISTS fuel ( ~{~a~^,~});"
+							     (loop for e in table
+								   collect
+								   (destructuring-bind (&key name db-type) e
+								     (format nil "~a ~a" name db-type)))))))))
 
-	  
-	  ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
-				   #+nil (:name OnHTML :params ((string "a[href]"))
-						:cb-types (*colly.HTMLElement)
+
+	      ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
+				       #+nil (:name OnHTML :params ((string "a[href]"))
+						    :cb-types (*colly.HTMLElement)
 					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
-						)
-				   #+nil (:name OnHTML :params ((string "div.field-price"))
-						:cb-types (*colly.HTMLElement)
-						:vars (p0.Text))
-				   #+nil (:name OnHTML :params ((string "div.field-name"))
-						:cb-types (*colly.HTMLElement)
-						:vars (p0.Text))
-				   (:name OnHTML :params ((string "div.price.slide.element-position"))
-					  :cb-types (*colly.HTMLElement)
-					  :cb-code (do0
-						    (assign spl (strings.Split p0.Text (string "€"))
+						    )
+				       #+nil (:name OnHTML :params ((string "div.field-price"))
+						    :cb-types (*colly.HTMLElement)
+						    :vars (p0.Text))
+				       #+nil (:name OnHTML :params ((string "div.field-name"))
+						    :cb-types (*colly.HTMLElement)
+						    :vars (p0.Text))
+				       (:name OnHTML :params ((string "div.price.slide.element-position"))
+					      :cb-types (*colly.HTMLElement)
+					      :cb-code (do0
+							(assign name (string "None")
+								price (string "None"))
+							(assign spl (strings.Split p0.Text (string "€"))
 
-							    )
-						    (if (<= 3 (len spl))
-							(do0
-							 (assign name (aref spl 0)
-								 price (aref spl 2))
-							 ,(lprint :vars `(cityName name price)))
-							(do0
-							 (assign spl (strings.Split p0.Text
-										    (string "€ / liter")))
-							 (if (<= 2 (len spl))
-							     (do0
-							      (assign name (aref spl 0)
-								      price (aref spl 1))
-							      ,(lprint :vars `(cityName name price)))
-							     (do0
-							      ,(lprint :msg "cant parse"
-								       :vars `(cityName p0.Text))))
-							 ))))
-				   #+nil (:name OnError :params ()
-						:cb-types (*colly.Response error)
-						:vars (p0.Request.URL p1))
-				   #+nil (:name OnResponseHeaders :params ()
-						:cb-types (*colly.Response)
-						:vars (p0.Request.URL)
-						)
-				   #+nil (:name OnResponse :params ()
-						:cb-types (*colly.Response)
-						:vars (p0.Request.URL)
-						)
-				   #+nil (:name OnScraped :params ()
-						:cb-types (*colly.Response)
-						:vars (p0.Request.URL)
-						))
-		  collect
-		  (destructuring-bind (&key name params cb-types cb-code vars)
-		      e
-		    `(dot c
-			  (,name
-			   ,@params
-			   (lambda ,(loop for f in cb-types
-					  and f-i from 0
-					  collect (intern (string-upcase (format nil "p~a" f-i))))
-			     ,@(loop for f in cb-types
-				     and f-i from 0
-				     collect
-				     `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
-			     ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
-				      :vars vars)
-			     ,cb-code))))
+								)
+							(if (<= 3 (len spl))
+							    (do0
+							     (setf name (aref spl 0)
+								   price (aref spl 2))
+							     ,(lprint :vars `(cityName name price)))
+							    (do0
+							     (assign spl (strings.Split p0.Text
+											(string "€ / liter")))
+							     (if (<= 2 (len spl))
+								 (do0
+								  (setf name (aref spl 0)
+									price (aref spl 1))
+								  ,(lprint :vars `(cityName name price)))
+								 (do0
+								  ,(lprint :msg "cant parse"
+									   :vars `(cityName p0.Text))))
+							     ))
+							,(panic `(:var res
+								       :cmd (db.Exec
+									     (string
+									      ,(format nil "INSERT INTO   fuel VALUES (NULL,~{~a~^,~});"
+										       (loop for e in (cdr table)
+											     collect
+											     (destructuring-bind (&key name db-type) e
+											       "?"
+											       ))))
+									     (time.Now)
+									     cityName
+									     p0.Text
+									     name
+									     price
+									     )))
 
-		  ))
+							,(panic `(:var id
+								       :cmd (res.LastInsertId)))
+							,(lprint :vars `(id))))
+				       #+nil (:name OnError :params ()
+						    :cb-types (*colly.Response error)
+						    :vars (p0.Request.URL p1))
+				       #+nil (:name OnResponseHeaders :params ()
+						    :cb-types (*colly.Response)
+						    :vars (p0.Request.URL)
+						    )
+				       #+nil (:name OnResponse :params ()
+						    :cb-types (*colly.Response)
+						    :vars (p0.Request.URL)
+						    )
+				       #+nil (:name OnScraped :params ()
+						    :cb-types (*colly.Response)
+						    :vars (p0.Request.URL)
+						    ))
+		      collect
+		      (destructuring-bind (&key name params cb-types cb-code vars)
+			  e
+			`(dot c
+			      (,name
+			       ,@params
+			       (lambda ,(loop for f in cb-types
+					      and f-i from 0
+					      collect (intern (string-upcase (format nil "p~a" f-i))))
+				 ,@(loop for f in cb-types
+					 and f-i from 0
+					 collect
+					 `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
+				 ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
+					  :vars vars)
+				 ,cb-code))))
 
-	 
+		      ))
 
 
-	 (do0
-	  (assign makros_with_gas_station
-		  (curly []string
 
-			 ,@(loop for e in `(
-					    amsterdam
-					    best
-					    breda
+
+	     (do0
+	      (assign makros_with_gas_station
+		      (curly []string
+
+			     ,@(loop for e in `(
+						amsterdam
+						best
+						breda
 					;barendrecht
 					;beverwijk
-					    delft
+						delft
 					;dordrecht
-					    duiven
-					    groningen
+						duiven
+						groningen
 					; hengelo
 					; leeuwarden
-					    nuth
+						nuth
 					; nijmegen
 					; nieuwegein
 					; vianen
 					; wateringen
 					; s-hertogenbosch
-					    )
-				 collect
-				 `(string ,e)
-				 )))
-	  (foreach ((ntuple _ name) (range makros_with_gas_station))
-		   (setf cityName name)
-		   (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-			       name))))
-	 )))))
+						)
+				     collect
+				     `(string ,e)
+				     )))
+	      (foreach ((ntuple _ name) (range makros_with_gas_station))
+		       (setf cityName name)
+		       (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+				   name))))
+	     ))))))

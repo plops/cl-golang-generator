@@ -106,11 +106,21 @@
 	 ,(lprint :msg (format nil "~a" name))
 	 ,(panic `(:var cam
 			:cmd (gocv.VideoCaptureDevice 0)))
+	 ,@(loop for (e f) in `((VideoCaptureFrameWidth 320)
+				(VideoCaptureFrameHeight 240))
+		 collect
+		 `(cam.Set (dot gocv ,e)
+			   ,f))
 	 (assign win (gocv.NewWindow (string "hello"))
-		 img (gocv.NewMat))
+		 img0 (gocv.NewMat)
+		 ;img1 (gocv.NewMat)
+		 clahe (gocv.NewCLAHE))
 	 (for ()
-	      (cam.Read &img)
-	      (win.IMShow img)
+	      (cam.Read &img0)
+	      ;(clahe.Apply img0 &img1)
+	      (win.IMShow img0)
 	      (win.WaitKey 1))
-	 
-	   )))))
+	 (clahe.Close)
+	 ,(panic0 `(cam.Close))
+
+	 )))))

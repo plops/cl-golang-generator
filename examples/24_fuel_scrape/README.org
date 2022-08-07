@@ -11,3 +11,6 @@ go install github.com/x-motemen/gore/cmd/gore@latest
 - an alternative is https://github.com/traefik/yaegi
 
 - or use vs code debugger
+
+
+- sql example https://earthly.dev/blog/golang-sqlite/
