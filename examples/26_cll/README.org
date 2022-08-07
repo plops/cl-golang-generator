@@ -1,0 +1,1 @@
+https://en.wikipedia.org/wiki/Connected-component_labeling#Graphical_example_of_two-pass_algorithm
