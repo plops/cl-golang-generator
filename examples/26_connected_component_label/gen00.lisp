@@ -106,54 +106,59 @@
        ,(lprint-init)
        ,(let ((pic-w 320)
 	      (pic-h 240))
-	 `(defun main ()
-	   ,(lprint :msg (format nil "~a" name))
-	   ,(panic `(:var cam
-			  :cmd (gocv.VideoCaptureDevice 0)))
-	   (defer ((lambda ()
-		     ,(panic0 `(cam.Close)))))
-	   ,@(loop for (e f) in `((VideoCaptureFrameWidth ,pic-w)
-				  (VideoCaptureFrameHeight ,pic-h))
-		   collect
-		   `(cam.Set (dot gocv ,e)
-			     ,f))
-	   (assign win (gocv.NewWindow (string "hello"))
-		   img0 (gocv.NewMat)
-		   img1 (gocv.NewMat)
-		   imGray (image.NewGray
-			   (image.Rect 0 0 ,pic-w ,pic-h))
+	  `(defun main ()
+	     ,(lprint :msg (format nil "~a" name))
+	     ,(panic `(:var cam
+			    :cmd (gocv.VideoCaptureDevice 0)))
+	     (defer ((lambda ()
+		       ,(panic0 `(cam.Close)))))
+	     ,@(loop for (e f) in `((VideoCaptureFrameWidth ,pic-w)
+				    (VideoCaptureFrameHeight ,pic-h))
+		     collect
+		     `(cam.Set (dot gocv ,e)
+			       ,f))
+	     (assign win (gocv.NewWindow (string "hello"))
+		     img0 (gocv.NewMat)
+		     img1 (gocv.NewMat)
+		     imGray (image.NewGray
+			     (image.Rect 0 0 ,pic-w ,pic-h))
 
-		   )
-	   ,@(loop for e in `(img0 img1)
-		   collect
-		   `(defer ((lambda ()
-			      ,(panic0 `(dot ,e (Close)))))))
-	   (for ()
-		(cam.Read &img0)
-		(gocv.CvtColor img0
-			       &img1
-			       gocv.ColorBGRToGray)
-		(dotimes (x ,pic-w)
-		  (dotimes (y ,pic-h)
-		    (comments "https://pkg.go.dev/image#NewGray")
-		    
-		    (setf (aref imGray.Pix (+ (* (- y imGray.Rect.Min.Y)
-						 imGray.Stride)
-					      (* (- x imGray.Rect.Min.X)
-						 1))
-				)
-			  (dot img1 (GetUCharAt ;; row col
-				     y x
-				     ))
-			  )
-		    ))
+		     )
+	     ,@(loop for e in `(img0 img1)
+		     collect
+		     `(defer ((lambda ()
+				,(panic0 `(dot ,e (Close)))))))
+	     (for ()
+		  (cam.Read &img0)
+		  (gocv.CvtColor img0
+				 &img1
+				 gocv.ColorBGRToGray)
+		  (dotimes (x ,pic-w)
+		    (dotimes (y ,pic-h)
+		      (comments "https://pkg.go.dev/image#NewGray")
+		      (let ((v (dot img1 (GetUCharAt ;; row col
+					y x
+					))))
+			(if (< 128 v)
+			 (setf (aref imGray.Pix (+ (* (- y imGray.Rect.Min.Y)
+						      imGray.Stride)
+						   (* (- x imGray.Rect.Min.X)
+						      1))
+				     )
+			       255)
+			 (setf (aref imGray.Pix (+ (* (- y imGray.Rect.Min.Y)
+						      imGray.Stride)
+						   (* (- x imGray.Rect.Min.X)
+						      1))
+				     )
+			       0)))))
 
-		,(panic `(:var img2
-			       :cmd (gocv.ImageGrayToMatGray imGray)))
-		(win.IMShow img2)
-		(win.WaitKey 1))
+		  ,(panic `(:var img2
+				 :cmd (gocv.ImageGrayToMatGray imGray)))
+		  (win.IMShow img2)
+		  (win.WaitKey 1))
 
-	   
-	   
 
-	   ))))))
+
+
+	     ))))))
