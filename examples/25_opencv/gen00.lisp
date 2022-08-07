@@ -98,6 +98,7 @@
 	fmt
 					;math
 	time
+	image
 	gocv.io/x/gocv
 	)
        ,(lprint-init)
@@ -115,7 +116,14 @@
 		 img0 (gocv.NewMat)
 		 img1 (gocv.NewMat)
 		 img2 (gocv.NewMat)
-		 clahe (gocv.NewCLAHE))
+		 clahe ;(gocv.NewCLAHE)
+		 (gocv.NewCLAHEWithParams 13.0
+					  (curly image.Point
+						 8 8
+					;16 16
+					;32 24
+						 ))
+		 )
 	 (for ()
 	      (cam.Read &img0)
 	      (gocv.CvtColor img0
