@@ -6,7 +6,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/26_ccl"
+    (format nil "~a/stage/cl-golang-generator/examples/26_connected_component_label"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defun lprint-init ()
@@ -71,10 +71,12 @@
     (defun write-go (name code)
       (prog1
 	  (progn
-     	    (ensure-directories-exist
-	     (format nil "~a/source~2,'0d/"
-		     *path*
-		     file-count))
+     	    (let ((dir-name (format nil "~a/source~2,'0d/"
+				    *path*
+				    file-count)))
+	      (format t "ensure dir-name exists ~a" dir-name)
+	      (ensure-directories-exist
+	       dir-name))
 	    (with-open-file (s (format nil "~a/source~2,'0d/go.mod"
 				       *path*
 				       file-count)
@@ -102,34 +104,56 @@
 	gocv.io/x/gocv
 	)
        ,(lprint-init)
+       ,(let ((pic-w 320)
+	      (pic-h 240))
+	 `(defun main ()
+	   ,(lprint :msg (format nil "~a" name))
+	   ,(panic `(:var cam
+			  :cmd (gocv.VideoCaptureDevice 0)))
+	   (defer ((lambda ()
+		     ,(panic0 `(cam.Close)))))
+	   ,@(loop for (e f) in `((VideoCaptureFrameWidth ,pic-w)
+				  (VideoCaptureFrameHeight ,pic-h))
+		   collect
+		   `(cam.Set (dot gocv ,e)
+			     ,f))
+	   (assign win (gocv.NewWindow (string "hello"))
+		   img0 (gocv.NewMat)
+		   img1 (gocv.NewMat)
+		   imGray (image.NewGray
+			   (image.Rect 0 0 ,pic-w ,pic-h))
 
-       (defun main ()
-	 ,(lprint :msg (format nil "~a" name))
-	 ,(panic `(:var cam
-			:cmd (gocv.VideoCaptureDevice 0)))
-	 ,@(loop for (e f) in `((VideoCaptureFrameWidth 320)
-				(VideoCaptureFrameHeight 240))
-		 collect
-		 `(cam.Set (dot gocv ,e)
-			   ,f))
-	 (assign win (gocv.NewWindow (string "hello"))
-		 img0 (gocv.NewMat)
-		 img1 (gocv.NewMat)
-		 imGray (image.NewGray
-			 (image.Rect 0 0 320 240))
-		 
-		 )
-	 (for ()
-	      (cam.Read &img0)
-	      (gocv.CvtColor img0
-			     &img1
-			     gocv.ColorBGRToGray)
-	      
-	      ,(panic `(:var img2
-			     :cmd (gocv.ImageGrayToMatGray imGray)))
-	      (win.IMShow img2)
-	      (win.WaitKey 1))
-	 (clahe.Close)
-	 ,(panic0 `(cam.Close))
+		   )
+	   ,@(loop for e in `(img0 img1)
+		   collect
+		   `(defer ((lambda ()
+			      ,(panic0 `(dot ,e (Close)))))))
+	   (for ()
+		(cam.Read &img0)
+		(gocv.CvtColor img0
+			       &img1
+			       gocv.ColorBGRToGray)
+		(dotimes (x ,pic-w)
+		  (dotimes (y ,pic-h)
+		    (comments "https://pkg.go.dev/image#NewGray")
+		    
+		    (setf (aref imGray.Pix (+ (* (- y imGray.Rect.Min.Y)
+						 imGray.Stride)
+					      (* (- x imGray.Rect.Min.X)
+						 1))
+				)
+			  (dot img1 (GetUCharAt ;; row col
+				     y x
+				     ))
+			  )
+		    ))
 
-	 )))))
+		,(panic `(:var img2
+			       :cmd (gocv.ImageGrayToMatGray imGray)))
+		(win.IMShow img2)
+		(win.WaitKey 1))
+
+	   
+	   
+
+	   ))))))

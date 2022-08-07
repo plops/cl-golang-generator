@@ -1,1 +1,3 @@
 https://en.wikipedia.org/wiki/Connected-component_labeling#Graphical_example_of_two-pass_algorithm
+https://en.wikipedia.org/wiki/Hoshen%E2%80%93Kopelman_algorithm
+https://pkg.go.dev/gocv.io/x/gocv#ImageGrayToMatGray
