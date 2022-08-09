@@ -1,4 +1,4 @@
-module main
+module wasmgame
 
 go 1.19
 

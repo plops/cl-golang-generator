@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/plops/cl-golang-generator/examples/27_wasm_game/source00/snake"
 	"time"
+	snake "wasmgame/snake"
 )
 
 func timeNow() string {

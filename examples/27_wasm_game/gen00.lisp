@@ -6,7 +6,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/26_connected_component_label"
+    (format nil "~a/stage/cl-golang-generator/examples/27_wasm_game"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defun lprint-init ()
@@ -68,97 +68,93 @@
 	  (incf err-nr)))))
 
   (let ((file-count 0))
-    (defun write-go (name code)
+    (defun write-go (&key name code folder)
       (prog1
 	  (progn
-     	    (let ((dir-name (format nil "~a/source~2,'0d/"
+     	    (let ((dir-name (format nil "~a/source00/~@[~a/~]"
 				    *path*
-				    file-count)))
+				    folder)))
 	      (format t "ensure dir-name exists ~a" dir-name)
 	      (ensure-directories-exist
 	       dir-name))
-	    (with-open-file (s (format nil "~a/source~2,'0d/go.mod"
-				       *path*
-				       file-count)
-			       :direction :output
-			       :if-exists nil
-			       :if-does-not-exist :create)
-	      (format s "module main~%")
-	      (format s "go 1.18~%"))
+	    (unless folder
+	     (with-open-file (s (format nil "~a/source00/go.mod"
+					*path*
+					)
+				:direction :output
+				:if-exists nil
+				:if-does-not-exist :create)
+	       (format s "module wasmgame~%")
+	       (format s "go 1.19~%")))
 	    (write-source
-	     (format nil "~a/source~2,'0d/~a"
-		     *path* file-count name)
+	     (format nil "~a/source00/~@[~a/~]g~2,'0d_~a"
+		     *path* folder file-count name)
 	     code))
 	(incf file-count))))
 
-  (let ((name "getVideoConnectedComponents"))
-    (write-go
-     name
-     `(do0
-       (package main)
-       (import
-	fmt
-					;math
-	time
-	image
-	gocv.io/x/gocv
-	)
-       ,(lprint-init)
-       ,(let ((pic-w 320)
-	      (pic-h 240))
-	  `(defun main ()
-	     ,(lprint :msg (format nil "~a" name))
-	     ,(panic `(:var cam
-			    :cmd (gocv.VideoCaptureDevice 0)))
-	     (defer ((lambda ()
-		       ,(panic0 `(cam.Close)))))
-	     ,@(loop for (e f) in `((VideoCaptureFrameWidth ,pic-w)
-				    (VideoCaptureFrameHeight ,pic-h))
-		     collect
-		     `(cam.Set (dot gocv ,e)
-			       ,f))
-	     (assign win (gocv.NewWindow (string "hello"))
-		     img0 (gocv.NewMat)
-		     img1 (gocv.NewMat)
-		     imGray (image.NewGray
-			     (image.Rect 0 0 ,pic-w ,pic-h))
+  (let ((name "main")
+	(folder nil))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package main)
+      (import
+       ;log
+       time
+       fmt
+       github.com/hajimehoshi/ebiten/v2
+       (snake wasmgame/snake)
+       )
+      ,(lprint-init)
+      (defun main ()
+	,(lprint :msg (format nil "~@[~a/~]~a" folder name))
+	(assign game (snake.NewGame))
+	))))
+  (let ((name "game")
+	(folder "snake"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package snake)
+      (import
+       image/color
+       time
+       fmt
+       github.com/hajimehoshi/ebiten/v2
+       github.com/hajimehoshi/ebiten/v2/ebitenutil
+       )
+      (const ScreenWidth 600
+	     ScreenHeight 600
+	     boardRows 20
+	     boardCols 20)
+      (let ((backgroundColor
+	      (curly color.RGBA 50 100 50 50)))
+	(defstruct0 Game
+	  )
+	(defun NewGame ()
+	  (declare (values *Game))
+	  (return (curly &Game)))
+	(defmethod Layout ((g *Game)
+			   outsideWidth
+			   outsideHeight)
+	  (declare (type int
+			 outsideWidth
+			 outsideHeight)
+		   )
+	  (return (ntuple ScreenWidth
+			  ScreenHeight)))
+	(defmethod Update ((g *Game)
+			   )
+	  (declare (values error))
+	  (return "nil"))
+	(defmethod Draw ((g *Game)
+			 screen)
+	  (declare (type *ebiten.Image screen))
+	  (return (dot screen
+		       (Fill backgroundColor))))
 
-		     )
-	     ,@(loop for e in `(img0 img1)
-		     collect
-		     `(defer ((lambda ()
-				,(panic0 `(dot ,e (Close)))))))
-	     (for ()
-		  (cam.Read &img0)
-		  (gocv.CvtColor img0
-				 &img1
-				 gocv.ColorBGRToGray)
-		  (dotimes (x ,pic-w)
-		    (dotimes (y ,pic-h)
-		      (comments "https://pkg.go.dev/image#NewGray")
-		      (let ((v (dot img1 (GetUCharAt ;; row col
-					  y x
-					  ))))
-			(if (< 128 v)
-			    (setf (aref imGray.Pix (+ (* (- y imGray.Rect.Min.Y)
-							 imGray.Stride)
-						      (* (- x imGray.Rect.Min.X)
-							 1))
-					)
-				  255)
-			    (setf (aref imGray.Pix (+ (* (- y imGray.Rect.Min.Y)
-							 imGray.Stride)
-						      (* (- x imGray.Rect.Min.X)
-							 1))
-					)
-				  0)))))
-
-		  ,(panic `(:var img2
-				 :cmd (gocv.ImageGrayToMatGray imGray)))
-		  (win.IMShow img2)
-		  (win.WaitKey 1))
-
-
-
-
-	     ))))))
+	)))))

@@ -1,1 +1,7 @@
 - https://pliutau.com/ebiten-snake/
+- https://github.com/plutov/packagemain/tree/master/drafts/ebiten-snake
+
+go install github.com/hajimehoshi/wasmserve@latest
+~/go/bin/wasmserve .
+
+http://localhost:8080
