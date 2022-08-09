@@ -3,9 +3,8 @@ package snake
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"image/color"
-	"time"
+	. "wasmgame/cltimelog"
 )
 
 const (
@@ -21,14 +20,15 @@ type Game struct {
 }
 
 func NewGame() *Game {
+	fmt.Printf("%v NewGame \n", TimeNow())
 	return &Game{}
 }
-func (g *Game) Layout(outsideWidth int, outsideHeight int) {
+func (g *Game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 	return ScreenWidth, ScreenHeight
 }
 func (g *Game) Update() error {
 	return nil
 }
 func (g *Game) Draw(screen *ebiten.Image) {
-	return screen.Fill(backgroundColor)
+	screen.Fill(backgroundColor)
 }

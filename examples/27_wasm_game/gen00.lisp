@@ -10,7 +10,7 @@
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defun lprint-init ()
-    `(defun timeNow ()
+    `(defun TimeNow ()
        (declare (values string))
        (return
 	 (dot time
@@ -26,7 +26,7 @@
 		msg (loop for v in vars
 			  collect
 			  (emit-go :code v))))
-      (timeNow)
+      (TimeNow)
       ,@vars
       ))
   (defun tprint (&key (msg "") vars)
@@ -35,7 +35,7 @@
       (string
        ,(format nil "%v ~a ~{~a=%v (%T)~^ ~}\\n"
 		msg vars))
-      (timeNow)
+      (TimeNow)
       ,@(loop for e in vars
 	      appending
 	      `(,e ,e))))
@@ -102,15 +102,22 @@
       (package main)
       (import
        ;log
-       time
+       ;time
        fmt
        github.com/hajimehoshi/ebiten/v2
+       ("." wasmgame/cltimelog)
        (snake wasmgame/snake)
        )
-      ,(lprint-init)
+
       (defun main ()
 	,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	(assign game (snake.NewGame))
+	(ebiten.SetWindowSize
+	 snake.ScreenWidth
+	 snake.ScreenHeight)
+	(ebiten.SetWindowTitle
+	 (string "snake"))
+	,(panic0 `(ebiten.RunGame game))
 	))))
   (let ((name "game")
 	(folder "snake"))
@@ -122,10 +129,11 @@
       (package snake)
       (import
        image/color
-       time
+       
        fmt
+       ("." wasmgame/cltimelog)
        github.com/hajimehoshi/ebiten/v2
-       github.com/hajimehoshi/ebiten/v2/ebitenutil
+       ;github.com/hajimehoshi/ebiten/v2/ebitenutil
        )
       (const ScreenWidth 600
 	     ScreenHeight 600
@@ -137,6 +145,7 @@
 	  )
 	(defun NewGame ()
 	  (declare (values *Game))
+	  ,(lprint :msg "NewGame")
 	  (return (curly &Game)))
 	(defmethod Layout ((g *Game)
 			   outsideWidth
@@ -144,7 +153,7 @@
 	  (declare (type int
 			 outsideWidth
 			 outsideHeight)
-		   )
+		   (values int int))
 	  (return (ntuple ScreenWidth
 			  ScreenHeight)))
 	(defmethod Update ((g *Game)
@@ -157,4 +166,19 @@
 	  (return (dot screen
 		       (Fill backgroundColor))))
 
-	)))))
+	))))
+
+  (let ((name "cltimelog")
+	(folder "cltimelog"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package cltimelog)
+      (import
+       time
+       ;fmt
+       )
+      ,(lprint-init)
+      ))))
