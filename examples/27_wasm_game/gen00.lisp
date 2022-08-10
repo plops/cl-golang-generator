@@ -92,6 +92,21 @@
 	     code))
 	(incf file-count))))
 
+  (let ((name "cltimelog")
+	(folder "cltimelog"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package cltimelog)
+      (import
+       time
+       ;fmt
+       )
+      ,(lprint-init)
+      )))
+  
   (let ((name "main")
 	(folder nil))
    (write-go
@@ -163,22 +178,200 @@
 	(defmethod Draw ((g *Game)
 			 screen)
 	  (declare (type *ebiten.Image screen))
-	  (return (dot screen
-		       (Fill backgroundColor))))
+	  (dot screen
+	       (Fill backgroundColor)))
 
 	))))
 
-  (let ((name "cltimelog")
-	(folder "cltimelog"))
+  (let ((name "food")
+	(folder "snake"))
    (write-go
     :name name
     :folder folder
     :code
     `(do0
-      (package cltimelog)
+      (package snake)
+      (defstruct0 Food
+	  (x int)
+	(y int))
+      (defun NewFood (x y)
+	(declare (values *Food)
+		 (type int x y))
+	(return (curly &Food
+		       :x x
+		       :y y))))))
+
+  (let ((name "input")
+	(folder "snake"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package snake)
       (import
-       time
-       ;fmt
-       )
-      ,(lprint-init)
-      ))))
+       github.com/hajimehoshi/ebiten/v2
+       github.com/hajimehoshi/ebiten/inpututil)
+      (defstruct0 Input
+	  )
+      (defun NewInput ()
+	(declare (values *Input))
+	(return (curly &Input)))
+      (defmethod Dir ((i *Input)
+		      )
+	(declare (values ebiten.Key bool))
+	,@(loop for e in `(KeyArrowUp
+			   KeyArrowLeft
+			   KeyArrowRight
+			   KeyArrowDown
+			   )
+		collect
+		`(when (inpututil.IsKeyJustPressed
+			(dot ebiten ,e))
+		   (return (ntuple (dot ebiten
+					,e)
+				   true))))
+	(return (ntuple 0 false))
+	))))
+
+  (let ((name "input")
+	(folder "snake"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package snake)
+      (import
+       github.com/hajimehoshi/ebiten/v2
+       github.com/hajimehoshi/ebiten/inpututil)
+      (defstruct0 Input
+	  )
+      (defun NewInput ()
+	(declare (values *Input))
+	(return (curly &Input)))
+      (defmethod Dir ((i *Input)
+		      )
+	(declare (values ebiten.Key bool))
+	,@(loop for e in `(KeyArrowUp
+			   KeyArrowLeft
+			   KeyArrowRight
+			   KeyArrowDown
+			   )
+		collect
+		`(when (inpututil.IsKeyJustPressed
+			(dot ebiten ,e))
+		   (return (ntuple (dot ebiten
+					,e)
+				   true))))
+	(return (ntuple 0 false))
+	))))
+
+  (let ((name "snake")
+	(folder "snake"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package snake)
+      (import
+       github.com/hajimehoshi/ebiten/v2)
+      (defstruct0 Coord
+	  (x int)
+	(y int))
+      (defstruct0 Snake
+	  (body []Coord)
+	(direction ebiten.Key)
+	(justAte bool))
+      (defun NewSnake (body direction)
+	(declare (type []Coord body)
+		 (type ebiten.Key direction))
+	(declare (values *Snake))
+	(return (curly &Snake
+		       :body body
+		       :direction direction)))
+      (defmethod Head ((s *Snake)
+		      )
+	(declare (values Coord))
+	(return (dot s
+		     (aref body
+			   (- (len s.body)
+			      1)))))
+      (defmethod ChangeDirection ((s *Snake)
+				  newDir)
+	(declare (type ebiten.Key newDir))
+	(assign
+	 opposites
+	 (curly "map[ebiten.Key]ebiten.Key"
+		,@(loop for (e f)
+			  in `((Up Down)
+			       (Right Left)
+			       (Down Up)
+			       (Left Right))
+			appending
+			`(,(make-keyword
+			    (format
+			     nil
+			     "ebiten.KeyArrow~a" e))
+			  ,(format
+			     nil
+			     "ebiten.KeyArrow~a" f)
+			  ))))
+	(comments "change to opposite not allowed")
+	(assign (ntuple o ok)
+		(aref opposites
+		      newDir))
+	(when (logand ok
+		      (!= o s.direction))
+	  (setf s.direction newDir)))
+      (defmethod HeadHits ((s *Snake)
+			   x y)
+	(declare (type int x y)
+		 (values bool))
+	(assign h (s.Head))
+	(return (logand (== h.x x)
+			(== h.y y)))
+	)
+      (defmethod HeadHitsBody ((s *Snake)
+			       )
+	(declare 
+		 (values bool))
+	(assign h (s.Head))
+	(assign
+	 bodyWithoutHead
+	 (aref s.body (slice ""
+			     (- (len s.body)
+				1))))
+	(foreach ((ntuple _ b)
+		  (range bodyWithoutHead))
+		 (when
+		     (logand (== b.x h.x)
+			     (== b.y h.y))
+		   (return true)))
+	(return false))
+      (defmethod Move ((s *Snake))
+	(assign h (s.Head))
+	(assign
+	 newHead
+	 (curly Coord
+		:x h.x
+		:y h.y))
+	(switch s.direction
+	  (ebiten.KeyArrowUp
+	   (decf newHead.x))
+	  (ebiten.KeyArrowRight
+	   (incf newHead.y))
+	  (ebiten.KeyArrowDown
+	   (incf newHead.x))
+	  (ebiten.KeyArrowLeft
+	   (decf newHead.y)))
+	(if s.justAte
+	    (setf s.body (append s.body newHead)
+		  s.justAte false)
+	    (setf s.body (append
+			  (aref s.body (slice 1 ""))
+			  newHead))))
+      )))
+
+  )
