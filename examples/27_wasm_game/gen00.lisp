@@ -65,6 +65,16 @@
 			 :vars `(,err))
 		(panic ,err))
 	      )
+	  (incf err-nr))))
+    (defun properr (cmd)
+      (let ((err (format nil "err~2,'0d" err-nr)))
+	(prog1
+	    `(do0
+	      (assign ,err
+		      ,cmd)
+	      (unless (== ,err "nil")
+		(return ,err))
+	      )
 	  (incf err-nr)))))
 
   (let ((file-count 0))
@@ -373,5 +383,108 @@
 			  (aref s.body (slice 1 ""))
 			  newHead))))
       )))
+
+  (let ((name "board")
+	(folder "snake"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package snake)
+      (import
+       math/rand
+       time
+       github.com/hajimehoshi/ebiten/v2)
+      (defstruct0 Board
+	  (rows int)
+	(cols int)
+	(food *Food)
+	(snake *Snake)
+	(points int)
+	(gameOver int)
+	(timer time.Time))
+      (defun NewBoard (rows cols)
+	(declare (type int rows cols))
+	(declare (values *Board))
+	(assign board
+		(curly &Board
+		       :rows rows
+		       :cols cols
+		       :timer (time.Now)))
+	(setf board.snake
+	      (NewSnake
+	       (curly []Coord
+		      (braces 0 0)
+		      (braces 0 1)
+		      (braces 0 2)
+		      (braces 0 3)
+		      )
+	       ebiten.KeyArrowRight))
+	(dot board (placeFood))
+	(return board))
+      (defmethod Update ((b *Board)
+			 input)
+	(declare (values error)
+		 (type *Input input))
+	(when b.gameOver
+	  (return "nil"))
+	(comments "faster snake, more points")
+	(assign interval (* 200 time.Millisecond))
+	(if (< 10 b.points)
+	    (setf interval (* 150 time.Millisecond))
+	    (when (< 20 b.points)
+	      (setf interval
+		    (* 100 time.Millisecond))))
+	(assign (ntuple newDir ok)
+		(input.Dir))
+	(when ok
+	  (b.snake.ChangeDirection newDir))
+	(when (<= interval
+		  (time.Since b.timer))
+	  ,(properr `(b.moveSnake))
+	  (setf b.timer (time.Now)))
+	(return "nil"))
+
+      (defmethod placeFood ((b *Board)
+			    )
+	"var x, y int"
+	(for ()
+	     (setf x (rand.Intn b.cols)
+		   y (rand.Intn b.rows))
+	     (comments "no food on snake head")
+	     (unless (b.snake.HeadHits x y)
+	       break))
+	(setf b.food (NewFood x y)))
+      (defmethod moveSnake ((b *Board))
+	(declare 
+	 (values error))
+	(b.snake.Move)
+	(when (logior
+	       (b.snakeLeftBoard)
+	       (b.snake.HeadHitsBody))
+	  (setf b.gameOver true
+		)
+	  (return "nil"))
+	(when (b.snake.HeadHits
+	       b.food.x
+	       b.food.y)
+	  (setf b.snake.justAte true
+		)
+	  (b.placeFood)
+	  (incf b.points))
+	(return "nil"))
+      (defmethod snakeLeftBoard ((b *Board)
+			       )
+	(declare 
+		 (values bool))
+	(assign h (b.snake.Head))
+	(return (logior
+		 (< (- b.cols 1)
+		    head.x)
+		 (< (- b.rows 1)
+		    head.y)
+		 (< head.x 0)
+		 (< head.y 0)))))))
 
   )
