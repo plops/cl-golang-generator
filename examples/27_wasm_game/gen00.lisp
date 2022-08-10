@@ -165,13 +165,23 @@
 	     boardRows 20
 	     boardCols 20)
       (let ((backgroundColor
-	      (curly color.RGBA 50 100 50 50)))
+	      (curly color.RGBA 50 100 50 50))
+	    (snakeColor
+	      (curly color.RGBA 200 50 150 150))
+	    (foodColor
+	      (curly color.RGBA 200 200 50 150)))
 	(defstruct0 Game
+	    (input *Input)
+	  (board *Board)
 	  )
 	(defun NewGame ()
 	  (declare (values *Game))
 	  ,(lprint :msg "NewGame")
-	  (return (curly &Game)))
+	  (return (curly &Game
+			 :input (NewInput)
+			 :board (NewBoard
+				 boardRows
+				 boardCols))))
 	(defmethod Layout ((g *Game)
 			   outsideWidth
 			   outsideHeight)
@@ -181,16 +191,48 @@
 		   (values int int))
 	  (return (ntuple ScreenWidth
 			  ScreenHeight)))
-	(defmethod Update ((g *Game)
-			   )
+	(defmethod Update ((g *Game))
 	  (declare (values error))
-	  (return "nil"))
+	  (return (g.board.Update
+		   g.input)))
 	(defmethod Draw ((g *Game)
 			 screen)
 	  (declare (type *ebiten.Image screen))
 	  (dot screen
-	       (Fill backgroundColor)))
-
+	       (Fill backgroundColor))
+	  (if g.board.gameOver
+	      (ebitenutil.DebugPrint
+	       screen
+	       (fmt.Sprintf
+		(string "Game Over. Score: %d")
+		g.board.points))
+	      (do0
+	       (assign width (/ ScreenHeight
+				boardRows))
+	       (foreach
+		((ntuple _ p)
+		 (range g.board.snake.body))
+		(ebitenutil.DrawRect
+		 screen
+		 (float64 (* p.y width))
+		 (float64 (* p.x width))
+		 (float64 width)
+		 (float64 width)
+		 snakeColor))
+	       (when (!= g.board.food "nil")
+		 (ebitenutil.DrawRect
+		  screen
+		  (float64 (* g.board.food.y width))
+		  (float64 (* g.board.food.x width))
+		  (float64 width)
+		  (float64 width)
+		  foodColor))
+	       (ebitenutil.DebugPrint
+		screen
+		(fmt.Sprintf
+		 (string "Score: %d")
+		 g.board.points)))))
+	
 	))))
 
   (let ((name "food")
