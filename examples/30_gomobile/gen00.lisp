@@ -159,7 +159,7 @@
 	       collect
 	       (format nil "var ~a ~a" e f))
 
-          (defun main ()
+       (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 (dot app
 	      (Main (lambda (a)
@@ -210,12 +210,12 @@
 				 (touch.Event
 				  ,(lprint :msg "touch.Event"
 					   :vars `(e e.X e.Y
-						   ))
+						     ))
 				  (setf touchX e.X
 					touchY e.Y)))))))
 	 )
-	  
-        (defun onStart (glctx)
+
+       (defun onStart (glctx)
 	 (declare (type gl.Context glctx))
 	 ,(lprint :msg "onStart")
 
@@ -284,7 +284,7 @@ void main() {
        (defun onStop (glctx)
 	 (declare (type gl.Context glctx))
 	 ,(lprint :msg "onStop")
-	 (glctx.DeleteProgram program)
+	 (glctx.DeleteProgram program) 
 	 (glctx.DeleteBuffer buf)
 	 (fps.Release)
 	 (images.Release)
@@ -302,13 +302,13 @@ void main() {
 	   ,(lprint :msg "onPaint we print cmds only once"
 		    :vars `(frameCount)
 		    ))
-	 (incf green .01)
+	 (incf green ".01")
 	 (when (< 1 green)
 	   (setf green 0))
 					;,(lprint :msg "onPaint" :vars `(green))
 
 
-	 ,@(loop for e in `((ClearColor .2 .3 .4 1)
+	 ,@(loop for e in `((ClearColor ".2" ".3" ".4" 1)
 			    (Clear gl.COLOR_BUFFER_BIT)
 			    (:cmd (UseProgram program)
 				  :vars (program))
@@ -353,21 +353,21 @@ void main() {
 	 )
 
        (do0
-	   (setf "var triangleData"
-		 (f32.Bytes
-		  binary.LittleEndian
-		  .0 .2 .0 ;; top left
-		  .0 .0 .0 ;; btm left
-		  .2 .0 .0 ;; btm right
-		  ))
-	   (const coordsPerVertex 3
-		  vertexCount 3)
-	   )
+	(setf "var triangleData"
+	      (f32.Bytes
+	       binary.LittleEndian
+	       .0 .2 .0 ;; top left
+	       .0 .0 .0 ;; btm left
+	       .2 .0 .0 ;; btm right
+	       ))
+	(const coordsPerVertex 3
+	       vertexCount 3)
+	)
 
-       
 
-       
 
-      
 
-    ))))
+
+
+
+       ))))
