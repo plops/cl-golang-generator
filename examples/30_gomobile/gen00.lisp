@@ -235,53 +235,53 @@ void main() {
 	 ,(lprint :msg "onStart")
 
 	 (do0
-	   ,(lprint :msg "create program")
-	   ,(panic `(:var programNow
-			  :cmd (glutil.CreateProgram
-				glctx
-				vert frag
-				)))
-	   (setf program programNow)
-	   (do0
+	  ,(lprint :msg "create program")
+	  ,(panic `(:var programNow
+			 :cmd (glutil.CreateProgram
+			       glctx
+			       vert frag
+			       )))
+	  (setf program programNow)
+	  (do0
 
-	    (setf buf (glctx.CreateBuffer))
-	    ,@(loop for e in `((:cmd (BindBuffer gl.ARRAY_BUFFER buf)
-				     :vars (buf))
-			       (:cmd (BufferData gl.ARRAY_BUFFER
-						 triangleData
-						 gl.STATIC_DRAW)
-				     :vars (triangleData)))
-		    collect
-		    (let ((ncmd e)
-			  (nvars nil))
-		      (when (eq (first e) :cmd)
-			(destructuring-bind (&key cmd vars) e
-			  (setf ncmd cmd
-				nvars vars)))
-		      `(do0
-			(dot glctx ,ncmd)
-			(when (== frameCount 0)
-			  ,(lprint :msg (format nil "onStart ~a" (emit-go :code ncmd))
-				   :vars nvars)))))
-
-
+	   (setf buf (glctx.CreateBuffer))
+	   ,@(loop for e in `((:cmd (BindBuffer gl.ARRAY_BUFFER buf)
+				    :vars (buf))
+			      (:cmd (BufferData gl.ARRAY_BUFFER
+						triangleData
+						gl.STATIC_DRAW)
+				    :vars (triangleData)))
+		   collect
+		   (let ((ncmd e)
+			 (nvars nil))
+		     (when (eq (first e) :cmd)
+		       (destructuring-bind (&key cmd vars) e
+			 (setf ncmd cmd
+			       nvars vars)))
+		     `(do0
+		       (dot glctx ,ncmd)
+		       (when (== frameCount 0)
+			 ,(lprint :msg (format nil "onStart ~a" (emit-go :code ncmd))
+				  :vars nvars)))))
 
 
-	    ,@(loop for e in `((:name position :type attrib)
-			       (:name color :type uniform)
-			       (:name offset :type uniform))
-		    collect
-		    (destructuring-bind (&key name type) e
-		      `(setf ,name
-			     (dot
-			      glctx
-			      (,(format nil "Get~aLocation"
-					(string-capitalize
-					 (format nil "~a" type)))
-				program
-				(string ,name))))))
-	    (setf images (glutil.NewImages glctx)
-		  fps (debug.NewFPS images)))))
+
+
+	   ,@(loop for e in `((:name position :type attrib)
+			      (:name color :type uniform)
+			      (:name offset :type uniform))
+		   collect
+		   (destructuring-bind (&key name type) e
+		     `(setf ,name
+			    (dot
+			     glctx
+			     (,(format nil "Get~aLocation"
+				       (string-capitalize
+					(format nil "~a" type)))
+			       program
+			       (string ,name))))))
+	   (setf images (glutil.NewImages glctx)
+		 fps (debug.NewFPS images)))))
        (defun onStop (glctx)
 	 (declare (type gl.Context glctx))
 	 ,(lprint :msg "onStop")
