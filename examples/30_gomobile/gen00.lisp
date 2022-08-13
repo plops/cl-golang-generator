@@ -158,82 +158,64 @@
 		    (touchY float32))
 	       collect
 	       (format nil "var ~a ~a" e f))
-       (const coordsPerVertex 3
-	      vertexCount 3)
-       (setf "var triangleData"
-	     (f32.Bytes
-	      binary.LittleEndian
-	      .0 .2 .0 ;; top left
-	      .0 .0 .0 ;; btm left
-	      .2 .0 .0 ;; btm right
-	      ))
-       (defun onStop (glctx)
-	 (declare (type gl.Context glctx))
-	 ,(lprint :msg "onStop")
-	 (glctx.DeleteProgram program)
-	 (glctx.DeleteBuffer buf)
-	 (fps.Release)
-	 (images.Release)
+
+          (defun main ()
+	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
+	 (dot app
+	      (Main (lambda (a)
+		      (declare (type app.App a))
+		      "var glctx gl.Context"
+		      "var sz size.Event"
+		      (foreach (ae (range (a.Events)))
+			       (assign e (dot a
+					      (Filter ae)
+					      ))
+			       (typecase e
+				 (lifecycle.Event
+					;,(lprint :msg "lifecycle.Event")
+				  (case (dot e
+					     (Crosses
+					      lifecycle.StageVisible))
+				    (lifecycle.CrossOn
+				     ,(lprint :msg "lifecycle.CrossOn")
+				     (setf (ntuple glctx
+						   _)
+					   (dot e
+						(DrawContext.
+						 gl.Context)))
+				     (onStart glctx)
+				     (a.Send (curly paint.Event))
+				     )
+				    (lifecycle.CrossOff
+				     ,(lprint :msg "lifecycle.CrossOff")
+				     (onStop glctx)
+				     (setf glctx "nil")
+				     )))
+				 (size.Event
+				  ,(lprint :msg "size.Event"
+					   :vars `(sz
+						   sz.WidthPx
+						   sz.HeightPx))
+				  (setf sz e
+					touchX (float32 (/ sz.WidthPx 2))
+					touchY (float32 (/ sz.HeightPx 2))))
+				 (paint.Event
+				  (when (logior (== glctx "nil")
+						e.External)
+				    (comments "skip paint events sent by the system. we already paint as fast as possible")
+				    continue)
+				  (onPaint glctx sz)
+				  (a.Publish)
+				  (a.Send (curly paint.Event)))
+				 (touch.Event
+				  ,(lprint :msg "touch.Event"
+					   :vars `(e e.X e.Y
+						   ))
+				  (setf touchX e.X
+					touchY e.Y)))))))
 	 )
-       "var frameCount = 0"
-       (defun onPaint (glctx sz)
-	 (declare (type gl.Context glctx)
-		  (type size.Event sz))
-
-
-
-	 
-	 (incf green .01)
-	 (when (< 1 green)
-	   (setf green 0))
-					;,(lprint :msg "onPaint" :vars `(green))
-
-
-	 ,@(loop for e in `((ClearColor .2 .3 .4 1)
-			    (Clear gl.COLOR_BUFFER_BIT)
-			    (:cmd (UseProgram program)
-				  :vars (program))
-			    (:cmd (Uniform4f color 0 green 0 1)
-				  :vars (green))
-			    (:cmd (Uniform2f offset
-					     (/ touchX
-						(float32 sz.WidthPx))
-					     (/ touchY
-						(float32 sz.HeightPx)))
-				  :vars (touchX touchY
-						sz.WidthPx sz.HeightPx))
-
-			    (BindBuffer gl.ARRAY_BUFFER buf)
-			    (EnableVertexAttribArray position)
-			    (:cmd (VertexAttribPointer
-				   position
-				   coordsPerVertex
-				   gl.FLOAT
-				   false
-				   0 0)
-				  :vars (coordsPerVertex))
-			    (:cmd (DrawArrays gl.TRIANGLES
-					      0
-					      vertexCount)
-				  :vars (vertexCount))
-			    (DisableVertexAttribArray position))
-		 collect
-		 (let ((ncmd e)
-		       (nvars nil))
-		   (when (eq (first e) :cmd)
-		     (destructuring-bind (&key cmd vars) e
-		       (setf ncmd cmd
-			     nvars vars)))
-		   `(do0
-		     (dot glctx ,ncmd)
-		     (when (== frameCount 0)
-		       ,(lprint :msg (format nil "onPaint ~a" (emit-go :code ncmd))
-				:vars nvars)))))
-	 (fps.Draw sz)
-	 (incf frameCount)
-	 )
-
-       (defun onStart (glctx)
+	  
+        (defun onStart (glctx)
 	 (declare (type gl.Context glctx))
 	 ,(lprint :msg "onStart")
 
@@ -268,22 +250,22 @@ void main() {
 						 triangleData
 						 gl.STATIC_DRAW)
 				     :vars (triangleData)))
-		 collect
-		 (let ((ncmd e)
-		       (nvars nil))
-		   (when (eq (first e) :cmd)
-		     (destructuring-bind (&key cmd vars) e
-		       (setf ncmd cmd
-			     nvars vars)))
-		   `(do0
-		     (dot glctx ,ncmd)
-		     (when (== frameCount 0)
-		       ,(lprint :msg (format nil "onStart ~a" (emit-go :code ncmd))
-				:vars nvars)))))
-	    
-	    
-	    
-	    
+		    collect
+		    (let ((ncmd e)
+			  (nvars nil))
+		      (when (eq (first e) :cmd)
+			(destructuring-bind (&key cmd vars) e
+			  (setf ncmd cmd
+				nvars vars)))
+		      `(do0
+			(dot glctx ,ncmd)
+			(when (== frameCount 0)
+			  ,(lprint :msg (format nil "onStart ~a" (emit-go :code ncmd))
+				   :vars nvars)))))
+
+
+
+
 	    ,@(loop for e in `((:name position :type attrib)
 			       (:name color :type uniform)
 			       (:name offset :type uniform))
@@ -299,57 +281,93 @@ void main() {
 				(string ,name))))))
 	    (setf images (glutil.NewImages glctx)
 		  fps (debug.NewFPS images)))))
+       (defun onStop (glctx)
+	 (declare (type gl.Context glctx))
+	 ,(lprint :msg "onStop")
+	 (glctx.DeleteProgram program)
+	 (glctx.DeleteBuffer buf)
+	 (fps.Release)
+	 (images.Release)
+	 )
+       "var frameCount = 0"
 
-       (defun main ()
-	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
-	 (dot app
-	      (Main (lambda (a)
-		      (declare (type app.App a))
-		      "var glctx gl.Context"
-		      "var sz size.Event"
-		      (foreach (ae (range (a.Events)))
-			       (assign e (dot a
-					      (Filter ae)
-					      ))
-			       (typecase e
-				 (lifecycle.Event
-				  ;,(lprint :msg "lifecycle.Event")
-				  (case (dot e
-					     (Crosses
-					      lifecycle.StageVisible))
-				    (lifecycle.CrossOn
-				     ,(lprint :msg "lifecycle.CrossOn")
-				     (setf (ntuple glctx
-						   _)
-					   (dot e
-						(DrawContext.
-						 gl.Context)))
-				     (onStart glctx)
-				     (a.Send (curly paint.Event))
-				     )
-				    (lifecycle.CrossOff
-				     ,(lprint :msg "lifecycle.CrossOff")
-				     (onStop glctx)
-				     (setf glctx "nil")
-				     )))
-				 (size.Event
-				  ,(lprint :msg "size.Event"
-					   :vars `(sz.WidthPx
-						   sz.HeightPx))
-				  (setf sz e
-					touchX (* .5 (float32 sz.WidthPx))
-					touchY (* .5 (float32 sz.HeightPx))))
-				 (paint.Event
-				  (when (logior (== glctx "nil")
-						e.External)
-				    (comments "skip paint events sent by the system. we already paint as fast as possible")
-				    continue)
-				  (onPaint glctx sz)
-				  (a.Publish)
-				  (a.Send (curly paint.Event)))
-				 (touch.Event
-				  ,(lprint :msg "touch.Event"
-					   :vars `(e.X e.Y))
-				  (setf touchX e.X
-					touchY e.Y)))))))
-	 )))))
+
+       (defun onPaint (glctx sz)
+	 (declare (type gl.Context glctx)
+		  (type size.Event sz))
+
+
+
+	 (when (== frameCount 0)
+	   ,(lprint :msg "onPaint we print cmds only once"
+		    :vars `(frameCount)
+		    ))
+	 (incf green .01)
+	 (when (< 1 green)
+	   (setf green 0))
+					;,(lprint :msg "onPaint" :vars `(green))
+
+
+	 ,@(loop for e in `((ClearColor .2 .3 .4 1)
+			    (Clear gl.COLOR_BUFFER_BIT)
+			    (:cmd (UseProgram program)
+				  :vars (program))
+			    (:cmd (Uniform4f color 0 green 0 1)
+				  :vars (green))
+			    (:cmd (Uniform2f offset
+					     (/ touchX
+						(float32 sz.WidthPx))
+					     (/ touchY
+						(float32 sz.HeightPx)))
+				  :vars (touchX touchY
+						sz.WidthPx sz.HeightPx))
+
+			    (BindBuffer gl.ARRAY_BUFFER buf)
+			    (EnableVertexAttribArray position)
+			    (:cmd (VertexAttribPointer
+				   position
+				   coordsPerVertex
+				   gl.FLOAT
+				   false
+				   0 0)
+				  :vars (position coordsPerVertex))
+			    (:cmd (DrawArrays gl.TRIANGLES
+					      0
+					      vertexCount)
+				  :vars (vertexCount))
+			    (DisableVertexAttribArray position))
+		 collect
+		 (let ((ncmd e)
+		       (nvars nil))
+		   (when (eq (first e) :cmd)
+		     (destructuring-bind (&key cmd vars) e
+		       (setf ncmd cmd
+			     nvars vars)))
+		   `(do0
+		     (dot glctx ,ncmd)
+		     (when (== frameCount 0)
+		       ,(lprint :msg (format nil "onPaint ~a" (emit-go :code ncmd))
+				:vars nvars)))))
+	 (fps.Draw sz)
+	 (incf frameCount)
+	 )
+
+       (do0
+	   (setf "var triangleData"
+		 (f32.Bytes
+		  binary.LittleEndian
+		  .0 .2 .0 ;; top left
+		  .0 .0 .0 ;; btm left
+		  .2 .0 .0 ;; btm right
+		  ))
+	   (const coordsPerVertex 3
+		  vertexCount 3)
+	   )
+
+       
+
+       
+
+      
+
+    ))))
