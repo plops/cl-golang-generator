@@ -214,12 +214,7 @@
 				  (setf touchX e.X
 					touchY e.Y)))))))
 	 )
-
-       (defun onStart (glctx)
-	 (declare (type gl.Context glctx))
-	 ,(lprint :msg "onStart")
-
-	 (let ((vert (string-raw "#version 100
+       (const vert (string-raw "#version 100
 uniform vec2 offset;
 attribute vec4 position;
 void main() {
@@ -227,20 +222,26 @@ void main() {
 	// position bounds are -1 to 1.
 	vec4 offset4 = vec4(2.0*offset.x-1.0, 1.0-2.0*offset.y, 0, 0);
 	gl_Position = position + offset4;
-}"))
-
-	       (frag (string-raw
-		      "#version 100
+}")
+	      frag (string-raw
+		    "#version 100
 precision mediump float;
 uniform vec4 color;
 void main() {
 	gl_FragColor = color;
-}")))
-	   ,(panic `(:var program
+}"))
+       (defun onStart (glctx)
+	 (declare (type gl.Context glctx))
+	 ,(lprint :msg "onStart")
+
+	 (do0
+	   ,(lprint :msg "create program")
+	   ,(panic `(:var programNow
 			  :cmd (glutil.CreateProgram
 				glctx
 				vert frag
 				)))
+	   (setf program programNow)
 	   (do0
 
 	    (setf buf (glctx.CreateBuffer))
@@ -284,7 +285,7 @@ void main() {
        (defun onStop (glctx)
 	 (declare (type gl.Context glctx))
 	 ,(lprint :msg "onStop")
-	 (glctx.DeleteProgram program) 
+	 (glctx.DeleteProgram program)
 	 (glctx.DeleteBuffer buf)
 	 (fps.Release)
 	 (images.Release)
