@@ -698,6 +698,7 @@ entry return-values contains a list of return values"
 			    (format nil "(~a)-=(~a)" (emit a) (emit b))
 			    (format nil "(~a)--" (emit a)))))
 		(string (format nil "\"~a\"" (cadr code)))
+		(string-raw (format nil "`~a`" (cadr code)))
 		(char (format nil "'~a'" (cadr code)))
 		(slice (let ((args (cdr code)))
 			 (if (null args)

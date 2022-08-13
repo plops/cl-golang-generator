@@ -146,16 +146,16 @@
 
 	)
        ,@(loop for (e f)
-		 in `((images *glutil.Images)
-		      (fps *debug.FPS)
-		      (program gl.Program)
-		      (position gl.Attrib)
-		      (offset gl.Uniform)
-		      (color gl.Uniform)
-		      (buf gl.Buffer)
-		      (green float32)
-		      (touchX float32)
-		      (touchY float32))
+	       in `((images *glutil.Images)
+		    (fps *debug.FPS)
+		    (program gl.Program)
+		    (position gl.Attrib)
+		    (offset gl.Uniform)
+		    (color gl.Uniform)
+		    (buf gl.Buffer)
+		    (green float32)
+		    (touchX float32)
+		    (touchY float32))
 	       collect
 	       (format nil "var ~a ~a" e f))
        (const coordsPerVertex 3
@@ -205,7 +205,7 @@
 		 `(dot glctx ,e))
 	 (fps.Draw sz)
 	 )
-       
+
        (defun onStart (glctx)
 	 (declare (type gl.Context glctx))
 	 (let ((vert (string-raw "#version 100
@@ -217,19 +217,19 @@ void main() {
 	vec4 offset4 = vec4(2.0*offset.x-1.0, 1.0-2.0*offset.y, 0, 0);
 	gl_Position = position + offset4;
 }"))
-	       
+
 	       (frag (string-raw
-			   "#version 100
+		      "#version 100
 precision mediump float;
 uniform vec4 color;
 void main() {
 	gl_FragColor = color;
 }")))
-	  ,(panic `(:var program
-		    :cmd (glutil.CreateProgram
-			  glctx
-			  vert frag
-			  )))
+	   ,(panic `(:var program
+			  :cmd (glutil.CreateProgram
+				glctx
+				vert frag
+				)))
 	   (let ((buf (glctx.CreateBuffer)))
 	     (glctx.BindBuffer gl.ARRAY_BUFFER buf)
 	     (glctx.BufferData gl.ARRAY_BUFFER
@@ -240,19 +240,19 @@ void main() {
 				(:name offset :type uniform))
 		     collect
 		     (destructuring-bind (&key name type) e
-		      `(setf ,name
-			     (dot
-			      glctx
-			      (,(format nil "Get~aLocation"
-					(string-capitalize
-					 (format nil "~a" type)))
-			       program
-			       (string ,name))))))
+		       `(setf ,name
+			      (dot
+			       glctx
+			       (,(format nil "Get~aLocation"
+					 (string-capitalize
+					  (format nil "~a" type)))
+				 program
+				 (string ,name))))))
 	     (setf images (glutil.NewImages glctx)
 		   fps (debug.NewFPS images)))))
-      
+
        (defun main ()
-	 ;,(lprint :msg (format nil "~@[~a/~]~a" folder name))
+					;,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 (dot app
 	      (Main (lambda (a)
 		      (declare (type app.App a))
@@ -269,15 +269,15 @@ void main() {
 					      lifecycle.StageVisible))
 				    (lifecycle.CrossOn
 				     (setf (ntuple glctx
-						     _)
-					     (dot e
-						  (DrawContext.
-						   gl.Context)))
+						   _)
+					   (dot e
+						(DrawContext.
+						 gl.Context)))
 				     (onStart glctx)
 				     (a.Send (curly paint.Event))
 				     )
 				    (lifecycle.CrossOff
-				     
+
 				     (onStop glctx)
 				     (setf glctx "nil")
 				     )))
