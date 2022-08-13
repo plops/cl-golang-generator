@@ -163,12 +163,13 @@
        (setf "var triangleData"
 	     (f32.Bytes
 	      binary.LittleEndian
-	      .0 .4 .0 ;; top left
+	      .0 .2 .0 ;; top left
 	      .0 .0 .0 ;; btm left
-	      .4 .0 .0 ;; btm right
+	      .2 .0 .0 ;; btm right
 	      ))
        (defun onStop (glctx)
 	 (declare (type gl.Context glctx))
+	 ,(lprint :msg "onStop")
 	 (glctx.DeleteProgram program)
 	 (glctx.DeleteBuffer buf)
 	 (fps.Release)
@@ -177,37 +178,62 @@
        (defun onPaint (glctx sz)
 	 (declare (type gl.Context glctx)
 		  (type size.Event sz))
-	 (glctx.ClearColor 1 0 0 1)
-	 (glctx.Clear gl.COLOR_BUFFER_BIT)
-	 (glctx.UseProgram program)
+	 
+	 
+	 
+	 
 	 (incf green .01)
 	 (when (< 1 green)
 	   (setf green 0))
-	 (glctx.Uniform4f color 0 green 0 1)
-	 (glctx.Uniform2f offset
-			  (/ touchX
-			     (float32 sz.WidthPx))
-			  (/ touchY
-			     (float32 sz.HeightPx)))
-	 (glctx.BindBuffer gl.ARRAY_BUFFER buf)
-	 ,@(loop for e in `((EnableVertexAttribArray position)
-			    (VertexAttribPointer
-			     position
-			     coordsPerVertex
-			     gl.FLOAT
-			     false
-			     0 0)
-			    (DrawArrays gl.TRIANGLES
-					0
-					vertexCount)
+	 ;,(lprint :msg "onPaint" :vars `(green))
+	 
+	 
+	 ,@(loop for e in `((ClearColor .2 .3 .4 1)
+			    (Clear gl.COLOR_BUFFER_BIT)
+			    (UseProgram program)
+			    (:cmd (Uniform4f color 0 green 0 1)
+				  :vars (green))
+			    (:cmd (Uniform2f offset
+					(/ touchX
+					   (float32 sz.WidthPx))
+					(/ touchY
+					   (float32 sz.HeightPx)))
+				  :vars (touchX touchY
+						sz.WidthPx sz.HeightPx))
+			    
+			    (BindBuffer gl.ARRAY_BUFFER buf)
+			    (EnableVertexAttribArray position)
+			    (:cmd (VertexAttribPointer
+				   position
+				   coordsPerVertex
+				   gl.FLOAT
+				   false
+				   0 0)
+				  :vars (coordsPerVertex))
+			    (:cmd (DrawArrays gl.TRIANGLES
+					      0
+					      vertexCount)
+				  :vars (vertexCount))
 			    (DisableVertexAttribArray position))
 		 collect
-		 `(dot glctx ,e))
+		 (let ((ncmd e)
+		       (nvars nil))
+		   (when (eq (first e) :cmd)
+		     (destructuring-bind (&key cmd vars) e
+		       (setf ncmd cmd
+			     nvars vars)))
+		   `(do0
+		     (dot glctx ,ncmd)
+		     (when (== green 0)
+		       ,(lprint :msg (format nil "~a" (emit-go :code ncmd))
+				:vars nvars)))))
 	 (fps.Draw sz)
 	 )
 
        (defun onStart (glctx)
 	 (declare (type gl.Context glctx))
+	 ,(lprint :msg "onStart")
+	 
 	 (let ((vert (string-raw "#version 100
 uniform vec2 offset;
 attribute vec4 position;
@@ -230,7 +256,8 @@ void main() {
 				glctx
 				vert frag
 				)))
-	   (let ((buf (glctx.CreateBuffer)))
+	   (do0 
+	     (setf buf (glctx.CreateBuffer))
 	     (glctx.BindBuffer gl.ARRAY_BUFFER buf)
 	     (glctx.BufferData gl.ARRAY_BUFFER
 			       triangleData
@@ -252,7 +279,7 @@ void main() {
 		   fps (debug.NewFPS images)))))
 
        (defun main ()
-					;,(lprint :msg (format nil "~@[~a/~]~a" folder name))
+	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 (dot app
 	      (Main (lambda (a)
 		      (declare (type app.App a))
