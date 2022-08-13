@@ -175,32 +175,34 @@
 	 (fps.Release)
 	 (images.Release)
 	 )
+       "var frameCount = 0"
        (defun onPaint (glctx sz)
 	 (declare (type gl.Context glctx)
 		  (type size.Event sz))
-	 
-	 
-	 
+
+
+
 	 
 	 (incf green .01)
 	 (when (< 1 green)
 	   (setf green 0))
-	 ;,(lprint :msg "onPaint" :vars `(green))
-	 
-	 
+					;,(lprint :msg "onPaint" :vars `(green))
+
+
 	 ,@(loop for e in `((ClearColor .2 .3 .4 1)
 			    (Clear gl.COLOR_BUFFER_BIT)
-			    (UseProgram program)
+			    (:cmd (UseProgram program)
+				  :vars (program))
 			    (:cmd (Uniform4f color 0 green 0 1)
 				  :vars (green))
 			    (:cmd (Uniform2f offset
-					(/ touchX
-					   (float32 sz.WidthPx))
-					(/ touchY
-					   (float32 sz.HeightPx)))
+					     (/ touchX
+						(float32 sz.WidthPx))
+					     (/ touchY
+						(float32 sz.HeightPx)))
 				  :vars (touchX touchY
 						sz.WidthPx sz.HeightPx))
-			    
+
 			    (BindBuffer gl.ARRAY_BUFFER buf)
 			    (EnableVertexAttribArray position)
 			    (:cmd (VertexAttribPointer
@@ -224,16 +226,17 @@
 			     nvars vars)))
 		   `(do0
 		     (dot glctx ,ncmd)
-		     (when (== green 0)
-		       ,(lprint :msg (format nil "~a" (emit-go :code ncmd))
+		     (when (== frameCount 0)
+		       ,(lprint :msg (format nil "onPaint ~a" (emit-go :code ncmd))
 				:vars nvars)))))
 	 (fps.Draw sz)
+	 (incf frameCount)
 	 )
 
        (defun onStart (glctx)
 	 (declare (type gl.Context glctx))
 	 ,(lprint :msg "onStart")
-	 
+
 	 (let ((vert (string-raw "#version 100
 uniform vec2 offset;
 attribute vec4 position;
@@ -256,27 +259,46 @@ void main() {
 				glctx
 				vert frag
 				)))
-	   (do0 
-	     (setf buf (glctx.CreateBuffer))
-	     (glctx.BindBuffer gl.ARRAY_BUFFER buf)
-	     (glctx.BufferData gl.ARRAY_BUFFER
-			       triangleData
-			       gl.STATIC_DRAW)
-	     ,@(loop for e in `((:name position :type attrib)
-				(:name color :type uniform)
-				(:name offset :type uniform))
-		     collect
-		     (destructuring-bind (&key name type) e
-		       `(setf ,name
-			      (dot
-			       glctx
-			       (,(format nil "Get~aLocation"
-					 (string-capitalize
-					  (format nil "~a" type)))
-				 program
-				 (string ,name))))))
-	     (setf images (glutil.NewImages glctx)
-		   fps (debug.NewFPS images)))))
+	   (do0
+
+	    (setf buf (glctx.CreateBuffer))
+	    ,@(loop for e in `((:cmd (BindBuffer gl.ARRAY_BUFFER buf)
+				     :vars (buf))
+			       (:cmd (BufferData gl.ARRAY_BUFFER
+						 triangleData
+						 gl.STATIC_DRAW)
+				     :vars (triangleData)))
+		 collect
+		 (let ((ncmd e)
+		       (nvars nil))
+		   (when (eq (first e) :cmd)
+		     (destructuring-bind (&key cmd vars) e
+		       (setf ncmd cmd
+			     nvars vars)))
+		   `(do0
+		     (dot glctx ,ncmd)
+		     (when (== frameCount 0)
+		       ,(lprint :msg (format nil "onStart ~a" (emit-go :code ncmd))
+				:vars nvars)))))
+	    
+	    
+	    
+	    
+	    ,@(loop for e in `((:name position :type attrib)
+			       (:name color :type uniform)
+			       (:name offset :type uniform))
+		    collect
+		    (destructuring-bind (&key name type) e
+		      `(setf ,name
+			     (dot
+			      glctx
+			      (,(format nil "Get~aLocation"
+					(string-capitalize
+					 (format nil "~a" type)))
+				program
+				(string ,name))))))
+	    (setf images (glutil.NewImages glctx)
+		  fps (debug.NewFPS images)))))
 
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
@@ -291,10 +313,12 @@ void main() {
 					      ))
 			       (typecase e
 				 (lifecycle.Event
+				  ;,(lprint :msg "lifecycle.Event")
 				  (case (dot e
 					     (Crosses
 					      lifecycle.StageVisible))
 				    (lifecycle.CrossOn
+				     ,(lprint :msg "lifecycle.CrossOn")
 				     (setf (ntuple glctx
 						   _)
 					   (dot e
@@ -304,11 +328,14 @@ void main() {
 				     (a.Send (curly paint.Event))
 				     )
 				    (lifecycle.CrossOff
-
+				     ,(lprint :msg "lifecycle.CrossOff")
 				     (onStop glctx)
 				     (setf glctx "nil")
 				     )))
 				 (size.Event
+				  ,(lprint :msg "size.Event"
+					   :vars `(sz.WidthPx
+						   sz.HeightPx))
 				  (setf sz e
 					touchX (* .5 (float32 sz.WidthPx))
 					touchY (* .5 (float32 sz.HeightPx))))
@@ -321,6 +348,8 @@ void main() {
 				  (a.Publish)
 				  (a.Send (curly paint.Event)))
 				 (touch.Event
+				  ,(lprint :msg "touch.Event"
+					   :vars `(e.X e.Y))
 				  (setf touchX e.X
 					touchY e.Y)))))))
 	 )))))
