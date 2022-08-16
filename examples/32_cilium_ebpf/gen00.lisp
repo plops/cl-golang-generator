@@ -7,9 +7,9 @@
 (in-package :cl-cpp-generator2)
 
 (write-source
-  (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/kprobe_percpu.c"
-	    (user-homedir-pathname))
-  `(do0
+ (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/kprobe_percpu.c"
+	 (user-homedir-pathname))
+ `(do0
    (let ((kprobe_map
 	  (designated-initializer
 	   :type BPF_MAP_TYPE_PERCPU_ARRAY
@@ -17,7 +17,7 @@
 	   :value_size (sizeof u64)
 	   :max_entries 1)))
      (declare (type "struct bpf_map_df SEC(\"maps\")" kprobe_map))
-     
+
      (SEC (string "kprobe/sys_execve"))
      (defun kprobe_execve ()
        (declare (values int))
@@ -169,12 +169,44 @@
      `(do0
        (package main)
        (import
-
+	time
 	fmt
-	("." bpfexample/cltimelog))
+	("." bpfexample/cltimelog)
+	github.com/cilium/ebpf/link
+	github.com/cilium/ebpf/rlimit
+	)
 
+       (comments "go:generate go run github.com/cilium/ebpf/cmd/bpf2go bpf kprobe_percpu.c")
+       (const "mapKey uint32" 0)
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 ,(lprint :msg "based on https://github.com/cilium/ebpf/tree/master/examples/kprobe_percpu")
+	 (assign fn (string "sys_execve"))
+	 ,(panic0 `(rlimit.RemoveMemlock))
+	 (do0
+	  (assign objs (curly bpfObjects))
+	  ,(panic0 `(loadBpfObjects &objs "nil"))
+	  (defer (objs.Close)))
 
+	 (do0
+	  ,(panic `(:var kp
+			 :cmd (link.Kprobe fn
+					   objs.KprobeExecve
+					   "nil")))
+	  (defer (kp.Close)))
+
+	 (do0
+	  (comments "read loop reports every second number of times the kernel function was entered")
+	  (assign ticker (time.NewTicker (* 1 time.Second)))
+	  (defer (ticker.Stop)))
+
+	 (foreach ((ntuple _) (range ticker.C))
+		   "var all_cpu_value []uint64"
+		   ,(panic0 `(objs.KprobeMap.Lookup mapKey
+						    &all_cpu_value))
+		   (foreach ((ntuple cpuid
+				     cpuvalue)
+			     (range all_cpu_value))
+			    ,(lprint :msg "calls" :vars `(fn cpuvalue cpuid)))
+		   )
 	 )))))

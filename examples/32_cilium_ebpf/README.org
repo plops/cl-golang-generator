@@ -50,3 +50,7 @@ TRACE_EVENT_FN(sys_enter,
 - eBPF also offers the possibility to call a fixed set of kernel
   functions, called eBPF helpers . One of these helpers is
   bpf_probe_read. It can be thought of as a safe version of a memcpy.
+
+
+- video tutorial on cilium/ebpf
+  https://youtu.be/8z2R13GRi5g?t=1715
