@@ -98,3 +98,7 @@ print fmt: "NR %ld (%lx, %lx, %lx, %lx, %lx, %lx)", REC->id, REC->args[0], REC->
 /sys/kernel/debug/tracing/events/raw_syscalls/sys_enter
 [root@archlinux sys_enter]#
    #+end_example
+
+
+- Since the ELF reader outputs a CollectionSpec it's possible to
+  modify clang-compiled BPF code, for example to rewrite constants.
