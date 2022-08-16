@@ -84,7 +84,7 @@
 				    *path*
 				    *idx*
 				    folder)))
-	      (format t "ensure dir-name exists ~a" dir-name)
+	      (format t "ensure dir-name exists ~a~%" dir-name)
 	      (ensure-directories-exist
 	       dir-name))
 	    (unless folder
@@ -95,7 +95,7 @@
 				 :direction :output
 				 :if-exists nil
 				 :if-does-not-exist :create)
-		(format s "module puregoexample~%")
+		(format s "module bpfexample~%")
 		(format s "go 1.18~%")))
 	    (write-source
 	     (format nil "~a/source~a/~@[~a/~]g~2,'0d_~a"
@@ -130,7 +130,7 @@
        (import
 			
 	fmt
-	("." puregoexample/cltimelog))
+	("." bpfexample/cltimelog))
 
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))

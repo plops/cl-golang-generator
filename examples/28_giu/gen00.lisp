@@ -133,10 +133,11 @@
 	fmt
 	("." imguiexample/cltimelog)
 	(g github.com/AllenDang/giu)
-
+	github.com/AllenDang/imgui-go
 	)
        (defun loop ()
-	 (dot g
+	 (imgui.ShowDemoWindow "nil")
+	#+nil (dot g
 	      (SingleWindow)
 	      (Layout
 	       (g.Label (string "hellow world from giu"))
@@ -155,6 +156,7 @@
 	 (assign wnd (g.NewMasterWindow
 		      (string "hello world")
 		      400 200
-		      g.MasterWindowFlagsNotResizable))
+		      g.MasterWindowFlagsFloating ; NotResizable 
+		      ))
 	 (wnd.Run loop)
 	 )))))
