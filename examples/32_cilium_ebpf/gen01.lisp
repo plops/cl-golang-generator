@@ -1,18 +1,20 @@
 (eval-when (:compile-toplevel :execute :load-toplevel)
   (ql:quickload "cl-golang-generator")
-  (ql:quickload "cl-cpp-generator2")
-  )
-
+  (ql:quickload "cl-cpp-generator2"))
 
 (in-package :cl-cpp-generator2)
 
-(write-source
- (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf/kprobe_percpu.c"
-	 (user-homedir-pathname))
- `(do0
-   "// +build ignore"
-   (include "../headers/common.h")
-   (let ((kprobe_map
+(progn
+  (defparameter *max-syscalls* 512)
+  (defparameter *target-pid* 0)
+ (write-source
+  (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source01/bpf/bpf.c"
+	  (user-homedir-pathname))
+  `(do0
+    "// +build ignore"
+    (include "../../source00/headers/common.h")
+
+    (let ((kprobe_map
 	  (designated-initializer
 	   :type BPF_MAP_TYPE_PERCPU_ARRAY
 	   :key_size (sizeof u32)
@@ -41,16 +43,33 @@
 	  (__sync_fetch_and_add
 	   valp 1)
 	  (return 0))
-	)))))
+	)))
+    (BPF_PERCPU_ARRAY histogram u32 ,*max-syscalls*)
+    (space
+     (TRACEPOINT_PROBE raw_syscalls sys_enter)
+     (progn
+       (let ((pid (>> (bpf_get_current_pid_tgid)
+		      32)))
+	 (declare (type u64 pid))
+	 (unless (== pid ,*target-pid*)
+	   (return 0))
+	 (let ((key (cast u32 args->id))
+	       (value 0)
+	       (pval (histogram.lookup_or_try_init &key &value)))
+	   (declare (type u32 key value)
+		    (type u32* pval))
+	   (when pval
+	     (incf (aref pval 0)))
+	   (return 0)))
+       )))))
 
 (in-package :cl-golang-generator)
-
 
 (progn
   (defparameter *path*
     (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf"
 	    (user-homedir-pathname)))
-  (defparameter *idx* "00")
+  (defparameter *idx* "01")
   (defun lprint-init ()
     `(defun TimeNow ()
        (declare (values string))
@@ -180,14 +199,12 @@
 	github.com/cilium/ebpf/rlimit
 	)
 
-       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf bpf/kprobe_percpu.c"
+       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf bpf/bpf.c"
        (const "mapKey uint32" 0)
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
-	 ,(lprint :msg "based on https://github.com/cilium/ebpf/tree/master/examples/kprobe_percpu")
-	 (assign fn (string "sys_execve"))
-	 ,(lprint :msg "we will trace the following kernel function" :vars `(fn))
-	 ,(lprint :msg "allow current process to lock memory for eBPF resources")
+	 ,(lprint :msg "based on https://github.com/evilsocket/ebpf-process-anomaly-detection/blob/main/lib/ebpf.py")
+	 
 	 ,(panic0 `(rlimit.RemoveMemlock))
 
 	 (do0
@@ -218,7 +235,7 @@
 	   "var all_cpu_value []uint64"
 	   ,(panic0 `(objs.KprobeMap.Lookup mapKey
 					    &all_cpu_value))
-	   (foreach ((ntuple cpuid
+	   #+nil (foreach ((ntuple cpuid
 			     cpuvalue)
 		     (range all_cpu_value))
 		    ,(lprint :msg "calls" :vars `(fn cpuvalue cpuid)))

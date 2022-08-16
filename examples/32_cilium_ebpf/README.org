@@ -75,3 +75,26 @@ Stripped /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00
 Wrote /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfeb.go
 
 #+end_example
+
+- try to compile the histogram ebpf code
+#+begin_example
+   clang-14 -target bpf -Wall -O2 -c bpf/bpf.c
+
+
+[root@archlinux sys_enter]# cat format
+name: sys_enter
+ID: 347
+format:
+        field:unsigned short common_type;       offset:0;     size:2; signed:0;
+        field:unsigned char common_flags;       offset:2;     size:1; signed:0;
+        field:unsigned char common_preempt_count;    offset:3;        size:1; signed:0;
+        field:int common_pid;   offset:4;       size:4;       signed:1;
+
+        field:long id;  offset:8;       size:8; signed:1;
+        field:unsigned long args[6];    offset:16;   size:48; signed:0;
+
+print fmt: "NR %ld (%lx, %lx, %lx, %lx, %lx, %lx)", REC->id, REC->args[0], REC->args[1], REC->args[2], REC->args[3], REC->args[4], REC->args[5]
+[root@archlinux sys_enter]# pwd
+/sys/kernel/debug/tracing/events/raw_syscalls/sys_enter
+[root@archlinux sys_enter]#
+   #+end_example
