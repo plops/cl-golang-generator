@@ -1,7 +1,48 @@
 (eval-when (:compile-toplevel :execute :load-toplevel)
-  (ql:quickload "cl-golang-generator"))
+  (ql:quickload "cl-golang-generator")
+  (ql:quickload "cl-cpp-generator2")
+  )
+
+
+(in-package :cl-cpp-generator2)
+
+(write-source
+  (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/kprobe_percpu.c"
+	    (user-homedir-pathname))
+  `(do0
+   (let ((kprobe_map
+	  (designated-initializer
+	   :type BPF_MAP_TYPE_PERCPU_ARRAY
+	   :key_size (sizeof u32)
+	   :value_size (sizeof u64)
+	   :max_entries 1)))
+     (declare (type "struct bpf_map_df SEC(\"maps\")" kprobe_map))
+     
+     (SEC (string "kprobe/sys_execve"))
+     (defun kprobe_execve ()
+       (declare (values int))
+       (let ((key 0)
+	     (initval 1)
+	     (valp (bpf_map_lookup_elem
+		    &kprobe_map
+		    &key)))
+	 (declare (type u32 key)
+		  (type u64 initval)
+		  (type u64* valp))
+	 (unless valp
+	   (bpf_map_update_elem &kprobe_map
+				&key
+				&initval
+				BPF_ANY)
+	   (return 0))
+	 (__sync_fetch_and_add
+	  valp 1)
+	 (return 0))
+       ))))
 
 (in-package :cl-golang-generator)
+
+
 
 (progn
   (defparameter *path*
@@ -128,12 +169,12 @@
      `(do0
        (package main)
        (import
-			
+
 	fmt
 	("." bpfexample/cltimelog))
 
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
-	 ,(lprint :msg "based on https://github.com/cilium/ebpf/tree/master/examples/kprobe")
-	 
+	 ,(lprint :msg "based on https://github.com/cilium/ebpf/tree/master/examples/kprobe_percpu")
+
 	 )))))

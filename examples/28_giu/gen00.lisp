@@ -137,26 +137,26 @@
 	)
        (defun loop ()
 	 (imgui.ShowDemoWindow "nil")
-	#+nil (dot g
-	      (SingleWindow)
-	      (Layout
-	       (g.Label (string "hellow world from giu"))
-	       (g.Row
-		(dot g
-		     (Button (string "clickMe"))
-		     (OnClick (lambda ()
-				,(lprint :msg "hello world"))))
-		(dot g
-		     (Button (string "im so cute"))
-		     (OnClick (lambda ()
-				,(lprint :msg "im so qt")))))
-	       )))
+	 #+nil (dot g
+		    (SingleWindow)
+		    (Layout
+		     (g.Label (string "hellow world from giu"))
+		     (g.Row
+		      (dot g
+			   (Button (string "clickMe"))
+			   (OnClick (lambda ()
+				      ,(lprint :msg "hello world"))))
+		      (dot g
+			   (Button (string "im so cute"))
+			   (OnClick (lambda ()
+				      ,(lprint :msg "im so qt")))))
+		     )))
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 (assign wnd (g.NewMasterWindow
 		      (string "hello world")
 		      400 200
-		      g.MasterWindowFlagsFloating ; NotResizable 
+		      g.MasterWindowFlagsFloating ; NotResizable
 		      ))
 	 (wnd.Run loop)
 	 )))))

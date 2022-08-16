@@ -23,3 +23,30 @@ perf list
   running perf list on the host.
 - Each eBPF program must always return an integer value at the end of
   its execution, and this return value must be stored in R0.
+  
+- Each eBPF program, upon start, gets passed a pointer to a context in
+  the R1 register. The context is basically a structure that assumes a
+  different meaning depending on the specific event type to which we
+  attach the eBPF program
+
+#+begin_example
+
+struct bpf_raw_tracepoint_args {
+    __u64 args[0];
+};
+
+
+TRACE_EVENT_FN(sys_enter,
+    TP_PROTO(struct pt_regs *regs, long id),
+…
+#+end_example
+
+-  every time our eBPF program is invoked via the sys_enter
+  tracepoint, the first two arguments of the context will contain a
+  pointer to a saved copy of the CPU registers at the time of the
+  invocation (pt_regs) as well as the id of the system call that is
+  being invoked.
+
+- eBPF also offers the possibility to call a fixed set of kernel
+  functions, called eBPF helpers . One of these helpers is
+  bpf_probe_read. It can be thought of as a safe version of a memcpy.
