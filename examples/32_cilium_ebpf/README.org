@@ -1,0 +1,11 @@
+i want to perform anomaly detection with ebpf
+
+first try an example with cilium
+
+- references
+  
+
+https://www.evilsocket.net/2022/08/15/Process-behaviour-anomaly-detection-using-eBPF-and-unsupervised-learning-Autoencoders/
+https://news.ycombinator.com/item?id=32471400
+
+https://github.com/cilium/ebpf golang
