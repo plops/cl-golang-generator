@@ -7,11 +7,11 @@
 (in-package :cl-cpp-generator2)
 
 (write-source
- (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/kprobe_percpu.c"
+ (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf/kprobe_percpu.c"
 	 (user-homedir-pathname))
  `(do0
    "// +build ignore"
-   (include "headers/common.h")
+   (include "../headers/common.h")
    (let ((kprobe_map
 	  (designated-initializer
 	   :type BPF_MAP_TYPE_PERCPU_ARRAY
@@ -180,24 +180,33 @@
 	github.com/cilium/ebpf/rlimit
 	)
 
-       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf kprobe_percpu.c"
+       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf bpf/kprobe_percpu.c"
        (const "mapKey uint32" 0)
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 ,(lprint :msg "based on https://github.com/cilium/ebpf/tree/master/examples/kprobe_percpu")
 	 (assign fn (string "sys_execve"))
+	 ,(lprint :msg "we will trace the following kernel function" :vars `(fn))
+	 ,(lprint :msg "allow current process to lock memory for eBPF resources")
 	 ,(panic0 `(rlimit.RemoveMemlock))
-	 (do0
-	  (assign objs (curly bpfObjects))
-	  ,(panic0 `(loadBpfObjects &objs "nil"))
-	  (defer (objs.Close)))
 
 	 (do0
+	  ,(lprint :msg "load pre-compiled programs and maps into the kernel")
+	  (assign objs (curly bpfObjects))
+	  ,(panic0 `(loadBpfObjects &objs "nil"))
+	  (defer ((lambda ()
+		    ,(lprint :msg "close eBPF objs")
+		    (objs.Close)))))
+
+	 (do0
+	  ,(lprint :msg "open kernel probe at the entry point of the kernel function and attach the pre-compile program")
 	  ,(panic `(:var kp
 			 :cmd (link.Kprobe fn
 					   objs.KprobeExecve
 					   "nil")))
-	  (defer (kp.Close)))
+	  (defer ((lambda ()
+		    ,(lprint :msg "close kernel probe")
+		    (kp.Close)))))
 
 	 (do0
 	  (comments "read loop reports every second number of times the kernel function was entered")
@@ -205,7 +214,7 @@
 	  (defer (ticker.Stop)))
 
 	 (while (range ticker.C)
-	   "var all_cpu_value []uint64"
+	   "var all_cpu_value []uint64" 
 	   ,(panic0 `(objs.KprobeMap.Lookup mapKey
 					    &all_cpu_value))
 	   (foreach ((ntuple cpuid

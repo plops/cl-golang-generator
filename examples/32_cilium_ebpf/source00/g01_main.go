@@ -34,13 +34,20 @@ func main() {
 		fmt.Printf("%v loadBpfObjects(&objs, nil) err01=%v\n", TimeNow(), err01)
 		panic(err01)
 	}
-	defer objs.Close()
+	defer (func() {
+		fmt.Printf("%v close eBPF objs \n", TimeNow())
+		objs.Close()
+	})()
+	fmt.Printf("%v open kernel probe at the entry point of the kernel function and attach the pre-compile program \n", TimeNow())
 	kp, err02 := link.Kprobe(fn, objs.KprobeExecve, nil)
 	if !((err02) == (nil)) {
 		fmt.Printf("%v link.Kprobe(fn, objs.KprobeExecve, nil) err02=%v\n", TimeNow(), err02)
 		panic(err02)
 	}
-	defer kp.Close()
+	defer (func() {
+		fmt.Printf("%v close kernel probe \n", TimeNow())
+		kp.Close()
+	})()
 	// read loop reports every second number of times the kernel function was entered
 	ticker := time.NewTicker(((1) * (time.Second)))
 	defer ticker.Stop()
