@@ -54,3 +54,12 @@ TRACE_EVENT_FN(sys_enter,
 
 - video tutorial on cilium/ebpf
   https://youtu.be/8z2R13GRi5g?t=1715
+
+- i don't know how to invoke the build
+
+- try to manually compile ebpf first:
+#+begin_example
+
+clang-14 -target bpf -Wall -O2 -c kprobe_percpu.c
+
+#+end_example

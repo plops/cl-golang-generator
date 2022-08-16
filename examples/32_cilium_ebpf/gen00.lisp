@@ -10,38 +10,40 @@
  (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/kprobe_percpu.c"
 	 (user-homedir-pathname))
  `(do0
+   "// +build ignore"
+   (include "headers/common.h")
    (let ((kprobe_map
 	  (designated-initializer
 	   :type BPF_MAP_TYPE_PERCPU_ARRAY
 	   :key_size (sizeof u32)
 	   :value_size (sizeof u64)
 	   :max_entries 1)))
-     (declare (type "struct bpf_map_df SEC(\"maps\")" kprobe_map))
+     (declare (type "struct bpf_map_def SEC(\"maps\")" kprobe_map))
 
-     (SEC (string "kprobe/sys_execve"))
-     (defun kprobe_execve ()
-       (declare (values int))
-       (let ((key 0)
-	     (initval 1)
-	     (valp (bpf_map_lookup_elem
-		    &kprobe_map
-		    &key)))
-	 (declare (type u32 key)
-		  (type u64 initval)
-		  (type u64* valp))
-	 (unless valp
-	   (bpf_map_update_elem &kprobe_map
-				&key
-				&initval
-				BPF_ANY)
-	   (return 0))
-	 (__sync_fetch_and_add
-	  valp 1)
-	 (return 0))
-       ))))
+     (space
+      (SEC (string "kprobe/sys_execve"))
+      (defun kprobe_execve ()
+	(declare (values int))
+	(let ((key 0)
+	      (initval 1)
+	      (valp (bpf_map_lookup_elem
+		     &kprobe_map
+		     &key)))
+	  (declare (type u32 key)
+		   (type u64 initval)
+		   (type u64* valp))
+	  (unless valp
+	    (bpf_map_update_elem &kprobe_map
+				 &key
+				 &initval
+				 BPF_ANY)
+	    (return 0))
+	  (__sync_fetch_and_add
+	   valp 1)
+	  (return 0))
+	)))))
 
 (in-package :cl-golang-generator)
-
 
 
 (progn
@@ -176,7 +178,7 @@
 	github.com/cilium/ebpf/rlimit
 	)
 
-       (comments "go:generate go run github.com/cilium/ebpf/cmd/bpf2go bpf kprobe_percpu.c")
+       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags -O2 -g -Wall -Werror bpf kprobe_percpu.c"
        (const "mapKey uint32" 0)
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
@@ -200,13 +202,13 @@
 	  (assign ticker (time.NewTicker (* 1 time.Second)))
 	  (defer (ticker.Stop)))
 
-	 (foreach ((ntuple _) (range ticker.C))
-		   "var all_cpu_value []uint64"
-		   ,(panic0 `(objs.KprobeMap.Lookup mapKey
-						    &all_cpu_value))
-		   (foreach ((ntuple cpuid
-				     cpuvalue)
-			     (range all_cpu_value))
-			    ,(lprint :msg "calls" :vars `(fn cpuvalue cpuid)))
-		   )
+	 (while (range ticker.C)
+	   "var all_cpu_value []uint64"
+	   ,(panic0 `(objs.KprobeMap.Lookup mapKey
+					    &all_cpu_value))
+	   (foreach ((ntuple cpuid
+			     cpuvalue)
+		     (range all_cpu_value))
+		    ,(lprint :msg "calls" :vars `(fn cpuvalue cpuid)))
+	   )
 	 )))))
