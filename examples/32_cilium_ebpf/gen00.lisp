@@ -3,11 +3,9 @@
 
 (in-package :cl-golang-generator)
 
-;; try to use pure go implementation of imgui
-
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/31_pure_imgui"
+    (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defun lprint-init ()
@@ -130,53 +128,12 @@
      `(do0
        (package main)
        (import
-					;log
-					;time
+			
 	fmt
-	time
-					;encoding/binary
-	("." puregoexample/cltimelog)
-	github.com/splizard/imgui
-	(platforms github.com/splizard/imgui/example/platforms/glfw)
-	github.com/splizard/imgui/example/renderers)
+	("." puregoexample/cltimelog))
 
-       (definterface Renderer
-	   (defmethod-interface PreRender ((v Var) clearColor)
-	     (declare (type [3]float32 clearColor)))
-	 (defmethod-interface Render ((v Var)
-				      displaySize
-				      framebufferSize
-				      drawData)
-	   (declare (type [2]float32 displaySize
-			  framebufferSize)
-		    (type imgui.ImDrawData drawData))))
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
-	 (imgui.CreateContext "nil")
-	 (assign io (imgui.GetIO))
-	 ,(panic `(:var p
-			:cmd (platforms.NewGLFW io
-						platforms.GLFWClientAPIOpenGL3)))
-	 (defer (p.Dispose))
-	 ,(panic `(:var r
-			:cmd (renderers.NewOpenGL3 io)))
-	 (defer (r.Dispose))
-	 (while
-	     (not (p.ShouldStop))
-	   (p.ProcessEvents)
-	   (p.NewFrame)
-	   (imgui.NewFrame)
-	   (imgui.ShowMetricsWindow "nil")
-	   (imgui.ShowDemoWindow "nil")
-	   (dotimes (i 5)
-	     (imgui.Text (string "the quick brown fox jumped over the lazy dog")))
-
-	   (imgui.Render)
-	   (r.PreRender (curly [3]float32 .45 .55 .6))
-	   (r.Render (p.DisplaySize)
-		     (p.FramebufferSize)
-		     (imgui.GetDrawData))
-	   (p.PostRender)
-	   (<- (time.After (* time.Millisecond 10))))
+	 ,(lprint :msg "based on https://github.com/cilium/ebpf/tree/master/examples/kprobe")
 	 
 	 )))))

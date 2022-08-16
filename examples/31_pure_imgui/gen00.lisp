@@ -134,12 +134,12 @@
 					;time
 	fmt
 	time
-	;encoding/binary
+					;encoding/binary
 	("." puregoexample/cltimelog)
 	github.com/splizard/imgui
 	(platforms github.com/splizard/imgui/example/platforms/glfw)
 	github.com/splizard/imgui/example/renderers)
-       
+
        (definterface Renderer
 	   (defmethod-interface PreRender ((v Var) clearColor)
 	     (declare (type [3]float32 clearColor)))
@@ -155,28 +155,28 @@
 	 (imgui.CreateContext "nil")
 	 (assign io (imgui.GetIO))
 	 ,(panic `(:var p
-		   :cmd (platforms.NewGLFW io
-					   platforms.GLFWClientAPIOpenGL3)))
+			:cmd (platforms.NewGLFW io
+						platforms.GLFWClientAPIOpenGL3)))
 	 (defer (p.Dispose))
 	 ,(panic `(:var r
-		   :cmd (renderers.NewOpenGL3 io)))
+			:cmd (renderers.NewOpenGL3 io)))
 	 (defer (r.Dispose))
 	 (while
-	  (not (p.ShouldStop))
-	  (p.ProcessEvents)
-	  (p.NewFrame)
-	  (imgui.NewFrame)
-	  (imgui.ShowMetricsWindow "nil")
-	  (imgui.ShowDemoWindow "nil")
-	  (dotimes (i 5)
-	    (imgui.Text (string "the quick brown fox jumped over the lazy dog")))
+	     (not (p.ShouldStop))
+	   (p.ProcessEvents)
+	   (p.NewFrame)
+	   (imgui.NewFrame)
+	   (imgui.ShowMetricsWindow "nil")
+	   (imgui.ShowDemoWindow "nil")
+	   (dotimes (i 5)
+	     (imgui.Text (string "the quick brown fox jumped over the lazy dog")))
 
-	  (imgui.Render)
-	  (r.PreRender (curly [3]float32 .45 .55 .6))
-	  (r.Render (p.DisplaySize)
-		    (p.FramebufferSize)
-		    (imgui.GetDrawData))
-	  (p.PostRender)
-	  (<- (time.After (* time.Millisecond 10))))
+	   (imgui.Render)
+	   (r.PreRender (curly [3]float32 .45 .55 .6))
+	   (r.Render (p.DisplaySize)
+		     (p.FramebufferSize)
+		     (imgui.GetDrawData))
+	   (p.PostRender)
+	   (<- (time.After (* time.Millisecond 10))))
 	 
 	 )))))
