@@ -169,6 +169,8 @@
      :folder folder
      :code
      `(do0
+       "//go:build linux"
+       "// +build linux"
        (package main)
        (import
 	time
@@ -178,7 +180,7 @@
 	github.com/cilium/ebpf/rlimit
 	)
 
-       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags -O2 -g -Wall -Werror bpf kprobe_percpu.c"
+       "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf kprobe_percpu.c"
        (const "mapKey uint32" 0)
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))

@@ -60,6 +60,18 @@ TRACE_EVENT_FN(sys_enter,
 - try to manually compile ebpf first:
 #+begin_example
 
+
 clang-14 -target bpf -Wall -O2 -c kprobe_percpu.c
+
+
+sudo ln -s /usr/bin/llvm-strip /usr/bin/llvm-strip-14
+
+[martin@localhost source00]$ go generate
+Compiled /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfel.o
+Stripped /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfel.o
+Wrote /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfel.go
+Compiled /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfeb.o
+Stripped /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfeb.o
+Wrote /home/martin/stage/cl-golang-generator/examples/32_cilium_ebpf/source00/bpf_bpfeb.go
 
 #+end_example
