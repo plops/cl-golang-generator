@@ -200,6 +200,7 @@
 
 	 (do0
 	  ,(lprint :msg "open kernel probe at the entry point of the kernel function and attach the pre-compile program")
+	  ,(lprint :msg "a per-cpu counter increases every time the kernel function runs")
 	  ,(panic `(:var kp
 			 :cmd (link.Kprobe fn
 					   objs.KprobeExecve
@@ -209,12 +210,12 @@
 		    (kp.Close)))))
 
 	 (do0
-	  (comments "read loop reports every second number of times the kernel function was entered")
+	  ,(lprint :msg "read loop reports every second number of times the kernel function was entered")
 	  (assign ticker (time.NewTicker (* 1 time.Second)))
 	  (defer (ticker.Stop)))
 
 	 (while (range ticker.C)
-	   "var all_cpu_value []uint64" 
+	   "var all_cpu_value []uint64"
 	   ,(panic0 `(objs.KprobeMap.Lookup mapKey
 					    &all_cpu_value))
 	   (foreach ((ntuple cpuid

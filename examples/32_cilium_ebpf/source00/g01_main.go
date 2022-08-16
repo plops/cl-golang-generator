@@ -39,6 +39,7 @@ func main() {
 		objs.Close()
 	})()
 	fmt.Printf("%v open kernel probe at the entry point of the kernel function and attach the pre-compile program \n", TimeNow())
+	fmt.Printf("%v a per-cpu counter increases every time the kernel function runs \n", TimeNow())
 	kp, err02 := link.Kprobe(fn, objs.KprobeExecve, nil)
 	if !((err02) == (nil)) {
 		fmt.Printf("%v link.Kprobe(fn, objs.KprobeExecve, nil) err02=%v\n", TimeNow(), err02)
@@ -48,7 +49,7 @@ func main() {
 		fmt.Printf("%v close kernel probe \n", TimeNow())
 		kp.Close()
 	})()
-	// read loop reports every second number of times the kernel function was entered
+	fmt.Printf("%v read loop reports every second number of times the kernel function was entered \n", TimeNow())
 	ticker := time.NewTicker(((1) * (time.Second)))
 	defer ticker.Stop()
 	for range ticker.C {
