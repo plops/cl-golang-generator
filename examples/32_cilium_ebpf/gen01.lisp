@@ -14,28 +14,28 @@
     "// +build ignore"
     (include "../../source00/headers/common.h")
 
-    (let ((kprobe_map
+    (let ((data
 	  (designated-initializer
 	   :type BPF_MAP_TYPE_PERCPU_ARRAY
 	   :key_size (sizeof u32)
 	   :value_size (sizeof u64)
 	   :max_entries 1)))
-     (declare (type "struct bpf_map_def SEC(\"maps\")" kprobe_map))
+     (declare (type "struct bpf_map_def SEC(\"maps\")" data))
 
      (space
-      (SEC (string "kprobe/sys_execve"))
-      (defun kprobe_execve ()
+      (SEC (string "raw_syscalls/sys_enter"))
+      (defun raw_trace_sys_enter ()
 	(declare (values int))
 	(let ((key 0)
 	      (initval 1)
 	      (valp (bpf_map_lookup_elem
-		     &kprobe_map
+		     &data
 		     &key)))
 	  (declare (type u32 key)
 		   (type u64 initval)
 		   (type u64* valp))
 	  (unless valp
-	    (bpf_map_update_elem &kprobe_map
+	    (bpf_map_update_elem &data
 				 &key
 				 &initval
 				 BPF_ANY)
@@ -44,24 +44,7 @@
 	   valp 1)
 	  (return 0))
 	)))
-    (BPF_PERCPU_ARRAY histogram u32 ,*max-syscalls*)
-    (space
-     (TRACEPOINT_PROBE raw_syscalls sys_enter)
-     (progn
-       (let ((pid (>> (bpf_get_current_pid_tgid)
-		      32)))
-	 (declare (type u64 pid))
-	 (unless (== pid ,*target-pid*)
-	   (return 0))
-	 (let ((key (cast u32 args->id))
-	       (value 0)
-	       (pval (histogram.lookup_or_try_init &key &value)))
-	   (declare (type u32 key value)
-		    (type u32* pval))
-	   (when pval
-	     (incf (aref pval 0)))
-	   (return 0)))
-       )))))
+    )))
 
 (in-package :cl-golang-generator)
 
@@ -218,13 +201,16 @@
 	 (do0
 	  ,(lprint :msg "open kernel probe at the entry point of the kernel function and attach the pre-compile program")
 	  ,(lprint :msg "a per-cpu counter increases every time the kernel function runs")
-	  ,(panic `(:var kp
-			 :cmd (link.Kprobe fn
-					   objs.KprobeExecve
-					   "nil")))
+	  ;;; https://github.com/DataDog/ebpfbench/blob/de7131d7ee1d19d79668fb1ad9f6067afe7c3a59/syscall_test.go
+	  ,(panic `(:var link
+			 :cmd (link.AttachRawTracepoint
+			       (curly
+				link.RawTracepointOptions
+				:Name (string "sys_enter")
+				:Program objs.RawTraceSysEnter))))
 	  (defer ((lambda ()
-		    ,(lprint :msg "close kernel probe")
-		    (kp.Close)))))
+		    ,(lprint :msg "unlink raw tracepoint")
+		    (link.Close)))))
 
 	 (do0
 	  ,(lprint :msg "read loop reports every second number of times the kernel function was entered")
@@ -233,8 +219,8 @@
 
 	 (while (range ticker.C)
 	   "var all_cpu_value []uint64"
-	   ,(panic0 `(objs.KprobeMap.Lookup mapKey
-					    &all_cpu_value))
+	   ,(panic0 `(objs.Data.Lookup mapKey
+				       &all_cpu_value))
 	   #+nil (foreach ((ntuple cpuid
 			     cpuvalue)
 		     (range all_cpu_value))

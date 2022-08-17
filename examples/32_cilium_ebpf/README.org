@@ -1,3 +1,8 @@
+|       |   |                                     |
+| gen00 |   | count the number of execve syscalls |
+| gen01 |   |                                     |
+
+
 i want to perform anomaly detection with ebpf
 
 first try an example with cilium
