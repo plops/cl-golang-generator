@@ -7,44 +7,47 @@
 (progn
   (defparameter *max-syscalls* 512)
   (defparameter *target-pid* 0)
- (write-source
-  (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source01/bpf/bpf.c"
-	  (user-homedir-pathname))
-  `(do0
-    "// +build ignore"
-    (include "../../source00/headers/common.h")
+  (write-source
+   (format nil "~a/stage/cl-golang-generator/examples/32_cilium_ebpf/source01/bpf/bpf.c"
+	   (user-homedir-pathname))
+   `(do0
+     "// +build ignore"
+     (include "../../source00/headers/common.h")
 
-    (let ((data
-	  (designated-initializer
-	   :type BPF_MAP_TYPE_PERCPU_ARRAY
-	   :key_size (sizeof u32)
-	   :value_size (sizeof u64)
-	   :max_entries 1)))
-     (declare (type "struct bpf_map_def SEC(\"maps\")" data))
+     (do0
+					;let
+      #+nil ((data
+	      (designated-initializer
+	       :type BPF_MAP_TYPE_PERCPU_ARRAY
+	       :key_size (sizeof u32)
+	       :value_size (sizeof u64)
+	       :max_entries 1)))
+      ;(declare (type "struct bpf_map_def SEC(\"maps\")" data))
 
-     (space
-      (SEC (string "raw_syscalls/sys_enter"))
-      (defun raw_trace_sys_enter ()
-	(declare (values int))
-	(let ((key 0)
-	      (initval 1)
-	      (valp (bpf_map_lookup_elem
-		     &data
-		     &key)))
-	  (declare (type u32 key)
-		   (type u64 initval)
-		   (type u64* valp))
-	  (unless valp
-	    (bpf_map_update_elem &data
-				 &key
-				 &initval
-				 BPF_ANY)
-	    (return 0))
-	  (__sync_fetch_and_add
-	   valp 1)
-	  (return 0))
-	)))
-    )))
+      
+      (space
+       (SEC (string "raw_tracepoint/sys_enter"))
+       (defun raw_tracepoint_sys_enter ()
+	 (declare (values int))
+	 (let ((key 0)
+	       (initval 1)
+	       (valp (bpf_map_lookup_elem
+		      &data
+		      &key)))
+	   (declare (type u32 key)
+		    (type u64 initval)
+		    (type u64* valp))
+	   (unless valp
+	     (bpf_map_update_elem &data
+				  &key
+				  &initval
+				  BPF_ANY)
+	     (return 0))
+	   (__sync_fetch_and_add
+	    valp 1)
+	   (return 0))
+	 )))
+     )))
 
 (in-package :cl-golang-generator)
 
@@ -178,16 +181,33 @@
 	time
 	fmt
 	("." bpfexample/cltimelog)
-	github.com/cilium/ebpf/link
-	github.com/cilium/ebpf/rlimit
+	,@(loop for e in
+		`(link rlimit perf)
+		collect
+		(format nil "github.com/cilium/ebpf/~a"
+			e))
+	unsafe
+	os
+	os/signal
 	)
 
        "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf bpf/bpf.c"
        (const "mapKey uint32" 0)
+       (defstruct0 Event
+	   (Type uint32)
+	 (PID uint32)
+	 (CgroupID uint64)
+	 (Str [4096]byte))
+       
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
-	 ,(lprint :msg "based on https://github.com/evilsocket/ebpf-process-anomaly-detection/blob/main/lib/ebpf.py")
-	 
+	 ,(lprint :msg "based on https://github.com/psanford/ebpf-examples/blob/75a01f42833be40f49ed961746be507433dc4811/openat/openat.go")
+
+	 (do0
+	  (assign sig (make "chan os.Signal"
+			    1))
+	  (signal.Notify sig os.Interrupt))
+
 	 ,(panic0 `(rlimit.RemoveMemlock))
 
 	 (do0
@@ -198,20 +218,33 @@
 		    ,(lprint :msg "close eBPF objs")
 		    (objs.Close)))))
 
+
 	 (do0
-	  ,(lprint :msg "open kernel probe at the entry point of the kernel function and attach the pre-compile program")
-	  ,(lprint :msg "a per-cpu counter increases every time the kernel function runs")
-	  ;;; https://github.com/DataDog/ebpfbench/blob/de7131d7ee1d19d79668fb1ad9f6067afe7c3a59/syscall_test.go
-	  ,(panic `(:var link
+	  (assign bufSize (* 20 (int (unsafe.Sizeof (curly Event)))))
+	  ,(panic `(:var rd
+			 :cmd (perf.NewReader objs.Events )))
+	  (defer ((lambda ()
+		    ,(lprint :msg "close event reader")
+		    (dot rd (Close))))))
+
+	 (do0
+	  ,(panic `(:var probeEnter
 			 :cmd (link.AttachRawTracepoint
 			       (curly
 				link.RawTracepointOptions
 				:Name (string "sys_enter")
-				:Program objs.RawTraceSysEnter))))
+				:Program objs.RawTracepointSysEnter))))
 	  (defer ((lambda ()
 		    ,(lprint :msg "unlink raw tracepoint")
-		    (link.Close)))))
+		    (probeEnter.Close)))))
 
+	 (do0
+	  (go ( (lambda ()
+		  <-sig
+		  ,(lprint :msg "received signal, exiting program...")
+					;,(panic0 `(rd.Close))
+		  ))))
+	 
 	 (do0
 	  ,(lprint :msg "read loop reports every second number of times the kernel function was entered")
 	  (assign ticker (time.NewTicker (* 1 time.Second)))
@@ -222,8 +255,8 @@
 	   ,(panic0 `(objs.Data.Lookup mapKey
 				       &all_cpu_value))
 	   #+nil (foreach ((ntuple cpuid
-			     cpuvalue)
-		     (range all_cpu_value))
-		    ,(lprint :msg "calls" :vars `(fn cpuvalue cpuid)))
+				   cpuvalue)
+			   (range all_cpu_value))
+			  ,(lprint :msg "calls" :vars `(fn cpuvalue cpuid)))
 	   )
 	 )))))
