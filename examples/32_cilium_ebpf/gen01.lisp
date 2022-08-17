@@ -22,9 +22,9 @@
 	       :key_size (sizeof u32)
 	       :value_size (sizeof u64)
 	       :max_entries 1)))
-      ;(declare (type "struct bpf_map_def SEC(\"maps\")" data))
+					;(declare (type "struct bpf_map_def SEC(\"maps\")" data))
 
-      
+
       (space
        (SEC (string "raw_tracepoint/sys_enter"))
        (defun raw_tracepoint_sys_enter ()
@@ -198,7 +198,7 @@
 	 (PID uint32)
 	 (CgroupID uint64)
 	 (Str [4096]byte))
-       
+
        (defun main ()
 	 ,(lprint :msg (format nil "~@[~a/~]~a" folder name))
 	 ,(lprint :msg "based on https://github.com/psanford/ebpf-examples/blob/75a01f42833be40f49ed961746be507433dc4811/openat/openat.go")
@@ -244,7 +244,7 @@
 		  ,(lprint :msg "received signal, exiting program...")
 					;,(panic0 `(rd.Close))
 		  ))))
-	 
+
 	 (do0
 	  ,(lprint :msg "read loop reports every second number of times the kernel function was entered")
 	  (assign ticker (time.NewTicker (* 1 time.Second)))
