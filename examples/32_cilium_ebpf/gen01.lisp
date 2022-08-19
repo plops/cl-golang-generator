@@ -4,6 +4,8 @@
 
 (in-package :cl-cpp-generator2)
 
+;; https://github.com/cilium/ebpf/blob/master/examples/tracepoint_in_c/main.go
+
 (progn
   (defparameter *max-syscalls* 512)
   (defparameter *target-pid* 0)
@@ -13,30 +15,34 @@
    `(do0
      "// +build ignore"
      (include "../../source00/headers/common.h")
-
-     (do0
-					;let
-      #+nil ((data
+     ;(include <linux/bpf.h>)
+     (let
+       ((data
 	      (designated-initializer
-	       :type BPF_MAP_TYPE_PERCPU_ARRAY
+	       :type BPF_MAP_TYPE_ARRAY
 	       :key_size (sizeof u32)
 	       :value_size (sizeof u64)
-	       :max_entries 1)))
-					;(declare (type "struct bpf_map_def SEC(\"maps\")" data))
+	       :max_entries ,*max-syscalls*)))
+       (declare (type "struct bpf_map_def SEC(\"maps\")" data))
 
 
+       ;; https://stackoverflow.com/questions/70652825/ebpf-raw-tracepoint-arguments/70658373#70658373
       (space
        (SEC (string "raw_tracepoint/sys_enter"))
-       (defun raw_tracepoint_sys_enter ()
-	 (declare (values int))
-	 (let ((key 0)
+       (defun raw_tracepoint_sys_enter (ctx)
+	 (declare (values int)
+		  (type "unsigned long long*" "struct bpf_raw_tracepoint_args*"
+			ctx))
+	 ;; bpf_get_current_pid_tgid() >> 32
+	 (let ((key (cast u32 (aref ctx 1); "ctx->args[1]"
+			  ))
 	       (initval 1)
 	       (valp (bpf_map_lookup_elem
 		      &data
 		      &key)))
-	   (declare (type u32 key)
-		    (type u64 initval)
-		    (type u64* valp))
+	   (declare (type __u32 key)
+		    (type __u64 initval)
+		    (type __u64* valp))
 	   (unless valp
 	     (bpf_map_update_elem &data
 				  &key
@@ -182,18 +188,19 @@
 	fmt
 	("." bpfexample/cltimelog)
 	,@(loop for e in
-		`(link rlimit perf)
+		`(link rlimit ; perf
+		       )
 		collect
 		(format nil "github.com/cilium/ebpf/~a"
 			e))
-	unsafe
+	;unsafe
 	os
 	os/signal
 	)
 
        "//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang-14 -cflags \"-O2 -g -Wall -Werror\" bpf bpf/bpf.c"
        (const "mapKey uint32" 0)
-       (defstruct0 Event
+       #+nil (defstruct0 Event
 	   (Type uint32)
 	 (PID uint32)
 	 (CgroupID uint64)
@@ -219,7 +226,7 @@
 		    (objs.Close)))))
 
 
-	 (do0
+	 #+nil(do0
 	  (assign bufSize (* 20 (int (unsafe.Sizeof (curly Event)))))
 	  ,(panic `(:var rd
 			 :cmd (perf.NewReader objs.Events )))
@@ -237,7 +244,7 @@
 	  (defer ((lambda ()
 		    ,(lprint :msg "unlink raw tracepoint")
 		    (probeEnter.Close)))))
-
+	 #+nil
 	 (do0
 	  (go ( (lambda ()
 		  <-sig
