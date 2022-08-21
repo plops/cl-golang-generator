@@ -276,42 +276,44 @@
 
 
 
-	      (do0
-	       (assign ticker (time.NewTicker (* 10 time.Second)))
-	       (defer ((lambda ()
-			 ,(lprint :msg "stop ticker")
-			 (ticker.Stop)))))
+	      ,(let ((tick-period 100))
+		`(do0
+		 (do0
+		  (assign ticker (time.NewTicker (* ,tick-period time.Second)))
+		  (defer ((lambda ()
+			    ,(lprint :msg "stop ticker")
+			    (ticker.Stop)))))
 
-	      (do0
-	       ;; https://gobyexample.com/tickers
-	       (assign done (make "chan bool"))
-	       (go ((lambda ()
-		      <-sig
-		      ,(lprint :msg "received signal, exit program ..."
+		 (do0
+		  ;; https://gobyexample.com/tickers
+		  (assign done (make "chan bool"))
+		  (go ((lambda ()
+			 <-sig
+			 ,(lprint :msg "received signal, exit program ..."
 
-			       )
-		      (<- done true)))))
+				  )
+			 (<- done true)))))
 
-	      (foreach ((ntuple _ name) (range makros_with_gas_station))
-		       (setf cityName name)
-		       (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-				   name)))
-	      
-	      ,(lprint :msg "wait for ticks, you can abort program with C-c")
+		 (foreach ((ntuple _ name) (range makros_with_gas_station))
+			  (setf cityName name)
+			  (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+				      name)))
+	       
+		 ,(lprint :msg (format nil "wait for ticks every ~a seconds, you can abort program with C-c" tick-period))
 
-	      (while ()
-		(space
-		 select
-		 (progn
-		   (space "case <-done:" (progn
-					   ,(lprint :msg "leave for loop")
-					   return))
-		   (space "case tick := <-ticker.C:"
-			  (progn
-			    ,(lprint :msg "tick at" :vars `(tick))
-			    (foreach ((ntuple _ name) (range makros_with_gas_station))
-				     (setf cityName name)
-				     (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-						 name))))))))
+		 (while ()
+		   (space
+		    select
+		    (progn
+		      (space "case <-done:" (progn
+					      ,(lprint :msg "leave for loop")
+					      return))
+		      (space "case tick := <-ticker.C:"
+			     (progn
+			       ,(lprint :msg "tick at" :vars `(tick))
+			       (foreach ((ntuple _ name) (range makros_with_gas_station))
+					(setf cityName name)
+					(c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+						    name))))))))))
 	      ,(lprint :msg "program will exit now."))
 	     ))))))

@@ -74,7 +74,7 @@ func main() {
 		fmt.Printf("%v  id=%v\n", timeNow(), id)
 	})
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
-	ticker := time.NewTicker(((10) * (time.Second)))
+	ticker := time.NewTicker(((100) * (time.Second)))
 	defer (func() {
 		fmt.Printf("%v stop ticker \n", timeNow())
 		ticker.Stop()
@@ -89,7 +89,7 @@ func main() {
 		cityName = name
 		c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
 	}
-	fmt.Printf("%v wait for ticks, you can abort program with C-c \n", timeNow())
+	fmt.Printf("%v wait for ticks every 100 seconds, you can abort program with C-c \n", timeNow())
 	for {
 		select {
 		case <-done:
