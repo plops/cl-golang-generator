@@ -21,6 +21,7 @@ func main() {
 	signal.Notify(sig, os.Interrupt)
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
 	c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
+	c.AllowURLRevisit = true
 	cityName := "None"
 	fn := "fuel.db"
 	fmt.Printf("%v open database fn=%v\n", timeNow(), fn)
@@ -74,7 +75,7 @@ func main() {
 		fmt.Printf("%v  id=%v\n", timeNow(), id)
 	})
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
-	ticker := time.NewTicker(((100) * (time.Second)))
+	ticker := time.NewTicker(((1800) * (time.Second)))
 	defer (func() {
 		fmt.Printf("%v stop ticker \n", timeNow())
 		ticker.Stop()
@@ -89,7 +90,7 @@ func main() {
 		cityName = name
 		c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
 	}
-	fmt.Printf("%v wait for ticks every 100 seconds, you can abort program with C-c \n", timeNow())
+	fmt.Printf("%v wait for ticks every 1800 seconds, you can abort program with C-c \n", timeNow())
 	for {
 		select {
 		case <-done:
@@ -104,6 +105,7 @@ func main() {
 					cityName = name
 					c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
 				}
+				fmt.Printf("%v wait for next tick \n", timeNow())
 			}
 		}
 	}
