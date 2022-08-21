@@ -103,6 +103,7 @@
 					;modernc.org/sqlite
 	(_ github.com/mattn/go-sqlite3)
 	strings
+	os os/signal
 	)
        ,(lprint-init)
 
@@ -116,6 +117,13 @@
 		       )))
 	  `(defun main ()
 	     ,(lprint :msg (format nil "~a" name))
+
+	     (do0
+	      ,(lprint :msg "catch signals")
+	      (assign sig (make "chan os.Signal"
+				1))
+	      (signal.Notify sig os.Interrupt))
+	     
 	     (assign c (colly.NewCollector
 			(colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
 	     (c.Limit
@@ -260,8 +268,34 @@
 				     collect
 				     `(string ,e)
 				     )))
-	      (foreach ((ntuple _ name) (range makros_with_gas_station))
-		       (setf cityName name)
-		       (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-				   name))))
+
+	      
+
+	      (do0
+	       (assign ticker (time.NewTicker (* 1800 time.Second)))
+	       (defer (ticker.Stop)))
+
+	      (do0
+	       ;; https://gobyexample.com/tickers
+	       (assign done (make "chan bool"))
+	       (go ((lambda ()
+		      <-sig
+		      ,(lprint :msg "received signal, exit program ..."
+			       
+			       )
+		      (<- done true)))))
+
+	      (go ((lambda ()
+		     (while ()
+		       (space
+			select
+			(progn
+			  (space "case <-done:" return)
+			  (space "case tick := <-ticker.C:"
+				 (progn
+				   ,(lprint :msg "tick at" :vars `(tick))
+				  (foreach ((ntuple _ name) (range makros_with_gas_station))
+					   (setf cityName name)
+					   (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+						       name))))))))))))
 	     ))))))

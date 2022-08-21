@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/gocolly/colly"
 	_ "github.com/mattn/go-sqlite3"
+	"os"
+	"os/signal"
 	"strings"
 	"time"
 )
@@ -14,6 +16,9 @@ func timeNow() string {
 }
 func main() {
 	fmt.Printf("%v getFuelPrices \n", timeNow())
+	fmt.Printf("%v catch signals \n", timeNow())
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
 	c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
 	cityName := "None"
@@ -60,8 +65,28 @@ func main() {
 		fmt.Printf("%v  id=%v\n", timeNow(), id)
 	})
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
-	for _, name := range makros_with_gas_station {
-		cityName = name
-		c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
-	}
+	ticker := time.NewTicker(((1800) * (time.Second)))
+	defer ticker.Stop()
+	done := make(chan bool)
+	go (func() {
+		<-sig
+		fmt.Printf("%v received signal, exit program ... \n", timeNow())
+		done <- true
+	})()
+	go (func() {
+		for {
+			select {
+			case <-done:
+				return
+			case tick := <-ticker.C:
+				{
+					fmt.Printf("%v tick at tick=%v\n", timeNow(), tick)
+					for _, name := range makros_with_gas_station {
+						cityName = name
+						c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
+					}
+				}
+			}
+		}
+	})()
 }
