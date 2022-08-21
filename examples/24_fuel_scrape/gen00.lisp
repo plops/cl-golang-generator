@@ -140,11 +140,13 @@
 	      (do0
 	       (assign fn (string "fuel.db"))
 	       ,(lprint :msg "open database" :vars `(fn))
-	       
+
 	       ,(panic `(:var db
 			      :cmd (sql.Open (string "sqlite3")
 					     fn)))
-	       (defer (db.Close))
+	       (defer ((lambda ()
+			 ,(lprint :msg "close database" :vars `(fn))
+			 ,(panic0 `(db.Close)))))
 	       ,(panic `(:var _
 			      :cmd (db.Exec (string ,(format nil "CREATE TABLE IF NOT EXISTS fuel ( ~{~a~^,~});"
 							     (loop for e in table
@@ -276,7 +278,9 @@
 
 	      (do0
 	       (assign ticker (time.NewTicker (* 10 time.Second)))
-	       (defer (ticker.Stop)))
+	       (defer ((lambda ()
+			 ,(lprint :msg "stop ticker")
+			 (ticker.Stop)))))
 
 	      (do0
 	       ;; https://gobyexample.com/tickers
@@ -288,17 +292,26 @@
 			       )
 		      (<- done true)))))
 
+	      (foreach ((ntuple _ name) (range makros_with_gas_station))
+		       (setf cityName name)
+		       (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+				   name)))
 	      
+	      ,(lprint :msg "wait for ticks, you can abort program with C-c")
+
 	      (while ()
-		       (space
-			select
-			(progn
-			  (space "case <-done:" return)
-			  (space "case tick := <-ticker.C:"
-				 (progn
-				   ,(lprint :msg "tick at" :vars `(tick))
-				   (foreach ((ntuple _ name) (range makros_with_gas_station))
-					    (setf cityName name)
-					    (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-							name)))))))))
+		(space
+		 select
+		 (progn
+		   (space "case <-done:" (progn
+					   ,(lprint :msg "leave for loop")
+					   return))
+		   (space "case tick := <-ticker.C:"
+			  (progn
+			    ,(lprint :msg "tick at" :vars `(tick))
+			    (foreach ((ntuple _ name) (range makros_with_gas_station))
+				     (setf cityName name)
+				     (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+						 name))))))))
+	      ,(lprint :msg "program will exit now."))
 	     ))))))
