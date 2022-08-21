@@ -123,7 +123,7 @@
 	      (assign sig (make "chan os.Signal"
 				1))
 	      (signal.Notify sig os.Interrupt))
-	     
+
 	     (assign c (colly.NewCollector
 			(colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
 	     (c.Limit
@@ -138,9 +138,12 @@
 
 
 	      (do0
+	       (assign fn (string "fuel.db"))
+	       ,(lprint :msg "open database" :vars `(fn))
+	       
 	       ,(panic `(:var db
 			      :cmd (sql.Open (string "sqlite3")
-					     (string "fuel.db"))))
+					     fn)))
 	       (defer (db.Close))
 	       ,(panic `(:var _
 			      :cmd (db.Exec (string ,(format nil "CREATE TABLE IF NOT EXISTS fuel ( ~{~a~^,~});"
@@ -269,10 +272,10 @@
 				     `(string ,e)
 				     )))
 
-	      
+
 
 	      (do0
-	       (assign ticker (time.NewTicker (* 1800 time.Second)))
+	       (assign ticker (time.NewTicker (* 10 time.Second)))
 	       (defer (ticker.Stop)))
 
 	      (do0
@@ -281,12 +284,12 @@
 	       (go ((lambda ()
 		      <-sig
 		      ,(lprint :msg "received signal, exit program ..."
-			       
+
 			       )
 		      (<- done true)))))
 
-	      (go ((lambda ()
-		     (while ()
+	      
+	      (while ()
 		       (space
 			select
 			(progn
@@ -294,8 +297,8 @@
 			  (space "case tick := <-ticker.C:"
 				 (progn
 				   ,(lprint :msg "tick at" :vars `(tick))
-				  (foreach ((ntuple _ name) (range makros_with_gas_station))
-					   (setf cityName name)
-					   (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-						       name))))))))))))
+				   (foreach ((ntuple _ name) (range makros_with_gas_station))
+					    (setf cityName name)
+					    (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+							name)))))))))
 	     ))))))

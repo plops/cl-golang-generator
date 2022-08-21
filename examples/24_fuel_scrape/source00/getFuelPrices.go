@@ -22,9 +22,11 @@ func main() {
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
 	c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
 	cityName := "None"
-	db, err00 := sql.Open("sqlite3", "fuel.db")
+	fn := "fuel.db"
+	fmt.Printf("%v open database fn=%v\n", timeNow(), fn)
+	db, err00 := sql.Open("sqlite3", fn)
 	if !((err00) == (nil)) {
-		fmt.Printf("%v sql.Open('sqlite3', 'fuel.db') err00=%v\n", timeNow(), err00)
+		fmt.Printf("%v sql.Open('sqlite3', fn) err00=%v\n", timeNow(), err00)
 		panic(err00)
 	}
 	defer db.Close()
@@ -65,7 +67,7 @@ func main() {
 		fmt.Printf("%v  id=%v\n", timeNow(), id)
 	})
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
-	ticker := time.NewTicker(((1800) * (time.Second)))
+	ticker := time.NewTicker(((10) * (time.Second)))
 	defer ticker.Stop()
 	done := make(chan bool)
 	go (func() {
@@ -73,20 +75,18 @@ func main() {
 		fmt.Printf("%v received signal, exit program ... \n", timeNow())
 		done <- true
 	})()
-	go (func() {
-		for {
-			select {
-			case <-done:
-				return
-			case tick := <-ticker.C:
-				{
-					fmt.Printf("%v tick at tick=%v\n", timeNow(), tick)
-					for _, name := range makros_with_gas_station {
-						cityName = name
-						c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
-					}
+	for {
+		select {
+		case <-done:
+			return
+		case tick := <-ticker.C:
+			{
+				fmt.Printf("%v tick at tick=%v\n", timeNow(), tick)
+				for _, name := range makros_with_gas_station {
+					cityName = name
+					c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
 				}
 			}
 		}
-	})()
+	}
 }
