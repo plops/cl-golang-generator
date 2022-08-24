@@ -173,10 +173,23 @@
 	(export
 	 ,(lprint "load database" `(args.input))
 	 (setf cnx (sq.connect args.input))
-	 (setf df (pd.read_sql
+	 (setf df_ (pd.read_sql
 		   (string "select * from fuel")
 		   cnx))
-	 df))))))
+	 (setf df (aref df (& (== df.city
+				  (string "best"))
+			      (== df.fuel
+				  (string "Diesel Energy (B7)")))))
+	 (setf (aref df (string "pricef"))
+	       (dot df price str
+		    (replace (string ",")
+			     (string "."))
+		    (astype float)))
+	 df))
+       (python
+	(export
+	 (df.plot :x (string "time")
+		  :y (string "pricef"))))))))
 
 
 
