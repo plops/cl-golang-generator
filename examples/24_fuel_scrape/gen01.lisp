@@ -18,7 +18,7 @@
                             ,@rest)))))
 
   (let* ((cli-args `(
-		     (:short "-i" :long "--input" :help "input file" :default (string "fuel.db") :required t)
+		     (:short "-i" :long "--input" :help "input file" :default (string "/home/martin/stage/cl-golang-generator/examples/24_fuel_scrape/source01/fuel.db") :required t)
 		     (:short "-v" :long "--verbose" :help "enable verbose output" :action "store_true" :required nil))))
     (write-notebook
      :nb-file (format nil "~a/source~a/~a_view_fuel_db.ipynb" *path* *idx* *idx*)
@@ -79,6 +79,7 @@
 					;io.StringIO
 					;bs4
 					;requests
+			   time
 			   (sq sqlite3)
 					;(np jax.numpy)
 					;(mpf mplfinance)
@@ -128,6 +129,22 @@
 	       debug True)))
 
        (python
+	(do0
+	 (class Args ()
+		(def __init__ (self)
+		  (setf self.verbose True)
+		  ,@(loop for e in cli-args
+		      collect
+		      (destructuring-bind (&key short long help default required action) e
+			`(setf (dot self ,(subseq long 2))
+			  ,(if default
+			       default
+			       "None")
+			 )))))
+	 (setf args (Args))
+	 
+	 ))
+       (python
 	(export
 	 (do0 (setf parser (argparse.ArgumentParser))
 	      ,@(loop for e in cli-args
@@ -156,8 +173,12 @@
 	(export
 	 ,(lprint "load database" `(args.input))
 	 (setf cnx (sq.connect args.input))
-	 (setf df (pd.read_sql (string "select * from fuel")))
+	 (setf df (pd.read_sql
+		   (string "select * from fuel")
+		   cnx))
 	 df))))))
+
+
 
 
 

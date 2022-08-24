@@ -1,3 +1,8 @@
+
+|       |     |    |                                                       |
+| gen00 | 70% | go | periodically download fuel prices and store in sqlite |
+| gen01 |     | py | plot data from database                               |
+
 https://m.youtube.com/watch?v=sU_BwzOxl54
 
 - i want interaction, try with a golang repl, runs go run on each input
