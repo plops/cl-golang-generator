@@ -104,6 +104,7 @@
 	(_ github.com/mattn/go-sqlite3)
 	strings
 	os os/signal
+	runtime/debug
 	)
        ,(lprint-init)
 
@@ -119,6 +120,17 @@
 	     ,(lprint :msg (format nil "~a" name))
 
 	     (do0
+	      (assign (ntuple bi ok) (debug.ReadBuildInfo))
+	      (if ok
+		  (do0
+		   (foreach ((ntuple _ dep)
+			     (range bi.Deps))
+			    ,(lprint  :vars `(dep)))
+		   )
+		  (do0
+		   ,(lprint :msg "failed to read build info"))))
+
+	     (do0
 	      ,(lprint :msg "catch signals")
 	      (assign sig (make "chan os.Signal"
 				1))
@@ -132,7 +144,7 @@
 		     :Delay (* 3 time.Second)
 		     :RandomDelay (* 1 time.Second))
 	      )
-	     (setf c.AllowURLRevisit true)
+	     (setf c.AllowURLRevisit "true")
 
 	     (do0
 	      (assign cityName (string "None"))

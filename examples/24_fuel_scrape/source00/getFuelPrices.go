@@ -7,6 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -16,6 +17,14 @@ func timeNow() string {
 }
 func main() {
 	fmt.Printf("%v getFuelPrices \n", timeNow())
+	bi, ok := debug.ReadBuildInfo()
+	if ok {
+		for _, dep := range bi.Deps {
+			fmt.Printf("%v  dep=%v\n", timeNow(), dep)
+		}
+	} else {
+		fmt.Printf("%v failed to read build info \n", timeNow())
+	}
 	fmt.Printf("%v catch signals \n", timeNow())
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
