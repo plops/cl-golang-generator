@@ -28,9 +28,6 @@ func main() {
 	fmt.Printf("%v catch signals \n", timeNow())
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
-	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
-	c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
-	c.AllowURLRevisit = true
 	cityName := "None"
 	fn := "fuel.db"
 	fmt.Printf("%v open database fn=%v\n", timeNow(), fn)
@@ -52,6 +49,9 @@ func main() {
 		fmt.Printf("%v db.Exec('CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY,time DATETIME NOT NULL,city TEXT,response TEXT,fuel TEXT,price TEXT);') err02=%v\n", timeNow(), err02)
 		panic(err02)
 	}
+	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
+	c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
+	c.AllowURLRevisit = true
 	c.OnHTML("div.price.slide.element-position", func(p0 *colly.HTMLElement) {
 		fmt.Printf("%v OnHTML 'div.price.slide.element-position' \n", timeNow())
 		name := "None"

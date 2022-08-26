@@ -136,15 +136,7 @@
 				1))
 	      (signal.Notify sig os.Interrupt))
 
-	     (assign c (colly.NewCollector
-			(colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
-	     (c.Limit
-	      (curly &colly.LimitRule
-		     :DomainGlob (string "www.makro.nl/*")
-		     :Delay (* 3 time.Second)
-		     :RandomDelay (* 1 time.Second))
-	      )
-	     (setf c.AllowURLRevisit "true")
+	     
 
 	     (do0
 	      (assign cityName (string "None"))
@@ -167,7 +159,17 @@
 								   (destructuring-bind (&key name db-type) e
 								     (format nil "~a ~a" name db-type)))))))))
 
-
+	      (do0
+	      (assign c (colly.NewCollector
+			 (colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
+	      (c.Limit
+	       (curly &colly.LimitRule
+		      :DomainGlob (string "www.makro.nl/*")
+		      :Delay (* 3 time.Second)
+		      :RandomDelay (* 1 time.Second))
+	       )
+	      (setf c.AllowURLRevisit  "true"
+		    )
 	      ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
 				       #+nil (:name OnHTML :params ((string "a[href]"))
 						    :cb-types (*colly.HTMLElement)
@@ -255,7 +257,7 @@
 					  :vars vars)
 				 ,cb-code))))
 
-		      ))
+		      )))
 
 
 
