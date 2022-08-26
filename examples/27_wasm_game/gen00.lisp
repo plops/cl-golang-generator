@@ -158,7 +158,7 @@
        fmt
        ("." wasmgame/cltimelog)
        github.com/hajimehoshi/ebiten/v2
-       github.com/hajimehoshi/ebiten/v2/ebitenutil
+       ;github.com/hajimehoshi/ebiten/v2/ebitenutil
        )
       (const ScreenWidth 600
 	     ScreenHeight 600
@@ -263,7 +263,40 @@
       (package snake)
       (import
        github.com/hajimehoshi/ebiten/v2
-       github.com/hajimehoshi/ebiten/v2/inpututil)
+       github.com/hajimehoshi/ebiten/inpututil)
+      (defstruct0 Input
+	  )
+      (defun NewInput ()
+	(declare (values *Input))
+	(return (curly &Input)))
+      (defmethod Dir ((i *Input)
+		      )
+	(declare (values ebiten.Key bool))
+	,@(loop for e in `(KeyArrowUp
+			   KeyArrowLeft
+			   KeyArrowRight
+			   KeyArrowDown
+			   )
+		collect
+		`(when (inpututil.IsKeyJustPressed
+			(dot ebiten ,e))
+		   (return (ntuple (dot ebiten
+					,e)
+				   true))))
+	(return (ntuple 0 false))
+	))))
+
+  (let ((name "input")
+	(folder "snake"))
+   (write-go
+    :name name
+    :folder folder
+    :code
+    `(do0
+      (package snake)
+      (import
+       github.com/hajimehoshi/ebiten/v2
+       github.com/hajimehoshi/ebiten/inpututil)
       (defstruct0 Input
 	  )
       (defun NewInput ()
@@ -376,7 +409,7 @@
 	 (curly Coord
 		:x h.x
 		:y h.y))
-	(case s.direction
+	(switch s.direction
 	  (ebiten.KeyArrowUp
 	   (decf newHead.x))
 	  (ebiten.KeyArrowRight
@@ -411,7 +444,7 @@
 	(food *Food)
 	(snake *Snake)
 	(points int)
-	(gameOver bool)
+	(gameOver int)
 	(timer time.Time))
       (defun NewBoard (rows cols)
 	(declare (type int rows cols))
@@ -487,7 +520,7 @@
 			       )
 	(declare 
 		 (values bool))
-	(assign head (b.snake.Head))
+	(assign h (b.snake.Head))
 	(return (logior
 		 (< (- b.cols 1)
 		    head.x)
