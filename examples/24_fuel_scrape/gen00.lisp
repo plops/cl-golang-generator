@@ -136,7 +136,7 @@
 				1))
 	      (signal.Notify sig os.Interrupt))
 
-	     
+
 
 	     (do0
 	      (assign cityName (string "None"))
@@ -159,105 +159,8 @@
 								   (destructuring-bind (&key name db-type) e
 								     (format nil "~a ~a" name db-type)))))))))
 
-	      (do0
-	      (assign c (colly.NewCollector
-			 (colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
-	      (c.Limit
-	       (curly &colly.LimitRule
-		      :DomainGlob (string "www.makro.nl/*")
-		      :Delay (* 3 time.Second)
-		      :RandomDelay (* 1 time.Second))
-	       )
-	      (setf c.AllowURLRevisit  "true"
-		    )
-	      ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
-				       #+nil (:name OnHTML :params ((string "a[href]"))
-						    :cb-types (*colly.HTMLElement)
-					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
-						    )
-				       #+nil (:name OnHTML :params ((string "div.field-price"))
-						    :cb-types (*colly.HTMLElement)
-						    :vars (p0.Text))
-				       #+nil (:name OnHTML :params ((string "div.field-name"))
-						    :cb-types (*colly.HTMLElement)
-						    :vars (p0.Text))
-				       (:name OnHTML :params ((string "div.price.slide.element-position"))
-					      :cb-types (*colly.HTMLElement)
-					      :cb-code (do0
-							(assign name (string "None")
-								price (string "None"))
-							(assign spl (strings.Split p0.Text (string "€"))
 
-								)
-							(if (<= 3 (len spl))
-							    (do0
-							     (setf name (aref spl 0)
-								   price (aref spl 2))
-							     ,(lprint :vars `(cityName name price)))
-							    (do0
-							     (assign spl (strings.Split p0.Text
-											(string "€ / liter")))
-							     (if (<= 2 (len spl))
-								 (do0
-								  (setf name (aref spl 0)
-									price (aref spl 1))
-								  ,(lprint :vars `(cityName name price)))
-								 (do0
-								  ,(lprint :msg "cant parse"
-									   :vars `(cityName p0.Text))))
-							     ))
-							,(panic `(:var res
-								       :cmd (db.Exec
-									     (string
-									      ,(format nil "INSERT INTO   fuel VALUES (NULL,~{~a~^,~});"
-										       (loop for e in (cdr table)
-											     collect
-											     (destructuring-bind (&key name db-type) e
-											       "?"
-											       ))))
-									     (time.Now)
-									     cityName
-									     p0.Text
-									     name
-									     price
-									     )))
-
-							,(panic `(:var id
-								       :cmd (res.LastInsertId)))
-							,(lprint :vars `(id))))
-				       #+nil (:name OnError :params ()
-						    :cb-types (*colly.Response error)
-						    :vars (p0.Request.URL p1))
-				       #+nil (:name OnResponseHeaders :params ()
-						    :cb-types (*colly.Response)
-						    :vars (p0.Request.URL)
-						    )
-				       #+nil (:name OnResponse :params ()
-						    :cb-types (*colly.Response)
-						    :vars (p0.Request.URL)
-						    )
-				       #+nil (:name OnScraped :params ()
-						    :cb-types (*colly.Response)
-						    :vars (p0.Request.URL)
-						    ))
-		      collect
-		      (destructuring-bind (&key name params cb-types cb-code vars)
-			  e
-			`(dot c
-			      (,name
-			       ,@params
-			       (lambda ,(loop for f in cb-types
-					      and f-i from 0
-					      collect (intern (string-upcase (format nil "p~a" f-i))))
-				 ,@(loop for f in cb-types
-					 and f-i from 0
-					 collect
-					 `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
-				 ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
-					  :vars vars)
-				 ,cb-code))))
-
-		      )))
+	      )
 
 
 
@@ -309,10 +212,10 @@
 				    )
 			   (<- done true)))))
 
-		   (foreach ((ntuple _ name) (range makros_with_gas_station))
-			    (setf cityName name)
-			    (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
-					name)))
+		   #+nil (foreach ((ntuple _ name) (range makros_with_gas_station))
+				  (setf cityName name)
+				  (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
+					      name)))
 
 		   ,(lprint :msg (format nil "wait for ticks every ~a seconds, you can abort program with C-c" tick-period))
 
@@ -328,6 +231,105 @@
 				 ,(lprint :msg "tick at" :vars `(tick))
 				 (foreach ((ntuple _ name) (range makros_with_gas_station))
 					  (setf cityName name)
+					  (do0
+					   (assign c (colly.NewCollector
+						      (colly.UserAgent (string "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))))
+					   (c.Limit
+					    (curly &colly.LimitRule
+						   :DomainGlob (string "www.makro.nl/*")
+						   :Delay (* 3 time.Second)
+						   :RandomDelay (* 1 time.Second))
+					    )
+					   (setf c.AllowURLRevisit  "true"
+						 )
+					   ,@(loop for e in `(#+nil (:name OnRequest :cb-types (*colly.Request) :vars (p0.URL))
+								    #+nil (:name OnHTML :params ((string "a[href]"))
+										 :cb-types (*colly.HTMLElement)
+					; :cb-code (p0.Request.Visit (p0.Attr (string "href")))
+										 )
+								    #+nil (:name OnHTML :params ((string "div.field-price"))
+										 :cb-types (*colly.HTMLElement)
+										 :vars (p0.Text))
+								    #+nil (:name OnHTML :params ((string "div.field-name"))
+										 :cb-types (*colly.HTMLElement)
+										 :vars (p0.Text))
+								    (:name OnHTML :params ((string "div.price.slide.element-position"))
+									   :cb-types (*colly.HTMLElement)
+									   :cb-code (do0
+										     (assign name (string "None")
+											     price (string "None"))
+										     (assign spl (strings.Split p0.Text (string "€"))
+
+											     )
+										     (if (<= 3 (len spl))
+											 (do0
+											  (setf name (aref spl 0)
+												price (aref spl 2))
+											  ,(lprint :vars `(cityName name price)))
+											 (do0
+											  (assign spl (strings.Split p0.Text
+														     (string "€ / liter")))
+											  (if (<= 2 (len spl))
+											      (do0
+											       (setf name (aref spl 0)
+												     price (aref spl 1))
+											       ,(lprint :vars `(cityName name price)))
+											      (do0
+											       ,(lprint :msg "cant parse"
+													:vars `(cityName p0.Text))))
+											  ))
+										     ,(panic `(:var res
+												    :cmd (db.Exec
+													  (string
+													   ,(format nil "INSERT INTO   fuel VALUES (NULL,~{~a~^,~});"
+														    (loop for e in (cdr table)
+															  collect
+															  (destructuring-bind (&key name db-type) e
+															    "?"
+															    ))))
+													  (time.Now)
+													  cityName
+													  p0.Text
+													  name
+													  price
+													  )))
+
+										     ,(panic `(:var id
+												    :cmd (res.LastInsertId)))
+										     ,(lprint :vars `(id))))
+								    #+nil (:name OnError :params ()
+										 :cb-types (*colly.Response error)
+										 :vars (p0.Request.URL p1))
+								    #+nil (:name OnResponseHeaders :params ()
+										 :cb-types (*colly.Response)
+										 :vars (p0.Request.URL)
+										 )
+								    #+nil (:name OnResponse :params ()
+										 :cb-types (*colly.Response)
+										 :vars (p0.Request.URL)
+										 )
+								    #+nil (:name OnScraped :params ()
+										 :cb-types (*colly.Response)
+										 :vars (p0.Request.URL)
+										 ))
+						   collect
+						   (destructuring-bind (&key name params cb-types cb-code vars)
+						       e
+						     `(dot c
+							   (,name
+							    ,@params
+							    (lambda ,(loop for f in cb-types
+									   and f-i from 0
+									   collect (intern (string-upcase (format nil "p~a" f-i))))
+							      ,@(loop for f in cb-types
+								      and f-i from 0
+								      collect
+								      `(declare (type ,f ,(intern (string-upcase (format nil "p~a" f-i))))))
+							      ,(lprint :msg (format nil "~a ~{~a~}" name (mapcar #'(lambda (x) (substitute #\' #\" (emit-go :code x))) params))
+								       :vars vars)
+							      ,cb-code))))
+
+						   ))
 					  (c.Visit (+ (string ,(format nil "https://www.makro.nl/vestigingen/"))
 						      name)))
 				 ,(lprint :msg "wait for next tick"))))))))

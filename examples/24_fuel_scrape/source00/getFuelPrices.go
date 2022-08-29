@@ -49,40 +49,6 @@ func main() {
 		fmt.Printf("%v db.Exec('CREATE TABLE IF NOT EXISTS fuel ( id INTEGER NOT NULL PRIMARY KEY,time DATETIME NOT NULL,city TEXT,response TEXT,fuel TEXT,price TEXT);') err02=%v\n", timeNow(), err02)
 		panic(err02)
 	}
-	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
-	c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
-	c.AllowURLRevisit = true
-	c.OnHTML("div.price.slide.element-position", func(p0 *colly.HTMLElement) {
-		fmt.Printf("%v OnHTML 'div.price.slide.element-position' \n", timeNow())
-		name := "None"
-		price := "None"
-		spl := strings.Split(p0.Text, "€")
-		if (3) <= (len(spl)) {
-			name = spl[0]
-			price = spl[2]
-			fmt.Printf("%v  cityName=%v name=%v price=%v\n", timeNow(), cityName, name, price)
-		} else {
-			spl := strings.Split(p0.Text, "€ / liter")
-			if (2) <= (len(spl)) {
-				name = spl[0]
-				price = spl[1]
-				fmt.Printf("%v  cityName=%v name=%v price=%v\n", timeNow(), cityName, name, price)
-			} else {
-				fmt.Printf("%v cant parse cityName=%v p0.Text=%v\n", timeNow(), cityName, p0.Text)
-			}
-		}
-		res, err03 := db.Exec("INSERT INTO   fuel VALUES (NULL,?,?,?,?,?);", time.Now(), cityName, p0.Text, name, price)
-		if !((err03) == (nil)) {
-			fmt.Printf("%v db.Exec('INSERT INTO   fuel VALUES (NULL,?,?,?,?,?);', time.Now(), cityName, p0.Text, name, price) err03=%v\n", timeNow(), err03)
-			panic(err03)
-		}
-		id, err04 := res.LastInsertId()
-		if !((err04) == (nil)) {
-			fmt.Printf("%v res.LastInsertId() err04=%v\n", timeNow(), err04)
-			panic(err04)
-		}
-		fmt.Printf("%v  id=%v\n", timeNow(), id)
-	})
 	makros_with_gas_station := []string{"amsterdam", "best", "breda", "delft", "duiven", "groningen", "nuth"}
 	ticker := time.NewTicker(((1800) * (time.Second)))
 	defer (func() {
@@ -95,10 +61,6 @@ func main() {
 		fmt.Printf("%v received signal, exit program ... \n", timeNow())
 		done <- true
 	})()
-	for _, name := range makros_with_gas_station {
-		cityName = name
-		c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
-	}
 	fmt.Printf("%v wait for ticks every 1800 seconds, you can abort program with C-c \n", timeNow())
 	for {
 		select {
@@ -112,6 +74,40 @@ func main() {
 				fmt.Printf("%v tick at tick=%v\n", timeNow(), tick)
 				for _, name := range makros_with_gas_station {
 					cityName = name
+					c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"))
+					c.Limit(&colly.LimitRule{DomainGlob: "www.makro.nl/*", Delay: ((3) * (time.Second)), RandomDelay: ((1) * (time.Second))})
+					c.AllowURLRevisit = true
+					c.OnHTML("div.price.slide.element-position", func(p0 *colly.HTMLElement) {
+						fmt.Printf("%v OnHTML 'div.price.slide.element-position' \n", timeNow())
+						name := "None"
+						price := "None"
+						spl := strings.Split(p0.Text, "€")
+						if (3) <= (len(spl)) {
+							name = spl[0]
+							price = spl[2]
+							fmt.Printf("%v  cityName=%v name=%v price=%v\n", timeNow(), cityName, name, price)
+						} else {
+							spl := strings.Split(p0.Text, "€ / liter")
+							if (2) <= (len(spl)) {
+								name = spl[0]
+								price = spl[1]
+								fmt.Printf("%v  cityName=%v name=%v price=%v\n", timeNow(), cityName, name, price)
+							} else {
+								fmt.Printf("%v cant parse cityName=%v p0.Text=%v\n", timeNow(), cityName, p0.Text)
+							}
+						}
+						res, err03 := db.Exec("INSERT INTO   fuel VALUES (NULL,?,?,?,?,?);", time.Now(), cityName, p0.Text, name, price)
+						if !((err03) == (nil)) {
+							fmt.Printf("%v db.Exec('INSERT INTO   fuel VALUES (NULL,?,?,?,?,?);', time.Now(), cityName, p0.Text, name, price) err03=%v\n", timeNow(), err03)
+							panic(err03)
+						}
+						id, err04 := res.LastInsertId()
+						if !((err04) == (nil)) {
+							fmt.Printf("%v res.LastInsertId() err04=%v\n", timeNow(), err04)
+							panic(err04)
+						}
+						fmt.Printf("%v  id=%v\n", timeNow(), id)
+					})
 					c.Visit((("https://www.makro.nl/vestigingen/") + (name)))
 				}
 				fmt.Printf("%v wait for next tick \n", timeNow())

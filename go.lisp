@@ -121,13 +121,13 @@ entry return-values contains a list of return values"
 		  name
 		  (funcall emit `(paren
 				  ,@(loop for p in req-param collect
-					   (let ((type (gethash p env)))
+					  (let ((type (gethash p env)))
 					    (if type
-					     (format nil "~a ~a"
-						     p type)
-					     (format nil "~a"
-						     p)))
-					   )))
+						(format nil "~a ~a"
+							p type)
+						(format nil "~a"
+							p)))
+					  )))
 		  (let ((r (gethash 'return-values env)))
 		    (if (< 1 (length r))
 			(funcall emit `(paren ,@r))
@@ -151,10 +151,10 @@ entry return-values contains a list of return values"
 				  ,@(loop for p in req-param collect
 					  (let ((type (gethash p env)))
 					    (if type
-					     (format nil "~a ~a"
-						     p type)
-					     (format nil "~a"
-						     p))))))
+						(format nil "~a ~a"
+							p type)
+						(format nil "~a"
+							p))))))
 		  (let ((r (gethash 'return-values env)))
 		    (if (< 1 (length r))
 			(funcall emit `(paren ,@r))
@@ -185,19 +185,19 @@ entry return-values contains a list of return values"
 				    ,@(loop for p in req-param
 					    collect
 					    (let ((type (gethash p env)))
-					    (if type
-					     (format nil "~a ~a"
-						     p type)
-					     (format nil "~a"
-						     p)))
+					      (if type
+						  (format nil "~a ~a"
+							  p type)
+						  (format nil "~a"
+							  p)))
 					    #+nil (format nil "~a ~a"
-						  p
-						  (let ((type (gethash p env)))
-						    (if type
-							type
-							(break "can't find type for ~a in defun"
-							       p))))
-							     )))
+							  p
+							  (let ((type (gethash p env)))
+							    (if type
+								type
+								(break "can't find type for ~a in defun"
+								       p))))
+					    )))
 		    (let ((r (gethash 'return-values env)))
 		      (if (< 1 (length r))
 			  (funcall emit `(paren ,@r))
@@ -223,11 +223,11 @@ entry return-values contains a list of return values"
 		    (funcall emit `(paren
 				    ,@(loop for p in req-param collect
 					    (let ((type (gethash p env)))
-					    (if type
-					     (format nil "~a ~a"
-						     p type)
-					     (format nil "~a"
-						     p)))
+					      (if type
+						  (format nil "~a ~a"
+							  p type)
+						  (format nil "~a"
+							  p)))
 					    #+nil
 					    (format nil "~a ~a"
 						    p
@@ -258,11 +258,11 @@ entry return-values contains a list of return values"
 		    (funcall emit `(paren
 				    ,@(loop for p in req-param collect
 					    (let ((type (gethash p env)))
-					    (if type
-					     (format nil "~a ~a"
-						     p type)
-					     (format nil "~a"
-						     p)))
+					      (if type
+						  (format nil "~a ~a"
+							  p type)
+						  (format nil "~a"
+							  p)))
 					    #+nil
 					    (format nil "~a ~a"
 						    p
@@ -294,10 +294,10 @@ entry return-values contains a list of return values"
 					  collect
 					  (let ((type (gethash p env)))
 					    (if type
-					     (format nil "~a ~a"
-						     p type)
-					     (format nil "~a"
-						     p))))))
+						(format nil "~a ~a"
+							p type)
+						(format nil "~a"
+							p))))))
 		  (let ((r (gethash 'return-values env)))
 		    (if (< 1 (length r))
 			(funcall emit `(paren ,@r))

@@ -51,9 +51,9 @@
 			   time
 					;docopt
 					;pathlib
-					(np numpy)
+			   (np numpy)
 					;serial
-					(pd pandas)
+			   (pd pandas)
 					;(xr xarray)
 					;(xrp xarray.plot)
 					;skimage.restoration
@@ -93,9 +93,9 @@
 
 
 		 (imports-from (matplotlib.pyplot
-				      plot imshow tight_layout xlabel ylabel
-				      title subplot subplot2grid grid
-				      legend figure gcf xlim ylim)
+				plot imshow tight_layout xlabel ylabel
+				title subplot subplot2grid grid
+				legend figure gcf xlim ylim)
 			       )
 
 		 )
@@ -134,15 +134,15 @@
 		(def __init__ (self)
 		  (setf self.verbose True)
 		  ,@(loop for e in cli-args
-		      collect
-		      (destructuring-bind (&key short long help default required action) e
-			`(setf (dot self ,(subseq long 2))
-			  ,(if default
-			       default
-			       "None")
-			 )))))
+			  collect
+			  (destructuring-bind (&key short long help default required action) e
+			    `(setf (dot self ,(subseq long 2))
+				   ,(if default
+					default
+					"None")
+				   )))))
 	 (setf args (Args))
-	 
+
 	 ))
        (python
 	(export
@@ -174,8 +174,8 @@
 	 ,(lprint "load database" `(args.input))
 	 (setf cnx (sq.connect args.input))
 	 (setf df_ (pd.read_sql
-		   (string "select * from fuel")
-		   cnx))
+		    (string "select * from fuel")
+		    cnx))
 	 (setf df (aref df (& (== df.city
 				  (string "best"))
 			      (== df.fuel
