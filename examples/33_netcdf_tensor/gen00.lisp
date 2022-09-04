@@ -99,7 +99,7 @@
        (package main)
        (import
 	fmt
-	;math
+					;math
 	time
 	runtime/debug
 	"github.com/samber/lo"
@@ -199,12 +199,11 @@
 				  ,(panic `(:var x
 						 :cmd (b.At i j k)))
 				  ,(tprint :vars `(x))
-				  #+nil (setf (aref ,name i j k)
-					x
-					))))))
+				  (setf (aref ,name i j k)
+					"x.(float32)"))))))
 		     ,(panic0 `(cw.AddVar (string ,name)
 					  (curly api.Variable
-						 ,name
+						 ,name 
 						 (curly []string
 							,@(loop for f in dims
 								collect `(string ,f)))
