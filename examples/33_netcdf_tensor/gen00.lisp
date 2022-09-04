@@ -103,7 +103,7 @@
 	time
 	runtime/debug
 	"github.com/samber/lo"
-	,@(loop for e in `(api cdf ;util
+	,@(loop for e in `(api cdf util
 			       )
 		collect
 		(format nil "github.com/batchatco/go-native-netcdf/netcdf/~a" e))
@@ -162,7 +162,8 @@
 				 (tensor.Range tensor.Float32
 					       0 24))
 				(tensor.WithShape 2 3 4)
-				(tensor.AsFortran "nil")))
+					;(tensor.AsFortran "nil")
+				))
 	  ,(lprint :vars `(b)))
 
 
@@ -190,25 +191,64 @@
 
 			  `(do0
 			    ,(lprint :msg (format nil "compute ~a" name))
-			    (assign ,name (make [][][]float32 nx))
+			    (assign ,name (make [][][]float32 nx nx))
 			    (dotimes (i nx)
-			      (setf (aref ,name i) (make "[][]float32" ny))
+			      (setf (aref ,name i) (make "[][]float32" ny ny))
 			      (dotimes (j ny)
-				(setf (aref ,name i j) (make "[]float32" nz))
+				(setf (aref ,name i j) (make "[]float32" nz nz))
 				(dotimes (k nz)
 				  ,(panic `(:var x
 						 :cmd (b.At i j k)))
-				  ,(tprint :vars `(x))
+					;,(tprint :vars `(x))
 				  (setf (aref ,name i j k)
 					"x.(float32)"))))))
 		     ,(panic0 `(cw.AddVar (string ,name)
 					  (curly api.Variable
-						 ,name 
+						 ,name
 						 (curly []string
 							,@(loop for f in dims
 								collect `(string ,f)))
 						 "nil")))))
 		 )
+
+	 (do0
+	  (do0
+	   (assign
+	    code_git_version
+	    (string ,(let ((str (with-output-to-string (s)
+				  (sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
+		       (subseq str 0 (1- (length str)))))
+	    code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/33_netcdf_tensor"))
+	    code_generation_time
+	    (string ,(multiple-value-bind
+			   (second minute hour date month year day-of-week dst-p tz)
+			 (get-decoded-time)
+		       (declare (ignorable dst-p))
+		       (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
+			       hour
+			       minute
+			       second
+			       (nth day-of-week *day-names*)
+			       year
+			       month
+			       date
+			       (- tz)))))
+	   ,(let ((l `(code_git_version
+			      code_repository
+			      code_generation_time)))
+	      `(do0
+		,(panic `(:var attributes
+			       :cmd (util.NewOrderedMap
+				     (curly "[]string" ,@(loop for e in l collect `(string ,e)))
+				     (curly "map[string]interface{}"
+					    ,@(loop for e in l
+						    appending
+						    `(,(make-keyword (string-upcase (format nil "\"~a\"" e)))
+						       ,e)))))
+			)
+		(cw.AddGlobalAttrs attributes)))
+	   )
+	  )
 	 (defer ((lambda ()
 		   ,(lprint :msg "close" :vars `(fn))
 		   ,(panic0 `(cw.Close)))))

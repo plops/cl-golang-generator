@@ -1,3 +1,8 @@
+|       |   |                                     |        |
+| gen00 |   | generate tensor and store in netcdf | golang |
+| gen01 |   | load netcdf                         | python |
+
+
 - try to store and load gorgonia tensors as netcdf
 
   - https://github.com/gorgonia/tensor

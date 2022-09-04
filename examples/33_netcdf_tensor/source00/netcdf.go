@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/batchatco/go-native-netcdf/netcdf/api"
 	"github.com/batchatco/go-native-netcdf/netcdf/cdf"
+	"github.com/batchatco/go-native-netcdf/netcdf/util"
 	"github.com/samber/lo"
 	"gorgonia.org/tensor"
 	"runtime/debug"
@@ -24,9 +25,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "f4a1c1babae0be5c2244254207ab54b1e4cb79c6"
+	code_git_version := "dddd5d90d77cc1323f39b926c2ad60ffc6efd839"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/33_netcdf_tensor"
-	code_generation_time := "11:57:43 of Sunday, 2022-09-04 (GMT+1)"
+	code_generation_time := "12:17:08 of Sunday, 2022-09-04 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -95,12 +96,21 @@ func main() {
 		fmt.Printf("%v cw.AddVar('val', api.Variable {val, []string {'x', 'y', 'z'}, nil}) err05=%v\n", timeNow(), err05)
 		panic(err05)
 	}
+	code_git_version := "dddd5d90d77cc1323f39b926c2ad60ffc6efd839"
+	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/33_netcdf_tensor"
+	code_generation_time := "12:17:08 of Sunday, 2022-09-04 (GMT+1)"
+	attributes, err06 := util.NewOrderedMap([]string{"code_git_version", "code_repository", "code_generation_time"}, map[string]interface{}{"code_git_version": code_git_version, "code_repository": code_repository, "code_generation_time": code_generation_time})
+	if !((err06) == (nil)) {
+		fmt.Printf("%v util.NewOrderedMap([]string {'code_git_version', 'code_repository', 'code_generation_time'}, map[string]interface{} {'code_git_version': code_git_version, 'code_repository': code_repository, 'code_generation_time': code_generation_time}) err06=%v\n", timeNow(), err06)
+		panic(err06)
+	}
+	cw.AddGlobalAttrs(attributes)
 	defer (func() {
 		fmt.Printf("%v close fn=%v\n", timeNow(), fn)
-		err06 := cw.Close()
-		if !((err06) == (nil)) {
-			fmt.Printf("%v cw.Close() err06=%v\n", timeNow(), err06)
-			panic(err06)
+		err07 := cw.Close()
+		if !((err07) == (nil)) {
+			fmt.Printf("%v cw.Close() err07=%v\n", timeNow(), err07)
+			panic(err07)
 		}
 	})()
 }
