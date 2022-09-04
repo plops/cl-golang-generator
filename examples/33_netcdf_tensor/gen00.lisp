@@ -234,8 +234,8 @@
 			       date
 			       (- tz)))))
 	   ,(let ((l `(code_git_version
-			      code_repository
-			      code_generation_time)))
+		       code_repository
+		       code_generation_time)))
 	      `(do0
 		,(panic `(:var attributes
 			       :cmd (util.NewOrderedMap
