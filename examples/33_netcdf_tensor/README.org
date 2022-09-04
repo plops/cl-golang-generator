@@ -1,0 +1,4 @@
+- try to store and load gorgonia tensors as netcdf
+
+  - https://github.com/gorgonia/tensor
+  - https://github.com/batchatco/go-native-netcdf
