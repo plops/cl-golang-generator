@@ -99,7 +99,7 @@
        (package main)
        (import
 	fmt
-	math
+	;math
 	time
 	runtime/debug
 	"github.com/samber/lo"
@@ -113,15 +113,15 @@
 
        (defun reportDependencies ()
 	 (do0
-	      (assign (ntuple bi ok) (debug.ReadBuildInfo))
-	      (if ok
-		  (do0
-		   (foreach ((ntuple _ dep)
-			     (range bi.Deps))
-			    ,(lprint  :vars `(dep)))
-		   )
-		  (do0
-		   ,(lprint :msg "failed to read build info")))))
+	  (assign (ntuple bi ok) (debug.ReadBuildInfo))
+	  (if ok
+	      (do0
+	       (foreach ((ntuple _ dep)
+			 (range bi.Deps))
+			,(lprint  :vars `(dep)))
+	       )
+	      (do0
+	       ,(lprint :msg "failed to read build info")))))
 
        (defun reportGenerator ()
 	 (assign
@@ -150,18 +150,28 @@
 		 collect
 		 `(do0
 		   ,(lprint :vars `(,e)))))
-       
+
        (defun main ()
 	 ,(lprint :msg (format nil "~a" name))
-
+	 (reportGenerator)
 	 (reportDependencies)
-	 
+
+	 (do0
+	  (comments "create 2,3,4 3-Tensor of float32, column-major backing")
+	  (assign b (tensor.New (tensor.WithBacking
+				 (tensor.Range tensor.Float32
+					       0 24))
+				(tensor.WithShape 2 3 4)
+				(tensor.AsFortran "nil")))
+	  ,(lprint :vars `(b)))
+
+
 	 (assign fn (string "newdata.nc"))
 	 ,(panic `(:var cw
-		   :cmd (cdf.OpenWriter fn)))
-	 ,@(loop for e in `((:name x :dims (x) :n 128)
-			    (:name y :dims (y) :n 127)
-			    (:name z :dims (z) :n 123)
+			:cmd (cdf.OpenWriter fn)))
+	 ,@(loop for e in `((:name x :dims (x) :n 2)
+			    (:name y :dims (y) :n 3)
+			    (:name z :dims (z) :n 4)
 			    (:name val :dims (x y z))
 			    )
 		 collect
@@ -172,37 +182,26 @@
 			    ,(lprint :msg (format nil "define coordinate ~a" name))
 			    (assign ,(format nil "n~a" name) ,n)
 			    (assign ,name ("lo.Map[int,uint8]"
-					 (lo.Range ,n)
-					 (lambda (x _)
-					   (declare (type int x _)
-						    (values uint8))
-					   (return (uint8 x))))))
-			
+					   (lo.Range ,n)
+					   (lambda (x _)
+					     (declare (type int x _)
+						      (values uint8))
+					     (return (uint8 x))))))
+
 			  `(do0
 			    ,(lprint :msg (format nil "compute ~a" name))
 			    (assign ,name (make [][][]float32 nx))
 			    (dotimes (i nx)
-			    (setf (aref ,name i) (make "[][]float32" ny))
-			    (dotimes (j ny)
-			      (setf (aref ,name i j) (make "[]float32" nz))
-			      (dotimes (k nz)
-				,@(loop for (ii nn) in `((i nx)
-							 (j ny)
-							 (k nz))
-					collect
-					`(assign ,(format nil "f~a2" ii)
-					       (* (/ (float64 1)
-						     (float64 (/ (* ,nn ,nn) 4)))
-						  (float64
-						      (* (- ,ii (/ ,nn 2))
-							 (- ,ii (/ ,nn 2)))))))
-				(assign r2 (+ fi2 fj2 fk2)
-					r (math.Sqrt r2)
-					s (math.Sin r)
-					)
-				(unless (== r 0.0)
-				  (setf s (/ s r)))
-				(setf (aref ,name i j k) (float32 s)))))))
+			      (setf (aref ,name i) (make "[][]float32" ny))
+			      (dotimes (j ny)
+				(setf (aref ,name i j) (make "[]float32" nz))
+				(dotimes (k nz)
+				  ,(panic `(:var x
+						 :cmd (b.At i j k)))
+				  ,(tprint :vars `(x))
+				  #+nil (setf (aref ,name i j k)
+					x
+					))))))
 		     ,(panic0 `(cw.AddVar (string ,name)
 					  (curly api.Variable
 						 ,name
