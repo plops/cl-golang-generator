@@ -31,9 +31,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "7b98d88a2c66e7abc5bc975c85de4d0384c0702b"
+	code_git_version := "a261e8c053dfcd79d6aa7a05dbb76856dd52d24e"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/34_bbolt"
-	code_generation_time := "19:52:30 of Thursday, 2022-09-15 (GMT+1)"
+	code_generation_time := "19:55:16 of Thursday, 2022-09-15 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -42,6 +42,9 @@ func itob(v uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
 	return b
+}
+func btoi(b []byte) int {
+	return int(binary.BigEndian.Uint64(b))
 }
 func main() {
 	fmt.Printf("%v program use_bbolt starts \n", timeNow())
@@ -93,7 +96,9 @@ func main() {
 		b := tx.Bucket([]byte("files"))
 		c := b.Cursor()
 		for k, v := c.First(); (k) != (nil); k, v = c.Next() {
-			fmt.Printf("%v  k=%v v=%v\n", timeNow(), k, v)
+			kk := btoi(k)
+			vv := string(v)
+			fmt.Printf("%v  kk=%v vv=%v\n", timeNow(), kk, vv)
 		}
 		return nil
 	})

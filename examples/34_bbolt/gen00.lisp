@@ -206,6 +206,13 @@
 	 (binary.BigEndian.PutUint64 b (uint64 v))
 	 (return b))
 
+       (defun btoi (b)
+	 (declare (type []byte b)
+		  (values int))
+	 (return (int (dot binary
+			   BigEndian
+			   (Uint64 b)))))
+
 
 
        (defun main ()
@@ -292,7 +299,9 @@
 		       (!= k "nil")
 		       (setf (ntuple k v)
 			     (c.Next)))
-		      ,(lprint :vars `(k v))
+		      (assign kk (btoi k)
+			      vv ("string" v))
+		      ,(lprint :vars `(kk vv))
 		      )
 		 
 
