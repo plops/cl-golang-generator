@@ -1,0 +1,20 @@
+name: CI
+on:
+  push:
+    paths:
+      - 'examples/34_bbolt/source00/*'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: 'examples/34_bbolt/source00/'
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version
