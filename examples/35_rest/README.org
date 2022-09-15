@@ -1,0 +1,3 @@
+- rest interface
+
+- reference: petty newmarch network programming in go
