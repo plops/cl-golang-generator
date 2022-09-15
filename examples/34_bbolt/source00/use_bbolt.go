@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	bolt "go.etcd.io/bbolt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"time"
@@ -28,12 +31,17 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "793b553a3307a5c46e2041ceb741316405c88f36"
+	code_git_version := "e907eb0b9262adf3752cd1e10df529f4c73e6d88"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/34_bbolt"
-	code_generation_time := "18:44:07 of Thursday, 2022-09-15 (GMT+1)"
+	code_generation_time := "19:46:59 of Thursday, 2022-09-15 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
+}
+func itob(v uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
 }
 func main() {
 	fmt.Printf("%v program use_bbolt starts \n", timeNow())
@@ -42,11 +50,43 @@ func main() {
 	reportDependencies()
 	db_path := "data.db"
 	fmt.Printf("%v open database db_path=%v\n", timeNow(), db_path)
-	db, err00 := bolt.Open(db_path, 0666, nil)
-	checkAndPanic("bolt.Open(db_path, 0666, nil)", err00)
+	db, err00 := bolt.Open(db_path, 0666, &bolt.Options{Timeout: ((1) * (time.Second))})
+	checkAndPanic("bolt.Open(db_path, 0666, &bolt.Options {Timeout: ((1)*(time.Second))})", err00)
 	defer (func() {
 		fmt.Printf("%v close database db_path=%v db=%v\n", timeNow(), db_path, db)
 		err01 := db.Close()
 		checkAndPanic("db.Close()", err01)
 	})()
+	fmt.Printf("%v collect path for all pdf files \n", timeNow())
+	files := make([]string, 1, 4)
+	(func(path string) {
+		filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			if !((err) == (nil)) {
+				fmt.Printf("%v Error while walking files err.Error()=%v\n", timeNow(), err.Error())
+			}
+			files = append(files, info.Name())
+			return nil
+		})
+	})(("/"))
+	fmt.Printf("%v data collection finished len(files)=%v\n", timeNow(), len(files))
+	db.Update(func(tx *bolt.Tx) error {
+		b, err02 := tx.CreateBucketIfNotExists([]byte("files"))
+		if !((err02) == (nil)) {
+			return fmt.Errorf("tx.CreateBucketIfNotExists([]byte('files')) %s", err02)
+		}
+		fmt.Printf("%v create bucket b=%v\n", timeNow(), b)
+		return nil
+	})
+	db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("files"))
+		for _, file := range files {
+			id, err03 := b.NextSequence()
+			checkAndPanic("b.NextSequence()", err03)
+			err := b.Put(itob(id), []byte(file))
+			if !((err) == (nil)) {
+				return fmt.Errorf("b.Put(itob(id), []byte(file)) %s", err)
+			}
+		}
+		return nil
+	})
 }
