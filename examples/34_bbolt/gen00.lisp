@@ -206,7 +206,7 @@
 	 (binary.BigEndian.PutUint64 b (uint64 v))
 	 (return b))
 
-       
+
 
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
@@ -227,15 +227,15 @@
 
 	 (do0
 	  ,(lprint :msg "collect path for all pdf files")
-	  #+nil 
+	  #+nil
 	  ,(panic `(:var files
 			 :cmd (filepath.Glob (string "/**/*.pdf"))))
 
 	  (do0
 	   (assign files (make []string 1 4))
-	   
-	   
-	   
+
+
+
 	   ((lambda (path)
 	      (declare (type string path))
 	      (filepath.Walk path
@@ -249,9 +249,9 @@
 					  :vars `((err.Error))))
 			       (setf files (append files (info.Name)))
 			       (return "nil"))))
-	    (string "/")))
+	    (string "/home")))
 	  ,(lprint :msg "data collection finished" :vars `((len files))))
-	 
+
 	 ,(let ((table `files))
 	    `(do0
 	      (db.Update
@@ -263,7 +263,7 @@
 		 ,(lprint :msg "create bucket" :vars `(b))
 		 (return "nil")))
 
-	      
+
 
 	      (db.Update
 	       (lambda (tx)
@@ -271,15 +271,31 @@
 			  (values error))
 		 (assign b (tx.Bucket ([]byte (string ,table))))
 		 (foreach ((ntuple _ file)
-		       (range files))
-		      (do0
-		       ,(panic `(:var id
-				      :cmd (b.NextSequence)))
-		       ,(check-err0 `(b.Put
-				      (itob id)
-				      ([]byte file))
-				    :use-err-number nil)))
+			   (range files))
+			  (do0
+			   ,(panic `(:var id
+					  :cmd (b.NextSequence)))
+			   ,(check-err0 `(b.Put
+					  (itob id)
+					  ([]byte file))
+					:use-err-number nil)))
+
+		 (return "nil")))
+
+	      (db.View
+	       (lambda (tx)
+		 (declare (type *bolt.Tx tx)
+			  (values error))
+		 (assign b (tx.Bucket ([]byte (string ,table)))
+			 c (b.Cursor))
+		 (for ((:= (ntuple k v) (c.First))
+		       (!= k "nil")
+		       (setf (ntuple k v)
+			     (c.Next)))
+		      ,(lprint :vars `(k v))
+		      )
 		 
+
 		 (return "nil")))))
 
 

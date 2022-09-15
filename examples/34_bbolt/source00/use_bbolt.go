@@ -31,9 +31,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "e907eb0b9262adf3752cd1e10df529f4c73e6d88"
+	code_git_version := "7b98d88a2c66e7abc5bc975c85de4d0384c0702b"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/34_bbolt"
-	code_generation_time := "19:46:59 of Thursday, 2022-09-15 (GMT+1)"
+	code_generation_time := "19:52:30 of Thursday, 2022-09-15 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -67,7 +67,7 @@ func main() {
 			files = append(files, info.Name())
 			return nil
 		})
-	})(("/"))
+	})(("/home"))
 	fmt.Printf("%v data collection finished len(files)=%v\n", timeNow(), len(files))
 	db.Update(func(tx *bolt.Tx) error {
 		b, err02 := tx.CreateBucketIfNotExists([]byte("files"))
@@ -86,6 +86,14 @@ func main() {
 			if !((err) == (nil)) {
 				return fmt.Errorf("b.Put(itob(id), []byte(file)) %s", err)
 			}
+		}
+		return nil
+	})
+	db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("files"))
+		c := b.Cursor()
+		for k, v := c.First(); (k) != (nil); k, v = c.Next() {
+			fmt.Printf("%v  k=%v v=%v\n", timeNow(), k, v)
 		}
 		return nil
 	})
