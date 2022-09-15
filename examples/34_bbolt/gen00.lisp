@@ -5,7 +5,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/33_netcdf_tensor"
+    (format nil "~a/stage/cl-golang-generator/examples/34_bbolt"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defparameter *day-names*
@@ -43,6 +43,16 @@
 	      appending
 	      `(,e ,e))))
   (let ((err-nr 0))
+    (defun panic-init ()
+      `(defun checkAndPanic (msg err)
+	 (declare (type error err)
+		  (type string msg))
+	 (unless (== err "nil")
+	   ,(lprint
+	     :vars `(msg err))
+	   (panic err))
+
+	 ))
     (defun panic (var-cmd)
       (let ((err (format nil "err~2,'0d" err-nr)))
 	(destructuring-bind
@@ -52,10 +62,8 @@
 	      `(do0
 		(assign (ntuple ,var ,err)
 			,cmd)
-		(unless (== ,err "nil")
-		  ,(lprint :msg (substitute #\' #\" (emit-go :code cmd))
-			   :vars `(,err))
-		  (panic ,err)))
+		(checkAndPanic (string ,(substitute #\' #\" (emit-go :code cmd)))
+			       ,err))
 	    (incf err-nr)))))
     (defun panic0 (cmd)
       (let ((err (format nil "err~2,'0d" err-nr)))
@@ -63,11 +71,8 @@
 	    `(do0
 	      (assign ,err
 		      ,cmd)
-	      (unless (== ,err "nil")
-		,(lprint :msg (substitute #\' #\" (emit-go :code cmd))
-			 :vars `(,err))
-		(panic ,err))
-	      )
+	      (checkAndPanic (string ,(substitute #\' #\" (emit-go :code cmd)))
+			     ,err))
 	  (incf err-nr)))))
 
   (let ((file-count 0))
@@ -92,7 +97,7 @@
 	     code))
 	(incf file-count))))
 
-  (let ((name "netcdf"))
+  (let ((name "use_bbolt"))
     (write-go
      name
      `(do0
@@ -101,15 +106,13 @@
 	fmt
 					;math
 	time
+	runtime
 	runtime/debug
-	"github.com/samber/lo"
-	,@(loop for e in `(api cdf util
-			       )
-		collect
-		(format nil "github.com/batchatco/go-native-netcdf/netcdf/~a" e))
-	gorgonia.org/tensor
+					;"github.com/samber/lo"
+	(bolt "go.etcd.io/bbolt")
 	)
        ,(lprint-init)
+       ,(panic-init)
 
        (defun reportDependencies ()
 	 (do0
@@ -129,7 +132,7 @@
 	  (string ,(let ((str (with-output-to-string (s)
 				(sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
 		     (subseq str 0 (1- (length str)))))
-	  code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/33_netcdf_tensor"))
+	  code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/34_bbolt"))
 	  code_generation_time
 	  (string ,(multiple-value-bind
 			 (second minute hour date month year day-of-week dst-p tz)
@@ -151,105 +154,27 @@
 		 `(do0
 		   ,(lprint :vars `(,e)))))
 
+       ;; https://pkg.go.dev/go.etcd.io/bbolt#section-readme
+
        (defun main ()
-	 ,(lprint :msg (format nil "~a" name))
+	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
+	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
 	 (reportDependencies)
 
 	 (do0
-	  (comments "create 2,3,4 3-Tensor of float32, column-major backing")
-	  (assign b (tensor.New (tensor.WithBacking
-				 (tensor.Range tensor.Float32
-					       0 24))
-				(tensor.WithShape 2 3 4)
-					;(tensor.AsFortran "nil")
-				))
-	  ,(lprint :vars `(b)))
-
-
-	 (assign fn (string "newdata.nc"))
-	 ,(panic `(:var cw
-			:cmd (cdf.OpenWriter fn)))
-	 ,@(loop for e in `((:name x :dims (x) :n 2)
-			    (:name y :dims (y) :n 3)
-			    (:name z :dims (z) :n 4)
-			    (:name val :dims (x y z))
-			    )
-		 collect
-		 (destructuring-bind (&key name dims n) e
-		   `(do0
-		     ,(if n
-			  `(do0
-			    ,(lprint :msg (format nil "define coordinate ~a" name))
-			    (assign ,(format nil "n~a" name) ,n)
-			    (assign ,name ("lo.Map[int,uint8]"
-					   (lo.Range ,n)
-					   (lambda (x _)
-					     (declare (type int x _)
-						      (values uint8))
-					     (return (uint8 x))))))
-
-			  `(do0
-			    ,(lprint :msg (format nil "compute ~a" name))
-			    (assign ,name (make [][][]float32 nx nx))
-			    (dotimes (i nx)
-			      (setf (aref ,name i) (make "[][]float32" ny ny))
-			      (dotimes (j ny)
-				(setf (aref ,name i j) (make "[]float32" nz nz))
-				(dotimes (k nz)
-				  ,(panic `(:var x
-						 :cmd (b.At i j k)))
-					;,(tprint :vars `(x))
-				  (setf (aref ,name i j k)
-					"x.(float32)"))))))
-		     ,(panic0 `(cw.AddVar (string ,name)
-					  (curly api.Variable
-						 ,name
-						 (curly []string
-							,@(loop for f in dims
-								collect `(string ,f)))
-						 "nil")))))
-		 )
-
-	 (do0
 	  (do0
-	   (assign
-	    code_git_version
-	    (string ,(let ((str (with-output-to-string (s)
-				  (sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
-		       (subseq str 0 (1- (length str)))))
-	    code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/33_netcdf_tensor"))
-	    code_generation_time
-	    (string ,(multiple-value-bind
-			   (second minute hour date month year day-of-week dst-p tz)
-			 (get-decoded-time)
-		       (declare (ignorable dst-p))
-		       (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
-			       hour
-			       minute
-			       second
-			       (nth day-of-week *day-names*)
-			       year
-			       month
-			       date
-			       (- tz)))))
-	   ,(let ((l `(code_git_version
-		       code_repository
-		       code_generation_time)))
-	      `(do0
-		,(panic `(:var attributes
-			       :cmd (util.NewOrderedMap
-				     (curly "[]string" ,@(loop for e in l collect `(string ,e)))
-				     (curly "map[string]interface{}"
-					    ,@(loop for e in l
-						    appending
-						    `(,(make-keyword (string-upcase (format nil "\"~a\"" e)))
-						       ,e)))))
-			)
-		(cw.AddGlobalAttrs attributes)))
-	   )
-	  )
-	 (defer ((lambda ()
-		   ,(lprint :msg "close" :vars `(fn))
-		   ,(panic0 `(cw.Close)))))
+	   (assign db_path (string "data.db"))
+	   ,(lprint :msg "open database" :vars `(db_path))
+	   ,(panic `(:var db
+			  :cmd (bolt.Open db_path "0666" "nil"))))
+	  (defer ((lambda ()
+		    ,(lprint :msg "close database" :vars `(db_path db))
+		    ,(panic0 `(db.Close))))))
+
+
+
+
+
+
 	 )))))

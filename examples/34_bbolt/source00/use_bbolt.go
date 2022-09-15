@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	bolt "go.etcd.io/bbolt"
+	"runtime"
 	"runtime/debug"
 	"time"
 )
@@ -27,9 +28,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "581d4c2ef34c20cdb06251336d14d9d9f750e13f"
+	code_git_version := "793b553a3307a5c46e2041ceb741316405c88f36"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/34_bbolt"
-	code_generation_time := "18:37:16 of Thursday, 2022-09-15 (GMT+1)"
+	code_generation_time := "18:44:07 of Thursday, 2022-09-15 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -37,6 +38,7 @@ func reportGenerator() {
 func main() {
 	fmt.Printf("%v program use_bbolt starts \n", timeNow())
 	reportGenerator()
+	fmt.Printf("%v Go version: runtime.Version()=%v\n", timeNow(), runtime.Version())
 	reportDependencies()
 	db_path := "data.db"
 	fmt.Printf("%v open database db_path=%v\n", timeNow(), db_path)
