@@ -142,16 +142,30 @@
        (package main)
        (import
 	fmt
+	html/template
+	net/http
+	net/url
 	os
+	regexp
+	strconv
+	strings
 					;math
 					;encoding/binary
 	time
 	runtime
 	runtime/debug
-	;path/filepath
+					;path/filepath
 					;"github.com/samber/lo"
-	
+
 	)
+
+       (defstruct0 FlashCardSet
+	   (Name string)
+	 (Link string))
+
+       (setf "const flashcard_json string"
+	     (string "application/x.flashcards+json"))
+       
        ,(lprint-init)
        ,(panic-init)
 
@@ -196,11 +210,71 @@
 		   ,(lprint :vars `(,e)))))
 
 
+       (defun hasIllegalChars (s)
+	 (declare (type string s)
+		  (values bool))
+	 ,(panic `(:var b
+			:cmd (regexp.Match (string "[/$~]")
+					   ([]byte s))))
+	 (if b
+	     (return true)
+	     (return false)))
+
+       (defun handleOneFlashCard (rw req)
+	 (declare (type http.ResponseWriter rw)
+		  (type *http.Request req))
+	 ,(panic `(:var path0
+			:cmd (url.QueryUnescape (req.URL.String))))
+	 (assign path (aref path0 (slice 1 "")))
+	 (case req.Method
+	   (http.MethodGet
+	    ,(lprint :msg "handling card" :vars `(path))
+	    (assign (ntuple json_contents err)
+		    (os.ReadFile path))
+	    (unless (== err "nil")
+	      (rw.WriteHeader http.StatusNotFound)
+	      (rw.Write ([]byte (string "Resource not found")))
+	      return)
+	    (do0
+	     (rw.Write json_contents)
+	     return))
+	   (http.MethodDelete
+	    (rw.WriteHeader http.StatusNotImplemented))
+	   (t
+	    (rw.WriteHeader http.StatusMethodNotAllowed)
+	    ))
+	 return)
+
+       (defun handleFlashCardSets (rw req)
+	 (declare (type http.ResponseWriter rw)
+		  (type *http.Request req))
+	 (unless (== (req.URL.String)
+		     (string "/"))
+	   (rw.WriteHeader http.StatusNotFound)
+	   (rw.Write ([]byte (string "Resource not found\\n")))
+	   return)
+	 (case req.Method
+	   ((string "GET")
+	    )))
 
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
 	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
 	 (reportDependencies)
+
+	 (http.HandleFunc (string "/")
+			  handleFlashCardSets)
+	 ,(panic `(:var files :cmd (os.ReadDir (string "flashcardsets"))))
+	 (foreach ((ntuple _ file)
+		   (range files))
+		  ,(lprint :vars `((file.Name)))
+		  (assign cardset_url (+ (string "/flashcardsets/")
+					 (url.QueryEscape (file.Name))))
+		  ,(lprint :msg "adding handlers for"
+			   :vars `(cardset_url))
+		  (http.HandleFunc cardset_url handleOneFlashCardSet)
+		  (http.HandleFunc (+ cardset_url (string "/")) handleOneFlashCard))
+	 ,(panic0 `(http.ListenAndServe (string "8080") "nil"))
 
 	 )))))
