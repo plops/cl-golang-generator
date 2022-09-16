@@ -165,7 +165,7 @@
 
        (setf "const flashcard_json string"
 	     (string "application/x.flashcards+json"))
-       
+
        ,(lprint-init)
        ,(panic-init)
 

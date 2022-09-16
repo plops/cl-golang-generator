@@ -99,7 +99,7 @@
 	      `(do0
 		(assign (ntuple ,var ,err)
 			,cmd)
-		(checkAndPanic (string ,(substitute #\' #\" (emit-go :code cmd)))
+		(checkAndPanic (string-raw ,(substitute #\' #\` (emit-go :code cmd)))
 			       ,err))
 	    (incf err-nr)))))
     (defun panic0 (cmd)
@@ -109,7 +109,7 @@
 	    `(do0
 	      (assign ,err
 		      ,cmd)
-	      (checkAndPanic (string ,(substitute #\' #\" (emit-go :code cmd)))
+	      (checkAndPanic (string-raw ,(substitute #\' #\` (emit-go :code cmd)))
 			     ,err))
 	  (incf err-nr)))))
 
@@ -144,7 +144,7 @@
 	fmt
 	database/sql
 	os
-	
+
 					;math
 					;encoding/binary
 	time
@@ -205,6 +205,42 @@
 	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
 	 (reportDependencies)
 
-	 
+	 (do0
+	  ,(lprint :msg "make temp directory")
+	  ,(panic `(:var dir
+			 :cmd (os.MkdirTemp (string "")
+					    (string "test-"))))
+	  (defer ((lambda ()
+		    ,(lprint :msg "remove temp directory"
+			     :vars `(dir))
+		    (os.RemoveAll dir)))))
+
+	 (do0
+	  (assign fn (filepath.Join dir (string "db")))
+	  ,(lprint :msg "open database" :vars `(fn))
+	  ,(panic `(:var db
+			 :cmd (sql.Open (string "sqlite")
+					fn))))
+
+	 ,(panic `(:var _
+			:cmd (db.Exec
+			      (string-raw "drop table if exists t;
+create table t(i);
+insert into t values(42), (314);"))))
+
+	 ,(panic `(:var rows
+			:cmd (db.Query (string "select 3*i from t order by i;"))))
+
+	 (while (rows.Next)
+	   "var i int"
+	   ,(panic0 `(rows.Scan &i))
+	   ,(lprint :vars `(i)))
+
+	 ,(panic0 `(rows.Err))
+	 ,(panic0 `(db.Close))
+
+	 ,(panic `(:var fi
+			:cmd (os.Stat fn)))
+	 ,(lprint :vars `(fn fi.Size))
 
 	 )))))
