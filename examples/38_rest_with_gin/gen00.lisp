@@ -133,120 +133,166 @@
 	     (format nil "~a/source~2,'0d/~a"
 		     *path* file-count name)
 	     code))
-	(incf file-count))))
+					;(incf file-count)
+	)))
 
-  (let ((name (format nil "~2,'0d_main" *idx*))
-	(record-def `((:name ID :type string)
+  (let ((record-def `((:name ID :type string)
 		      (:name Title :type string)
 		      (:name Artist :type string)
 		      (:name Price :type float64))))
-    (write-go
-     name
-     `(do0
-       (package main)
-       (import
-	fmt
-	net/http
+    (let ((name (format nil "~2,'0d_main" *idx*)))
+      (write-go
+       name
+       `(do0
+	 (package main)
+	 (import
+	  fmt
+	  net/http
 					;log
-	github.com/gin-gonic/gin
+	  github.com/gin-gonic/gin
 
 					;math
 					;encoding/binary
-	time
-	runtime
-	runtime/debug
+	  time
+	  runtime
+	  runtime/debug
 					;path/filepath
 					;"github.com/samber/lo"
 
 
-	)
+	  )
 
-       (defstruct0 album
+	 (defstruct0 album
 					;(ID "string `json:\"id\"`")
-	   ,@(loop for e in record-def
+	     ,@(loop for e in record-def
+		     collect
+		     (destructuring-bind (&key name type) e
+		       `(,name ,(format nil "~a `json:\"~a\"`"
+					type
+					(string-downcase (format nil "~a" name))))))
+	   )
+
+	 (setf "var albums"
+	       (curly []album
+		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" 54.99)
+							    ("jeru" "eryy muliiang" 17.99)
+							    ("vaun and brown" "vaaughn" 39.99))
+			      and id from 1
+			      collect
+			      `(curly ""
+				      :ID (string ,id)
+				      :Title (string ,title)
+				      :Artist (string ,artist)
+				      :Price ,price))))
+
+	 ,(lprint-init)
+	 ,(panic-init)
+
+
+	 (defun getAlbums (c)
+	   (declare (type *gin.Context c))
+	   (comments "gin.Context carries request details, validates and serializes JSON"
+		     "note: Context.JSON would be more compact")
+	   (c.IndentedJSON http.StatusOK
+			   albums))
+
+
+	 (defun reportDependencies ()
+	   (do0
+	    (assign (ntuple bi ok) (debug.ReadBuildInfo))
+	    (if ok
+		(do0
+		 (foreach ((ntuple _ dep)
+			   (range bi.Deps))
+			  ,(lprint  :vars `(dep)))
+		 )
+		(do0
+		 ,(lprint :msg "failed to read build info")))))
+
+	 (defun reportGenerator ()
+	   (assign
+	    code_git_version
+	    (string ,(let ((str (with-output-to-string (s)
+				  (sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
+		       (subseq str 0 (1- (length str)))))
+	    code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"))
+	    code_generation_time
+	    (string ,(multiple-value-bind
+			   (second minute hour date month year day-of-week dst-p tz)
+			 (get-decoded-time)
+		       (declare (ignorable dst-p))
+		       (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
+			       hour
+			       minute
+			       second
+			       (nth day-of-week *day-names*)
+			       year
+			       month
+			       date
+			       (- tz)))))
+	   ,@(loop for e in `(code_git_version
+			      code_repository
+			      code_generation_time)
 		   collect
-		   (destructuring-bind (&key name type) e
-		     `(,name ,(format nil "~a `json:\"~a\"`"
-				      type
-				      (string-downcase (format nil "~a" name))))))
-	 )
-
-       (setf "var albums"
-	     (curly []album
-		    ,@(loop for (title artist price) in `(("blue train" "john coltrane" 54.99)
-							  ("jeru" "eryy muliiang" 17.99)
-							  ("vaun and brown" "vaaughn" 39.99))
-			    and id from 1
-			    collect
-			    `(curly ""
-				    :ID (string ,id)
-				    :Title (string ,title)
-				    :Artist (string ,artist)
-				    :Price ,price))))
-
-       ,(lprint-init)
-       ,(panic-init)
+		   `(do0
+		     ,(lprint :vars `(,e)))))
 
 
-       (defun getAlbums (c)
-	 (declare (type *gin.Context c))
-	 (comments "gin.Context carries request details, validates and serializes JSON"
-		   "note: Context.JSON would be more compact")
-	 (c.IndentedJSON http.StatusOK
-			 albums))
+	 (defun main ()
+	   ,(lprint :msg (format nil "program ~a starts" name))
+	   (reportGenerator)
+	   ,(lprint :msg "Go version:" :vars `((runtime.Version)))
+	   (reportDependencies)
 
+	   (do0
+	    (assign router (gin.Default))
+	    (router.GET (string "/albums")
+			getAlbums)
+	    (router.Run (string "localhost:8080")))
 
-       (defun reportDependencies ()
-	 (do0
-	  (assign (ntuple bi ok) (debug.ReadBuildInfo))
-	  (if ok
-	      (do0
-	       (foreach ((ntuple _ dep)
-			 (range bi.Deps))
-			,(lprint  :vars `(dep)))
-	       )
-	      (do0
-	       ,(lprint :msg "failed to read build info")))))
+	   ))))
+    (let ((name (format nil "~2,'0d_main_unit_test" 1)))
+      (write-go
+       name
+       `(do0
+	 ;; `go test` doesnt work
+	 ;; `go test *.go` works
+	 ;; This is some arcane behaviour of test driver: https://appliedgo.net/testmain/ 
+	 
+	 (package main)
+	 (import
+	  testing
+	  net/http
+	  github.com/stretchr/testify/assert
+					;io/ioutil
+	  encoding/json
+	  net/http/httptest
+	  github.com/gin-gonic/gin
+	  )
+	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
+	 (defun SetUpRouter ()
+	   (declare (values *gin.Engine))
+	   (assign router (gin.Default))
+	   (return router))
+	 (defun Test_getAlbums (tt)
+	   (declare (type *testing.T tt))
+	   (assign r (SetUpRouter))
+	   (r.GET (string "/albums")
+		  getAlbums)
 
-       (defun reportGenerator ()
-	 (assign
-	  code_git_version
-	  (string ,(let ((str (with-output-to-string (s)
-				(sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
-		     (subseq str 0 (1- (length str)))))
-	  code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"))
-	  code_generation_time
-	  (string ,(multiple-value-bind
-			 (second minute hour date month year day-of-week dst-p tz)
-		       (get-decoded-time)
-		     (declare (ignorable dst-p))
-		     (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
-			     hour
-			     minute
-			     second
-			     (nth day-of-week *day-names*)
-			     year
-			     month
-			     date
-			     (- tz)))))
-	 ,@(loop for e in `(code_git_version
-			    code_repository
-			    code_generation_time)
-		 collect
-		 `(do0
-		   ,(lprint :vars `(,e)))))
-
-
-       (defun main ()
-	 ,(lprint :msg (format nil "program ~a starts" name))
-	 (reportGenerator)
-	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
-	 (reportDependencies)
-
-	 (do0
-	  (assign router (gin.Default))
-	  (router.GET (string "/albums")
-		      getAlbums)
-	  (router.Run (string "localhost:8080")))
-
-	 )))))
+	   (assign (ntuple req _) (http.NewRequest (string "GET")
+						   (string "/albums")
+						   "nil"))
+	   (assign w (httptest.NewRecorder))
+	   (r.ServeHTTP w req)
+	   #+nil (assign (ntuple responseData _)
+			 (ioutil.ReadAll w.Body))
+	   "var albums []album"
+	   (json.Unmarshal (w.Body.Bytes)
+			   &albums)
+	   (assert.Equal tt http.StatusOK w.Code)
+	   (assert.NotEmpty tt albums)
+	   )
+	 
+	 )))
+    ))
