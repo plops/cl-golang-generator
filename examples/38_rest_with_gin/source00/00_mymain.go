@@ -1,4 +1,4 @@
-package mymain
+package main
 
 import (
 	"fmt"
@@ -53,9 +53,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "e405a044edaa00c946537fcf7f09f90aa193a0c1"
+	code_git_version := "92bdfa898f1bc1675b072660203029edbd211371"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "10:54:26 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "11:18:01 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)

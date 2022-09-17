@@ -135,7 +135,7 @@
       (write-go
        name
        `(do0
-	 (package mymain)
+	 (package main)
 	 (import
 	  fmt
 	  net/http
@@ -273,7 +273,7 @@
 	 ;; `go test *.go` works
 	 ;; This is some arcane behaviour of test driver: https://appliedgo.net/testmain/
 
-	 (package mymain)
+	 (package main)
 	 (import
 	  testing
 	  net/http
