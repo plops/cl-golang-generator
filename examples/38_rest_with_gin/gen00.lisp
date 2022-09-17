@@ -199,7 +199,7 @@
 	 ,(panic-init)
 
 	 (do0
-	  (comments "getAlbums godoc"
+	  (comments "getAlbums godoc" 
 		    "@Summary List existing albums"
 		    "@Schemes"
 		    "@Description Get all the albums"
