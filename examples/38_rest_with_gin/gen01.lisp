@@ -7,8 +7,9 @@
 		     :direction :output
 		     :if-does-not-exist :create)
     (flet ((out (&rest rest)
-	     (format s "~{~a~^ \\~%~}" rest))
+	     (format s "~{~a~^ \\~%~}~%" rest))
 	   )
+      (out "set -x")
       (out "curl"
 	   "http://localhost:8080/albums"
 	   "--include"
@@ -27,8 +28,9 @@
 		     :direction :output
 		     :if-does-not-exist :create)
     (flet ((out (&rest rest)
-	     (format s "~{~a~^ \\~%~}" rest))
+	     (format s "~{~a~^ \\~%~}~%" rest))
 	   )
+      (out "set -x")
       (out "curl"
 	   "http://localhost:8080/albums"
 	   "--header \"Content-Type: application/json\""
@@ -45,8 +47,9 @@
 		     :direction :output
 		     :if-does-not-exist :create)
     (flet ((out (&rest rest)
-	     (format s "~{~a~^ \\~%~}" rest))
+	     (format s "~{~a~^ \\~%~}~%" rest))
 	   )
+      (out "set -x")
       (out "curl"
 	   "http://localhost:8080/albums/1"
 	   "--header \"Content-Type: application/json\""
@@ -67,8 +70,9 @@
 		     :direction :output
 		     :if-does-not-exist :create)
     (flet ((out (&rest rest)
-	     (format s "~{~a~^ \\~%~}" rest))
+	     (format s "~{~a~^ \\~%~}~%" rest))
 	   )
+      (out "set -x")
       (out "GIN_MODE=release"
 	   "go test -v")))
 

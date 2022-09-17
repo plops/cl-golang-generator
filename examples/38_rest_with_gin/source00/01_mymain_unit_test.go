@@ -19,8 +19,8 @@ func SetUpRouter() *gin.Engine {
 }
 func Test_getAlbums(tt *testing.T) {
 	r := SetUpRouter()
-	r.GET("/Albums", getAlbums)
-	req, _ := http.NewRequest("GET", "/Albums", nil)
+	r.GET("/albums", getAlbums)
+	req, _ := http.NewRequest("GET", "/albums", nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	var albumsOrig = []Album{{ID: "1", Title: "blue train", Artist: "john coltrane", Price: 54.99}, {ID: "2", Title: "jeru", Artist: "eryy muliiang", Price: 17.99}, {ID: "3", Title: "vaun and brown", Artist: "vaaughn", Price: 39.99}}

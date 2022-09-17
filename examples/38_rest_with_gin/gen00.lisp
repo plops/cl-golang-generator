@@ -318,11 +318,11 @@
 	 (defun Test_getAlbums (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
-	   (r.GET (string "/Albums")
+	   (r.GET (string "/albums")
 		  getAlbums)
 
 	   (assign (ntuple req _) (http.NewRequest (string "GET")
-						   (string "/Albums")
+						   (string "/albums")
 						   "nil"))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
