@@ -163,7 +163,7 @@
 					(string-downcase (format nil "~a" name))))))
 	   )
 
-	 (setf "var Albums"
+	 (setf "var albums"
 	       (curly []Album
 		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
 							    ("jeru" "eryy muliiang" "17.99")
@@ -185,7 +185,7 @@
 	   (comments "gin.Context carries request details, validates and serializes JSON"
 		     "note: Context.JSON would be more compact")
 	   (c.IndentedJSON http.StatusOK
-			   Albums))
+			   albums))
 
 	 (defun postAlbums (c)
 	   (declare (type *gin.Context c))
@@ -193,7 +193,7 @@
 	   ,(when-err0 `(:cmd (c.BindJSON &newAlbum)
 			      :code return))
 	   (comments "add new Album to slice")
-	   (setf Albums (append Albums newAlbum))
+	   (setf albums (append albums newAlbum))
 	   (c.IndentedJSON http.StatusCreated ;; 201 status code with
 			   ;; json of the new Album
 			   newAlbum))
@@ -202,8 +202,10 @@
 	   (declare (type *gin.Context c))
 	   (assign id (c.Param (string "id")))
 	   (comments "locate Album whose ID matches parameter")
+	   ,(lprint :msg "locate album with"
+		    :vars `(id))
 	   (foreach ((ntuple _ a)
-		     (range Albums))
+		     (range albums))
 		    (when (== a.ID id)
 		      (c.IndentedJSON http.StatusOK
 				      a)
@@ -265,7 +267,7 @@
 	    (assign router (gin.Default))
 	    ,@(loop for e in `((:name Albums :type get)
 			       (:name Albums :type post)
-			       (:name AlbumByID :type get :url (string "/Albums/:id"))
+			       (:name AlbumByID :type get :url (string "/albums/:id"))
 			       )
 		    appending
 		    (destructuring-bind (&key name type url) e
