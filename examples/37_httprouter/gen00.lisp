@@ -203,15 +203,18 @@
 	 (declare (type http.ResponseWriter w)
 		  (type *http.Request r)
 		  (type httprouter.Params _))
+	 ,(lprint :msg "Index()")
 	 (fmt.Fprint w (string "Welcome!\\n")))
 
        (defun Hello (w r ps)
 	 (declare (type http.ResponseWriter w)
 		  (type *http.Request r)
 		  (type httprouter.Params ps))
+	 ,(lprint :msg "Hello()")
+	 ;; FIXME why %s is not working?
 	 (fmt.Fprint w (string "hello, %s!\\n")
 		     (ps.ByName (string "name"))))
-       
+
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
