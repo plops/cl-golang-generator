@@ -27,14 +27,17 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "c780743ae291834af93b413348dbcb950064035f"
+	code_git_version := "f6c0486ea90d7f291cc64ca1b744ddc959207e4f"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "15:59:47 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "16:01:21 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
 }
 func Equal(a []byte, b []byte) bool {
+	if !((len(a)) == (len(b))) {
+		return false
+	}
 	for i := range a {
 		if !((a[i]) == (b[i])) {
 			return false

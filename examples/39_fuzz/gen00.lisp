@@ -182,6 +182,9 @@
        (defun Equal (a b)
 	 (declare (type []byte a b)
 		  (values bool))
+	 (unless (== (len a)
+		     (len b))
+	   (return "false"))
 	 (foreach (i (range a))
 		  (unless (== (aref a i)
 			      (aref b i))
@@ -219,9 +222,9 @@
 				 `(char ,c))))
 	   (tt.Error (string "expected true, got false"))))
 
-        (defun FuzzEqual (f)
-	  (declare (type *testing.F f))
-	  (comments "run this test with `go test -fuzz .`") 
+       (defun FuzzEqual (f)
+	 (declare (type *testing.F f))
+	 (comments "run this test with `go test -fuzz .`")
 	 (f.Fuzz
 	  (lambda (tt a b)
 	    (declare (type []byte a b)
