@@ -198,33 +198,44 @@
 	 ,(lprint-init)
 	 ,(panic-init)
 
+	 (do0
+	  (comments "getAlbums godoc"
+		    "@Summary List existing albums"
+		    "@Schemes"
+		    "@Description Get all the albums"
+		    "@Tags albums"
+		    "@Accept json"
+		    "@Produce json"
+		    "@Success 200 {array} Album"
+		    "@Router /albums [get]")
+	  (defun getAlbums (c)
+	    (declare (type *gin.Context c))
+	    (comments "gin.Context carries request details, validates and serializes JSON"
+		      "note: Context.JSON would be more compact")
+	    (c.IndentedJSON http.StatusOK
+			    albums)))
 
-	 (comments "getAlbums godoc"
-		   "@Summary List existing albums"
-		   "@Schemes"
-		   "@Description Get all the albums"
-		   "@Tags albums"
-		   "@Accept json"
-		   "@Produce json"
-		   "@Success 200 {array} Album"
-		   "@Router /albums [get]")
-	 (defun getAlbums (c)
-	   (declare (type *gin.Context c))
-	   (comments "gin.Context carries request details, validates and serializes JSON"
-		     "note: Context.JSON would be more compact")
-	   (c.IndentedJSON http.StatusOK
-			   albums))
-
-	 (defun postAlbums (c)
-	   (declare (type *gin.Context c))
-	   "var newAlbum Album"
-	   ,(when-err0 `(:cmd (c.BindJSON &newAlbum)
-			      :code return))
-	   (comments "add new Album to slice")
-	   (setf albums (append albums newAlbum))
-	   (c.IndentedJSON http.StatusCreated ;; 201 status code with
-			   ;; json of the new Album
-			   newAlbum))
+	 (do0
+	  (comments "postAlbums godoc"
+		    "@Summary Add new album"
+		    "@Schemes"
+		    "@Description Add a new album to the list"
+		    "@Tags albums"
+		    "@Accept json"
+		    "@Produce json"
+		    "@Param album body Album true \"Create Album\""
+		    "@Success 200 {object} Album"
+		    "@Router /albums [post]")
+	  (defun postAlbums (c)
+	    (declare (type *gin.Context c))
+	    "var newAlbum Album"
+	    ,(when-err0 `(:cmd (c.BindJSON &newAlbum)
+			       :code return))
+	    (comments "add new Album to slice")
+	    (setf albums (append albums newAlbum))
+	    (c.IndentedJSON http.StatusCreated ;; 201 status code with
+			    ;; json of the new Album
+			    newAlbum)))
 
 	 (defun getAlbumByID (c)
 	   (declare (type *gin.Context c))

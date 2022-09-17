@@ -51,6 +51,17 @@ func getAlbums(c *gin.Context) {
 	// note: Context.JSON would be more compact
 	c.IndentedJSON(http.StatusOK, albums)
 }
+
+// postAlbums godoc
+// @Summary Add new album
+// @Schemes
+// @Description Add a new album to the list
+// @Tags albums
+// @Accept json
+// @Produce json
+// @Param album body Album true "Create Album"
+// @Success 200 {object} Album
+// @Router /albums [post]
 func postAlbums(c *gin.Context) {
 	var newAlbum Album
 	err00 := c.BindJSON(&newAlbum)
@@ -83,9 +94,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "a0d9aceea837a6f78af6d3182743bdab1ef132f6"
+	code_git_version := "2df5b2e8bee237039053b4aa59660a9679d4f1ca"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "21:45:37 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "21:53:06 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
