@@ -136,8 +136,7 @@
 	fmt
        	time
 	runtime
-	runtime/debug
-	)
+	runtime/debug)
        ,(lprint-init)
        ,(panic-init)
        (defun reportDependencies ()
@@ -189,8 +188,37 @@
 		    (return "false")))
 	 (return "true"))
 
+      
+       
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
 	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
-	 (reportDependencies))))))
+	 (reportDependencies)))))
+
+  (let ((name (format nil "~2,'0d_Equal_test" "01")))
+    (write-go
+     name
+     `(do0
+       (package main)
+       (import
+	testing
+	)
+       
+
+       (defun TestEqual (tt)
+	 (declare (type *testing.T tt))
+	 (unless (Equal
+		  (curly []byte
+			 ,@(loop for c across "fuzz"
+				 collect
+				 `(char ,c)))
+		  (curly []byte
+			 ,@(loop for c across "fuzz"
+				 collect
+				 `(char ,c))))
+	   (tt.Error (string "expected true, got false"))))
+      
+       )))
+
+)
