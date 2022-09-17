@@ -226,6 +226,23 @@
 	  ,(lprint :msg "start httprouter on"
 		   :vars `(port))
 	  (assign router (httprouter.New))
+
+	  (do0 ,(lprint :msg "set up automatic OPTIONS request")
+	       (setf router.GlobalOPTIONS
+		     (http.HandlerFunc
+		      (lambda (w r)
+			(declare (type http.ResponseWriter w)
+				 (type *http.Request r))
+			(unless (== (r.Header.Get (string "Access-Control-Request-Method"))
+				    (string ""))
+			  (comments "set CORS headers")
+			  (assign header (w.Header))
+			  (dot header (Set (string "Access-Control-Allow-Methods")
+					   (header.Get (string "Allow"))))
+			  (dot header (Set (string "Access-Control-Allow-Origin")
+					   (string "*"))))
+			(w.WriteHeader http.StatusNoContent)))))
+	  
 	  (router.GET (string "/")
 		      Index)
 	  (router.GET (string "/hello/:name")
