@@ -202,7 +202,7 @@
 	   (declare (type *gin.Context c))
 	   (assign id (c.Param (string "id")))
 	   (comments "locate Album whose ID matches parameter")
-	   ,(lprint :msg "locate album with"
+	   #+nil ,(lprint :msg "locate album with"
 		    :vars `(id))
 	   (foreach ((ntuple _ a)
 		     (range albums))
@@ -305,15 +305,12 @@
 	  github.com/gin-gonic/gin
 	  github.com/rs/xid
 	  bytes
-
-
+	  fmt
+	 
 	  )
 	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
 	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
-	 #+nil (do0
-		(import fmt)
-					;,(lprint-init)
-		)
+	 
 	 (defun SetUpRouter ()
 	   (declare (values *gin.Engine))
 	   (assign router (gin.Default))
@@ -343,12 +340,13 @@
 					:Title (string ,title)
 					:Artist (string ,artist)
 					:Price ,price))))
-	   "var albums []Album"
-	   (json.Unmarshal (w.Body.Bytes)
-			   &albums)
+
 	   (assert.Equal tt http.StatusOK w.Code)
-	   (assert.NotEmpty tt albums)
-	   (assert.Equal tt albums albumsOrig)
+	   (do0 "var albums []Album"
+		(json.Unmarshal (w.Body.Bytes)
+				&albums)
+		(assert.NotEmpty tt albums)
+		(assert.Equal tt albums albumsOrig))
 	   #+nil ,(lprint :vars `(albums))
 	   )
 
@@ -360,18 +358,27 @@
 	   (assign albumId (dot xid
 				(New)
 				(String)))
-	   (assign album (curly Album :ID albumId
+	   (assign albumOrig (curly Album :ID albumId
 				:Title (string "bla")
 				:Artist (string "blub")
 				:Price "32.12"))
-	   (assign (ntuple jsonValue _) (json.Marshal album))
+	   ,(lprint :vars `(albumOrig))
+	   (assign (ntuple jsonValue _) (json.Marshal albumOrig))
 	   (assign (ntuple req _) (http.NewRequest (string "POST")
 						   (string "/albums")
 						   (bytes.NewBuffer jsonValue)))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
 
-	   (assert.Equal tt http.StatusCreated w.Code))
+	   (assert.Equal tt http.StatusCreated w.Code)
+
+	   (do0 "var album Album"
+		(json.Unmarshal (w.Body.Bytes)
+				&album)
+		,(lprint :vars `(album))
+		(assert.NotEmpty tt album)
+		(assert.Equal tt album albumOrig))
+	   )
 
 	 )))
     ))

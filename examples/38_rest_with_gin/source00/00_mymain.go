@@ -45,7 +45,6 @@ func postAlbums(c *gin.Context) {
 func getAlbumByID(c *gin.Context) {
 	id := c.Param("id")
 	// locate Album whose ID matches parameter
-	fmt.Printf("%v locate album with id=%v\n", timeNow(), id)
 	for _, a := range albums {
 		if (a.ID) == (id) {
 			c.IndentedJSON(http.StatusOK, a)
@@ -65,9 +64,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "789038e5e54123314ff54fed7d1475f8f089df78"
+	code_git_version := "344785166cdad8929205932157299ce4c597063c"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "13:43:23 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "13:55:35 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
