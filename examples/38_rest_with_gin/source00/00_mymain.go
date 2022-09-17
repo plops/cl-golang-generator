@@ -64,9 +64,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "344785166cdad8929205932157299ce4c597063c"
+	code_git_version := "9ec75ac76eb83647163135c5a8d98b0f8cfd3339"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "13:55:35 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "13:56:32 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)

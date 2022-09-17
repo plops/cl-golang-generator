@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +35,6 @@ func Test_postAlbums(tt *testing.T) {
 	r.POST("/albums", postAlbums)
 	albumId := xid.New().String()
 	albumOrig := Album{ID: albumId, Title: "bla", Artist: "blub", Price: 32.12}
-	fmt.Printf("%v  albumOrig=%v\n", timeNow(), albumOrig)
 	jsonValue, _ := json.Marshal(albumOrig)
 	req, _ := http.NewRequest("POST", "/albums", bytes.NewBuffer(jsonValue))
 	w := httptest.NewRecorder()
@@ -44,7 +42,6 @@ func Test_postAlbums(tt *testing.T) {
 	assert.Equal(tt, http.StatusCreated, w.Code)
 	var album Album
 	json.Unmarshal(w.Body.Bytes(), &album)
-	fmt.Printf("%v  album=%v\n", timeNow(), album)
 	assert.NotEmpty(tt, album)
 	assert.Equal(tt, album, albumOrig)
 }

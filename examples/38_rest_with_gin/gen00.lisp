@@ -203,7 +203,7 @@
 	   (assign id (c.Param (string "id")))
 	   (comments "locate Album whose ID matches parameter")
 	   #+nil ,(lprint :msg "locate album with"
-		    :vars `(id))
+			  :vars `(id))
 	   (foreach ((ntuple _ a)
 		     (range albums))
 		    (when (== a.ID id)
@@ -305,12 +305,12 @@
 	  github.com/gin-gonic/gin
 	  github.com/rs/xid
 	  bytes
-	  fmt
-	 
+					;fmt
+
 	  )
 	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
 	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
-	 
+
 	 (defun SetUpRouter ()
 	   (declare (values *gin.Engine))
 	   (assign router (gin.Default))
@@ -359,10 +359,10 @@
 				(New)
 				(String)))
 	   (assign albumOrig (curly Album :ID albumId
-				:Title (string "bla")
-				:Artist (string "blub")
-				:Price "32.12"))
-	   ,(lprint :vars `(albumOrig))
+				    :Title (string "bla")
+				    :Artist (string "blub")
+				    :Price "32.12"))
+					;,(lprint :vars `(albumOrig))
 	   (assign (ntuple jsonValue _) (json.Marshal albumOrig))
 	   (assign (ntuple req _) (http.NewRequest (string "POST")
 						   (string "/albums")
@@ -375,7 +375,7 @@
 	   (do0 "var album Album"
 		(json.Unmarshal (w.Body.Bytes)
 				&album)
-		,(lprint :vars `(album))
+					;,(lprint :vars `(album))
 		(assert.NotEmpty tt album)
 		(assert.Equal tt album albumOrig))
 	   )
