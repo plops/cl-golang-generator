@@ -174,9 +174,9 @@
 
 	 (setf "var albums"
 	       (curly []album
-		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" 54.99)
-							    ("jeru" "eryy muliiang" 17.99)
-							    ("vaun and brown" "vaaughn" 39.99))
+		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
+							    ("jeru" "eryy muliiang" "17.99")
+							    ("vaun and brown" "vaaughn" "39.99"))
 			      and id from 1
 			      collect
 			      `(curly ""
@@ -269,8 +269,14 @@
 	  encoding/json
 	  net/http/httptest
 	  github.com/gin-gonic/gin
+
+	  
 	  )
 	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
+	 #+nil (do0
+	  (import fmt)
+	  ;,(lprint-init)
+	  )
 	 (defun SetUpRouter ()
 	   (declare (values *gin.Engine))
 	   (assign router (gin.Default))
@@ -288,11 +294,25 @@
 	   (r.ServeHTTP w req)
 	   #+nil (assign (ntuple responseData _)
 			 (ioutil.ReadAll w.Body))
+	    (setf "var albumsOrig"
+	       (curly []album
+		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
+							    ("jeru" "eryy muliiang" "17.99")
+							    ("vaun and brown" "vaaughn" "39.91"))
+			      and id from 1
+			      collect
+			      `(curly ""
+				      :ID (string ,id)
+				      :Title (string ,title)
+				      :Artist (string ,artist)
+				      :Price ,price))))
 	   "var albums []album"
 	   (json.Unmarshal (w.Body.Bytes)
 			   &albums)
 	   (assert.Equal tt http.StatusOK w.Code)
 	   (assert.NotEmpty tt albums)
+	   (assert.Equal tt albums albumsOrig)
+	   #+nil ,(lprint :vars `(albums))
 	   )
 
 	 )))
