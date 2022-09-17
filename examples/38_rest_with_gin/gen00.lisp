@@ -237,22 +237,33 @@
 			    ;; json of the new Album
 			    newAlbum)))
 
-	 (defun getAlbumByID (c)
-	   (declare (type *gin.Context c))
-	   (assign id (c.Param (string "id")))
-	   (comments "locate Album whose ID matches parameter")
-	   #+nil ,(lprint :msg "locate album with"
-			  :vars `(id))
-	   (foreach ((ntuple _ a)
-		     (range albums))
-		    (when (== a.ID id)
-		      (c.IndentedJSON http.StatusOK
-				      a)
-		      (return)))
-	   (c.IndentedJSON http.StatusNotFound
-			   (curly gin.H
-				  ,(make-keyword (string-upcase "\"message\""))
-				  (string "Album not found"))))
+	 (do0
+	  (comments "getAlbumByID godoc"
+		    "@Summary Get single album"
+		    "@Schemes"
+		    "@Description Get a single album from list"
+		    "@Tags albums"
+		    "@Accept json"
+		    "@Produce json"
+		    "@Param id path int true \"Get Album\""
+		    "@Success 200 {object} Album"
+		    "@Router /albums/{id} [get]")
+	  (defun getAlbumByID (c)
+	    (declare (type *gin.Context c))
+	    (assign id (c.Param (string "id")))
+	    (comments "locate Album whose ID matches parameter")
+	    #+nil ,(lprint :msg "locate album with"
+			   :vars `(id))
+	    (foreach ((ntuple _ a)
+		      (range albums))
+		     (when (== a.ID id)
+		       (c.IndentedJSON http.StatusOK
+				       a)
+		       (return)))
+	    (c.IndentedJSON http.StatusNotFound
+			    (curly gin.H
+				   ,(make-keyword (string-upcase "\"message\""))
+				   (string "Album not found")))))
 
 
 	 (defun reportDependencies ()

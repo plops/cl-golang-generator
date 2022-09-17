@@ -72,6 +72,17 @@ func postAlbums(c *gin.Context) {
 	albums = append(albums, newAlbum)
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
+
+// getAlbumByID godoc
+// @Summary Get single album
+// @Schemes
+// @Description Get a single album from list
+// @Tags albums
+// @Accept json
+// @Produce json
+// @Param id path int true "Get Album"
+// @Success 200 {object} Album
+// @Router /albums/{id} [get]
 func getAlbumByID(c *gin.Context) {
 	id := c.Param("id")
 	// locate Album whose ID matches parameter
@@ -94,9 +105,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "2df5b2e8bee237039053b4aa59660a9679d4f1ca"
+	code_git_version := "4108b2d420c813d894e4719c1ad8dbc3ef00a983"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "21:53:06 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "22:03:18 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
