@@ -1,0 +1,136 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Information about music album",
+        "title": "Music Album service",
+        "contact": {},
+        "license": {
+            "name": "Apache 2.0"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/albums": {
+            "get": {
+                "description": "Get all the albums",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "List existing albums",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.Album"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add a new album to the list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Add new album",
+                "parameters": [
+                    {
+                        "description": "Create Album",
+                        "name": "album",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Album"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.Album"
+                        }
+                    }
+                }
+            }
+        },
+        "/albums/{id}": {
+            "get": {
+                "description": "Get a single album from list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get single album",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Get Album",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.Album"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.Album": {
+            "description": "Information about music album",
+            "type": "object",
+            "required": [
+                "artist",
+                "id",
+                "price",
+                "title"
+            ],
+            "properties": {
+                "artist": {
+                    "type": "string",
+                    "example": "Art Ista"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 12.23
+                },
+                "title": {
+                    "type": "string",
+                    "example": "This is a song"
+                }
+            }
+        }
+    }
+}

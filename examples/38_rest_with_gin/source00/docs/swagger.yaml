@@ -1,0 +1,92 @@
+basePath: /
+definitions:
+  main.Album:
+    description: Information about music album
+    properties:
+      artist:
+        example: Art Ista
+        type: string
+      id:
+        example: "1"
+        type: string
+      price:
+        example: 12.23
+        type: number
+      title:
+        example: This is a song
+        type: string
+    required:
+    - artist
+    - id
+    - price
+    - title
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Information about music album
+  license:
+    name: Apache 2.0
+  title: Music Album service
+  version: "1.0"
+paths:
+  /albums:
+    get:
+      consumes:
+      - application/json
+      description: Get all the albums
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Album'
+            type: array
+      summary: List existing albums
+      tags:
+      - albums
+    post:
+      consumes:
+      - application/json
+      description: Add a new album to the list
+      parameters:
+      - description: Create Album
+        in: body
+        name: album
+        required: true
+        schema:
+          $ref: '#/definitions/main.Album'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Album'
+      summary: Add new album
+      tags:
+      - albums
+  /albums/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single album from list
+      parameters:
+      - description: Get Album
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Album'
+      summary: Get single album
+      tags:
+      - albums
+swagger: "2.0"
