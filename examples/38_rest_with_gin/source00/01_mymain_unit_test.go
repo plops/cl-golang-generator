@@ -9,6 +9,7 @@ import (
 	"testing"
 )
 
+// run with `go test` or `GIN_MODE=release go test -v`
 // a test file must end with _test.go. Each test method must start with prefix Test
 func SetUpRouter() *gin.Engine {
 	router := gin.Default()

@@ -53,42 +53,32 @@
 	   (panic err))
 
 	 ))
-    (defun check-err (var-cmd)
-      "checks second return value and returns fmt.Errorf. This is used in closures of the bbolt library."
+    (defun when-err (var-cmd-code)
+      "check second return value and execute code if error occured"
       (let ((err (format nil "err~2,'0d" err-nr)))
 	(destructuring-bind
-	      (&key (var "_") cmd)
-	    var-cmd
+	      (&key (var "_") cmd (code `(comments "no error handling code specified")) )
+	    var-cmd-code
 	  (prog1
 	      `(do0
 		(assign (ntuple ,var ,err)
 			,cmd)
 		(unless (== ,err "nil")
-		  ,(let ((msg (substitute #\' #\" (emit-go :code cmd))))
-		     `(do0
-		       #+nil
-		       ,(lprint :msg msg
-				:vars `( ,err))
-		       (return (fmt.Errorf (string ,(format nil "~a %s" msg)) ,err))))))
+		  ,code))
 	    (incf err-nr)))))
-    (defun check-err0 (cmd &key (use-err-number err-nr
-						))
-      "check return value and returns fmt.Errorf if not nil. This is used in closures of the bbolt library. if use-err-number is nil don't append a digit"
-      (let ((err (if use-err-number
-		     (format nil "err~2,'0d" err-nr)
-		     (format nil "err")))
-	    )
-	(prog1
-	    `(do0
-	      (assign ,err
-		      ,cmd)
-	      (unless (== ,err "nil")
-		,(let ((msg (substitute #\' #\" (emit-go :code cmd))))
-		   `(do0
-		     (return (fmt.Errorf (string ,(format nil "~a %s" msg)) ,err))))))
-	  (when use-err-number
-	    (incf err-nr)
-	    ))))
+    (defun when-err0 (cmd-code)
+      "check return value and execute code if error occured"
+      (let ((err (format nil "err~2,'0d" err-nr)))
+	(destructuring-bind
+	      (&key cmd (code `(comments "no error handling code specified")) )
+	    cmd-code
+	  (prog1
+	      `(do0
+		(assign ,err
+			,cmd)
+		(unless (== ,err "nil")
+		  ,code))
+	    (incf err-nr)))))
     (defun panic (var-cmd)
       "check second return value and panic with an error message if necessary"
       (let ((err (format nil "err~2,'0d" err-nr)))
@@ -111,7 +101,8 @@
 		      ,cmd)
 	      (checkAndPanic (string-raw ,(substitute #\' #\` (emit-go :code cmd)))
 			     ,err))
-	  (incf err-nr)))))
+	  (incf err-nr))))
+    )
 
   (let ((file-count 0))
     (defun write-go (name code)
@@ -196,7 +187,16 @@
 	   (c.IndentedJSON http.StatusOK
 			   albums))
 
-
+	 (defun postAlbums (c)
+	   (declare (type *gin.Context c))
+	   "var newAlbum album"
+	   ,(when-err0 `(:cmd (c.BindJSON &newAlbum)
+			      :code return))
+	   (comments "add new album to slice")
+	   (setf albums (append albums newAlbum))
+	   (c.IndentedJSON http.StatusCreated
+			   newAlbum))
+	 
 	 (defun reportDependencies ()
 	   (do0
 	    (assign (ntuple bi ok) (debug.ReadBuildInfo))
@@ -255,11 +255,14 @@
       (write-go
        name
        `(do0
+	 ;; how to write tests with gin: https://circleci.com/blog/gin-gonic-testing/
+
+	 
 	 ;; if the package is called main then
 	 ;; `go test` doesnt work
 	 ;; `go test *.go` works
 	 ;; This is some arcane behaviour of test driver: https://appliedgo.net/testmain/
-
+	 
 	 (package mymain)
 	 (import
 	  testing
@@ -270,13 +273,14 @@
 	  net/http/httptest
 	  github.com/gin-gonic/gin
 
-	  
+
 	  )
+	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
 	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
 	 #+nil (do0
-	  (import fmt)
-	  ;,(lprint-init)
-	  )
+		(import fmt)
+					;,(lprint-init)
+		)
 	 (defun SetUpRouter ()
 	   (declare (values *gin.Engine))
 	   (assign router (gin.Default))
@@ -294,18 +298,18 @@
 	   (r.ServeHTTP w req)
 	   #+nil (assign (ntuple responseData _)
 			 (ioutil.ReadAll w.Body))
-	    (setf "var albumsOrig"
-	       (curly []album
-		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
-							    ("jeru" "eryy muliiang" "17.99")
-							    ("vaun and brown" "vaaughn" "39.91"))
-			      and id from 1
-			      collect
-			      `(curly ""
-				      :ID (string ,id)
-				      :Title (string ,title)
-				      :Artist (string ,artist)
-				      :Price ,price))))
+	   (setf "var albumsOrig"
+		 (curly []album
+			,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
+							      ("jeru" "eryy muliiang" "17.99")
+							      ("vaun and brown" "vaaughn" "39.99"))
+				and id from 1
+				collect
+				`(curly ""
+					:ID (string ,id)
+					:Title (string ,title)
+					:Artist (string ,artist)
+					:Price ,price))))
 	   "var albums []album"
 	   (json.Unmarshal (w.Body.Bytes)
 			   &albums)
