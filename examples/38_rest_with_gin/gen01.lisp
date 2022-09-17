@@ -51,6 +51,28 @@
 	   "http://localhost:8080/albums/1"
 	   "--header \"Content-Type: application/json\""
 	   "--request \"GET\"")))
+
+
+  ;;pip3 install --user beautysh
+  (sb-ext:run-program "/home/martin/.local/bin/beautysh"
+		      `(,bash-fn)))
+
+
+
+(let* ((idx 4)
+       (name "run_go_unit_tests")
+       (bash-fn  (format nil "source00/setup~2,'0d_~a.sh" idx name)))
+  (with-open-file (s bash-fn
+		     :if-exists :supersede
+		     :direction :output
+		     :if-does-not-exist :create)
+    (flet ((out (&rest rest)
+	     (format s "~{~a~^ \\~%~}" rest))
+	   )
+      (out "GIN_MODE=release"
+	   "go test -v")))
+
+
   ;;pip3 install --user beautysh
   (sb-ext:run-program "/home/martin/.local/bin/beautysh"
 		      `(,bash-fn)))

@@ -149,7 +149,7 @@
 	  runtime/debug
 					;path/filepath
 					;"github.com/samber/lo"
-	  
+
 
 	  )
 
@@ -368,7 +368,7 @@
 						   (bytes.NewBuffer jsonValue)))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
-	   
+
 	   (assert.Equal tt http.StatusCreated w.Code))
 
 	 )))
