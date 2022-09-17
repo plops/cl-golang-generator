@@ -135,7 +135,7 @@
 	     code))
 	(incf file-count))))
 
-  (let ((name (format nil "~2,'0d_sql" *idx*)))
+  (let ((name (format nil "~2,'0d_router" *idx*)))
     (write-go
      name
      `(do0
@@ -242,7 +242,7 @@
 			  (dot header (Set (string "Access-Control-Allow-Origin")
 					   (string "*"))))
 			(w.WriteHeader http.StatusNoContent)))))
-	  
+
 	  (router.GET (string "/")
 		      Index)
 	  (router.GET (string "/hello/:name")

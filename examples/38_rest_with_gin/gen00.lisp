@@ -5,7 +5,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/37_httprouter"
+    (format nil "~a/stage/cl-golang-generator/examples/38_rest_with_gin"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defparameter *day-names*
@@ -135,7 +135,11 @@
 	     code))
 	(incf file-count))))
 
-  (let ((name (format nil "~2,'0d_sql" *idx*)))
+  (let ((name (format nil "~2,'0d_main" *idx*))
+	(record-def `((:name ID :type string)
+		      (:name Title :type string)
+		      (:name Artist :type string)
+		      (:name Place :type float64))))
     (write-go
      name
      `(do0
@@ -156,8 +160,34 @@
 
 
 	)
+
+       (defstruct0 album
+					;(ID "string `json:\"id\"`")
+	   ,@(loop for e in record-def
+		   collect
+		   (destructuring-bind (&key name type) e
+		     `(,name ,(format nil "~a `json:\"~a\"`"
+				      type
+				      (string-downcase (format nil "~a" name))))))
+	 )
+
+       (setf "var albums"
+	     (curly []album
+		    ,@(loop for (title artist price) in `(("blue train" "john coltrane" 54.99)
+							  ("jeru" "eryy muliiang" 17.99)
+							  ("vaun and brown" "vaaughn" 39.99))
+			    and id from 1
+			    collect
+			    `(curly ""
+				    :ID (string ,id)
+				    :Title (string ,title)
+				    :Artist (string ,artist)
+				    :Price ,price))))
+
        ,(lprint-init)
        ,(panic-init)
+
+
 
        (defun reportDependencies ()
 	 (do0
@@ -199,55 +229,12 @@
 		 `(do0
 		   ,(lprint :vars `(,e)))))
 
-       (defun Index (w r _)
-	 (declare (type http.ResponseWriter w)
-		  (type *http.Request r)
-		  (type httprouter.Params _))
-	 ,(lprint :msg "Index()")
-	 (fmt.Fprint w (string "Welcome!\\n")))
-
-       (defun Hello (w r ps)
-	 (declare (type http.ResponseWriter w)
-		  (type *http.Request r)
-		  (type httprouter.Params ps))
-	 ,(lprint :msg "Hello()")
-	 ;; FIXME why %s is not working?
-	 (fmt.Fprint w (string "hello, %s!\\n")
-		     (ps.ByName (string "name"))))
 
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
 	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
 	 (reportDependencies)
-
-	 (do0
-	  (assign port (string ":8080"))
-	  ,(lprint :msg "start httprouter on"
-		   :vars `(port))
-	  (assign router (httprouter.New))
-
-	  (do0 ,(lprint :msg "set up automatic OPTIONS request")
-	       (setf router.GlobalOPTIONS
-		     (http.HandlerFunc
-		      (lambda (w r)
-			(declare (type http.ResponseWriter w)
-				 (type *http.Request r))
-			(unless (== (r.Header.Get (string "Access-Control-Request-Method"))
-				    (string ""))
-			  (comments "set CORS headers")
-			  (assign header (w.Header))
-			  (dot header (Set (string "Access-Control-Allow-Methods")
-					   (header.Get (string "Allow"))))
-			  (dot header (Set (string "Access-Control-Allow-Origin")
-					   (string "*"))))
-			(w.WriteHeader http.StatusNoContent)))))
-
-	  (router.GET (string "/")
-		      Index)
-	  (router.GET (string "/hello/:name")
-		      Hello)
-	  (log.Fatal (http.ListenAndServe port router)))
 
 
 	 )))))
