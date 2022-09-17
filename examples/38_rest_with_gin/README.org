@@ -1,1 +1,9 @@
+
+- contents:
+
+  | file  | level | comment                            | language   |
+  | gen00 |   50% | rest server and unit tests         | lisp->go   |
+  | gen01 |       | scripts to make requests with curl | lisp->bash |
+
+
 - https://go.dev/doc/tutorial/web-service-gin

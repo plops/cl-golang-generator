@@ -194,9 +194,10 @@
 			      :code return))
 	   (comments "add new album to slice")
 	   (setf albums (append albums newAlbum))
-	   (c.IndentedJSON http.StatusCreated
+	   (c.IndentedJSON http.StatusCreated ;; 201 status code with
+			   ;; json of the new album
 			   newAlbum))
-	 
+
 	 (defun reportDependencies ()
 	   (do0
 	    (assign (ntuple bi ok) (debug.ReadBuildInfo))
@@ -246,8 +247,17 @@
 
 	   (do0
 	    (assign router (gin.Default))
-	    (router.GET (string "/albums")
-			getAlbums)
+	    ,@(loop for e in `((:name Albums))
+		    appending
+		    (destructuring-bind (&key name) e
+		      (let* ((small-name (string-downcase (format nil "~a" name)))
+			     (url `(string ,(format nil "/~a" small-name))))
+			(let ((getAlbums (format nil "get~a" name))
+			      (postAlbums (format nil "post~a" name)))
+			  `((router.GET ,url
+					,getAlbums)
+			    (router.POST ,url
+					 ,postAlbums))))))
 	    (router.Run (string "localhost:8080")))
 
 	   ))))
@@ -257,12 +267,12 @@
        `(do0
 	 ;; how to write tests with gin: https://circleci.com/blog/gin-gonic-testing/
 
-	 
+
 	 ;; if the package is called main then
 	 ;; `go test` doesnt work
 	 ;; `go test *.go` works
 	 ;; This is some arcane behaviour of test driver: https://appliedgo.net/testmain/
-	 
+
 	 (package mymain)
 	 (import
 	  testing

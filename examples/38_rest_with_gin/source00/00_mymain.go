@@ -53,9 +53,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "8dcc15f643017665798c552931b0cf568a1b11cf"
+	code_git_version := "e405a044edaa00c946537fcf7f09f90aa193a0c1"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "10:49:56 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "10:54:26 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -67,5 +67,6 @@ func main() {
 	reportDependencies()
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
+	router.POST("/albums", postAlbums)
 	router.Run("localhost:8080")
 }
