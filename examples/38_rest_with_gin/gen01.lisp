@@ -1,7 +1,7 @@
 
 (let* ((idx 1)
-      (name "curl_postAlbum")
-      (bash-fn  (format nil "source00/setup~2,'0d_~a.sh" idx name)))
+       (name "curl_postAlbum")
+       (bash-fn  (format nil "source00/setup~2,'0d_~a.sh" idx name)))
   (with-open-file (s bash-fn
 		     :if-exists :supersede
 		     :direction :output
