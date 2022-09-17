@@ -14,7 +14,7 @@ import (
 
 // @title  Music Album service
 // @version   1.0
-// @description Sample server to manage music albums.
+// @description Information about music album
 // @license.name Apache 2.0
 // @host localhost:8080
 // @BasePath /
@@ -41,7 +41,7 @@ func checkAndPanic(msg string, err error) {
 // @Summary List existing albums
 // @Schemes
 // @Description Get all the albums
-// @Tags albums,list
+// @Tags albums
 // @Accept json
 // @Produce json
 // @Success 200 {array} Album
@@ -83,9 +83,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "9c7f6c5cb6084c14f36ee81f3119bd92a7a01d00"
+	code_git_version := "a0d9aceea837a6f78af6d3182743bdab1ef132f6"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "21:36:05 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "21:45:37 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -99,7 +99,7 @@ func main() {
 	docs.SwaggerInfo.Description = "Music Albums API "
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.Host = "localhost:8080"
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Schemes = []string{"http"}
 	router := gin.Default()
 	router.GET("/albums", getAlbums)

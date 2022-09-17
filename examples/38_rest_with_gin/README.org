@@ -11,3 +11,4 @@
   - https://github.com/ragoncsa/todo/tree/v0.1.0
   - https://www.youtube.com/watch?v=fehHaHPjrs8 how to use swagger 2.0 with gin
     - visualize and test api
+    - repo: it is: https://gitlab.com/pragmaticreviews/golang-gin-poc/tree/swagger

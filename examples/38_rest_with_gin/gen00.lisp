@@ -161,11 +161,11 @@
 	 ;; ~/go/bin/swag init -g 00_mymain.go
 	 ;; format the comments:
 	 ;; ~/go/bin/swag fmt
-	 ;; look at API documentation while mymain is running:
+	 ;; look at API documentation while mymain is running, you can also test it:
 	 ;; http://localhost:8080/swagger/index.html
 	 (comments "@title  Music Album service"
 		   "@version   1.0"
-		   "@description Sample server to manage music albums."
+		   "@description Information about music album"
 		   "@license.name Apache 2.0"
 		   "@host localhost:8080"
 		   "@BasePath /")
@@ -203,7 +203,7 @@
 		   "@Summary List existing albums"
 		   "@Schemes"
 		   "@Description Get all the albums"
-		   "@Tags albums,list"
+		   "@Tags albums"
 		   "@Accept json"
 		   "@Produce json"
 		   "@Success 200 {array} Album"
@@ -296,16 +296,16 @@
 			       (Description (string "Music Albums API "))
 			       (Version (string "1.0"))
 			       (Host (string "localhost:8080"))
-			       (BasePath (string "/api/v1"))
+			       (BasePath (string "/"))
 			       (Schemes (curly []string (string "http"))))
 		    collect
 		    (destructuring-bind (name value) e
-		     `(setf (dot
-			     docs
-			     SwaggerInfo
-			     ,name )
-			    ,value))))
-	   
+		      `(setf (dot
+			      docs
+			      SwaggerInfo
+			      ,name )
+			     ,value))))
+
 	   (do0
 	    (assign router (gin.Default))
 	    ,@(loop for e in `((:name Albums :type get)
