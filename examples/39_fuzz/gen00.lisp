@@ -188,8 +188,8 @@
 		    (return "false")))
 	 (return "true"))
 
-      
-       
+
+
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
@@ -204,7 +204,7 @@
        (import
 	testing
 	)
-       
+
 
        (defun TestEqual (tt)
 	 (declare (type *testing.T tt))
@@ -218,7 +218,17 @@
 				 collect
 				 `(char ,c))))
 	   (tt.Error (string "expected true, got false"))))
-      
+
+        (defun FuzzEqual (f)
+	  (declare (type *testing.F f))
+	  (comments "run this test with `go test -fuzz .`") 
+	 (f.Fuzz
+	  (lambda (tt a b)
+	    (declare (type []byte a b)
+		     (type *testing.T tt) )
+	    (Equal a b)
+	    )))
+
        )))
 
-)
+  )
