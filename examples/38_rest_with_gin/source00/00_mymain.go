@@ -42,6 +42,17 @@ func postAlbums(c *gin.Context) {
 	albums = append(albums, newAlbum)
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
+func getAlbumByID(c *gin.Context) {
+	id := c.Param("id")
+	// locate album whose ID matches parameter
+	for _, a := range albums {
+		if (a.ID) == (id) {
+			c.IndentedJSON(http.StatusOK, a)
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+}
 func reportDependencies() {
 	bi, ok := debug.ReadBuildInfo()
 	if ok {
@@ -53,9 +64,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "92bdfa898f1bc1675b072660203029edbd211371"
+	code_git_version := "e31b1feadff9a70b6c2442b09e076fd10cb0ecd8"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "11:18:01 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "13:27:20 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -68,5 +79,6 @@ func main() {
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
 	router.POST("/albums", postAlbums)
+	router.GET("/albums/:id", getAlbumByID)
 	router.Run("localhost:8080")
 }
