@@ -1,0 +1,2 @@
+- golang has fuzz testing in the language since 1.18
+- explore it based on https://www.youtube.com/watch?v=w8STTZWdG9Y
