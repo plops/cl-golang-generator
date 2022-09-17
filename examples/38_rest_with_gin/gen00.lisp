@@ -149,11 +149,11 @@
 	  runtime/debug
 					;path/filepath
 					;"github.com/samber/lo"
-
+	  
 
 	  )
 
-	 (defstruct0 album
+	 (defstruct0 Album
 					;(ID "string `json:\"id\"`")
 	     ,@(loop for e in record-def
 		     collect
@@ -163,8 +163,8 @@
 					(string-downcase (format nil "~a" name))))))
 	   )
 
-	 (setf "var albums"
-	       (curly []album
+	 (setf "var Albums"
+	       (curly []Album
 		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
 							    ("jeru" "eryy muliiang" "17.99")
 							    ("vaun and brown" "vaaughn" "39.99"))
@@ -185,25 +185,25 @@
 	   (comments "gin.Context carries request details, validates and serializes JSON"
 		     "note: Context.JSON would be more compact")
 	   (c.IndentedJSON http.StatusOK
-			   albums))
+			   Albums))
 
 	 (defun postAlbums (c)
 	   (declare (type *gin.Context c))
-	   "var newAlbum album"
+	   "var newAlbum Album"
 	   ,(when-err0 `(:cmd (c.BindJSON &newAlbum)
 			      :code return))
-	   (comments "add new album to slice")
-	   (setf albums (append albums newAlbum))
+	   (comments "add new Album to slice")
+	   (setf Albums (append Albums newAlbum))
 	   (c.IndentedJSON http.StatusCreated ;; 201 status code with
-			   ;; json of the new album
+			   ;; json of the new Album
 			   newAlbum))
 
 	 (defun getAlbumByID (c)
 	   (declare (type *gin.Context c))
 	   (assign id (c.Param (string "id")))
-	   (comments "locate album whose ID matches parameter")
+	   (comments "locate Album whose ID matches parameter")
 	   (foreach ((ntuple _ a)
-		     (range albums))
+		     (range Albums))
 		    (when (== a.ID id)
 		      (c.IndentedJSON http.StatusOK
 				      a)
@@ -211,7 +211,7 @@
 	   (c.IndentedJSON http.StatusNotFound
 			   (curly gin.H
 				  ,(make-keyword (string-upcase "\"message\""))
-				  (string "album not found"))))
+				  (string "Album not found"))))
 
 
 	 (defun reportDependencies ()
@@ -265,7 +265,7 @@
 	    (assign router (gin.Default))
 	    ,@(loop for e in `((:name Albums :type get)
 			       (:name Albums :type post)
-			       (:name AlbumByID :type get :url (string "/albums/:id"))
+			       (:name AlbumByID :type get :url (string "/Albums/:id"))
 			       )
 		    appending
 		    (destructuring-bind (&key name type url) e
@@ -301,6 +301,8 @@
 	  encoding/json
 	  net/http/httptest
 	  github.com/gin-gonic/gin
+	  github.com/rs/xid
+	  bytes
 
 
 	  )
@@ -317,18 +319,18 @@
 	 (defun Test_getAlbums (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
-	   (r.GET (string "/albums")
+	   (r.GET (string "/Albums")
 		  getAlbums)
 
 	   (assign (ntuple req _) (http.NewRequest (string "GET")
-						   (string "/albums")
+						   (string "/Albums")
 						   "nil"))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
 	   #+nil (assign (ntuple responseData _)
 			 (ioutil.ReadAll w.Body))
 	   (setf "var albumsOrig"
-		 (curly []album
+		 (curly []Album
 			,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
 							      ("jeru" "eryy muliiang" "17.99")
 							      ("vaun and brown" "vaaughn" "39.99"))
@@ -339,7 +341,7 @@
 					:Title (string ,title)
 					:Artist (string ,artist)
 					:Price ,price))))
-	   "var albums []album"
+	   "var albums []Album"
 	   (json.Unmarshal (w.Body.Bytes)
 			   &albums)
 	   (assert.Equal tt http.StatusOK w.Code)
@@ -351,36 +353,23 @@
 	 (defun Test_postAlbums (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
-	   (r.GET (string "/albums")
-		  getAlbums)
-
-	   (assign (ntuple req _) (http.NewRequest (string "GET")
+	   (r.POST (string "/albums")
+		   postAlbums)
+	   (assign albumId (dot xid
+				(New)
+				(String)))
+	   (assign album (curly Album :ID albumId
+				:Title (string "bla")
+				:Artist (string "blub")
+				:Price "32.12"))
+	   (assign (ntuple jsonValue _) (json.Marshal album))
+	   (assign (ntuple req _) (http.NewRequest (string "POST")
 						   (string "/albums")
-						   "nil"))
+						   (bytes.NewBuffer jsonValue)))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
-	   #+nil (assign (ntuple responseData _)
-			 (ioutil.ReadAll w.Body))
-	   (setf "var albumsOrig"
-		 (curly []album
-			,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
-							      ("jeru" "eryy muliiang" "17.99")
-							      ("vaun and brown" "vaaughn" "39.99"))
-				and id from 1
-				collect
-				`(curly ""
-					:ID (string ,id)
-					:Title (string ,title)
-					:Artist (string ,artist)
-					:Price ,price))))
-	   "var albums []album"
-	   (json.Unmarshal (w.Body.Bytes)
-			   &albums)
-	   (assert.Equal tt http.StatusOK w.Code)
-	   (assert.NotEmpty tt albums)
-	   (assert.Equal tt albums albumsOrig)
-	   #+nil ,(lprint :vars `(albums))
-	   )
+	   
+	   (assert.Equal tt http.StatusCreated w.Code))
 
 	 )))
     ))
