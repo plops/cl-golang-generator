@@ -6,4 +6,8 @@
   | gen01 |       | scripts to make requests with curl | lisp->bash |
 
 
-- https://go.dev/doc/tutorial/web-service-gin
+- gin tutorial: https://go.dev/doc/tutorial/web-service-gin
+- documentation tutorial: https://blog.devgenius.io/simple-rest-service-in-golang-with-openapi-spec-and-orm-a447b1086e21
+  - https://github.com/ragoncsa/todo/tree/v0.1.0
+  - https://www.youtube.com/watch?v=fehHaHPjrs8 how to use swagger 2.0 with gin
+    - visualize and test api

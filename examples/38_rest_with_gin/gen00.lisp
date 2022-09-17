@@ -127,10 +127,10 @@
 					;(incf file-count)
 	)))
 
-  (let ((record-def `((:name ID :type string)
-		      (:name Title :type string)
-		      (:name Artist :type string)
-		      (:name Price :type float64))))
+  (let ((record-def `((:name ID :type string :example "1" :binding required)
+		      (:name Title :type string :example "This is a song" :binding required)
+		      (:name Artist :type string :example "Art Ista" :binding required)
+		      (:name Price :type float64 :example "12.23" :binding required))))
     (let ((name (format nil "~2,'0d_mymain" *idx*)))
       (write-go
        name
@@ -149,18 +149,37 @@
 	  runtime/debug
 					;path/filepath
 					;"github.com/samber/lo"
-
+	  (ginSwagger github.com/swaggo/gin-swagger)
+	  (swaggerfiles github.com/swaggo/files)
+	  (docs "mymain/docs")
 
 	  )
+	 ;; install swag
+	 ;; go get github.com/swaggo/swag/cmd/swag
+	 ;; go install github.com/swaggo/swag/cmd/swag
+	 ;; create documentation:
+	 ;; ~/go/bin/swag init -g 00_mymain.go
+	 ;; format the comments:
+	 ;; ~/go/bin/swag fmt
+	 ;; look at API documentation while mymain is running:
+	 ;; http://localhost:8080/swagger/index.html
+	 (comments "@title  Music Album service"
+		   "@version   1.0"
+		   "@description Sample server to manage music albums."
+		   "@license.name Apache 2.0"
+		   "@host localhost:8080"
+		   "@BasePath /")
 
 	 (defstruct0 Album
 					;(ID "string `json:\"id\"`")
 	     ,@(loop for e in record-def
 		     collect
-		     (destructuring-bind (&key name type) e
-		       `(,name ,(format nil "~a `json:\"~a\"`"
+		     (destructuring-bind (&key name type example binding) e
+		       `(,name ,(format nil "~a `json:\"~a\" binding:\"~a\" example:\"~a\"`"
 					type
-					(string-downcase (format nil "~a" name))))))
+					(string-downcase (format nil "~a" name))
+					binding
+					example))))
 	   )
 
 	 (setf "var albums"
@@ -180,6 +199,15 @@
 	 ,(panic-init)
 
 
+	 (comments "getAlbums godoc"
+		   "@Summary List existing albums"
+		   "@Schemes"
+		   "@Description Get all the albums"
+		   "@Tags albums,list"
+		   "@Accept json"
+		   "@Produce json"
+		   "@Success 200 {array} Album"
+		   "@Router /albums [get]")
 	 (defun getAlbums (c)
 	   (declare (type *gin.Context c))
 	   (comments "gin.Context carries request details, validates and serializes JSON"
@@ -264,6 +292,21 @@
 	   (reportDependencies)
 
 	   (do0
+	    ,@(loop for e in `((Title (string "Music Albums API"))
+			       (Description (string "Music Albums API "))
+			       (Version (string "1.0"))
+			       (Host (string "localhost:8080"))
+			       (BasePath (string "/api/v1"))
+			       (Schemes (curly []string (string "http"))))
+		    collect
+		    (destructuring-bind (name value) e
+		     `(setf (dot
+			     docs
+			     SwaggerInfo
+			     ,name )
+			    ,value))))
+	   
+	   (do0
 	    (assign router (gin.Default))
 	    ,@(loop for e in `((:name Albums :type get)
 			       (:name Albums :type post)
@@ -279,6 +322,10 @@
 			      (GET (string-upcase (format nil "~a" type))))
 			  `((dot router (,GET ,url
 					      ,fun)))))))
+	    (router.GET (string "/swagger/*any")
+			(dot ginSwagger
+			     (WrapHandler
+			      swaggerfiles.Handler)))
 	    (router.Run (string "localhost:8080")))
 
 	   ))))

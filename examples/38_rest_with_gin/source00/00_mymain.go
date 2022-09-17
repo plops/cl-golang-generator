@@ -3,17 +3,26 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	docs "mymain/docs"
 	"net/http"
 	"runtime"
 	"runtime/debug"
 	"time"
 )
 
+// @title  Music Album service
+// @version   1.0
+// @description Sample server to manage music albums.
+// @license.name Apache 2.0
+// @host localhost:8080
+// @BasePath /
 type Album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
+	ID     string  `json:"id" binding:"required" example:"1"`
+	Title  string  `json:"title" binding:"required" example:"This is a song"`
+	Artist string  `json:"artist" binding:"required" example:"Art Ista"`
+	Price  float64 `json:"price" binding:"required" example:"12.23"`
 }
 
 var albums = []Album{{ID: "1", Title: "blue train", Artist: "john coltrane", Price: 54.99}, {ID: "2", Title: "jeru", Artist: "eryy muliiang", Price: 17.99}, {ID: "3", Title: "vaun and brown", Artist: "vaaughn", Price: 39.99}}
@@ -27,6 +36,16 @@ func checkAndPanic(msg string, err error) {
 		panic(err)
 	}
 }
+
+// getAlbums godoc
+// @Summary List existing albums
+// @Schemes
+// @Description Get all the albums
+// @Tags albums,list
+// @Accept json
+// @Produce json
+// @Success 200 {array} Album
+// @Router /albums [get]
 func getAlbums(c *gin.Context) {
 	// gin.Context carries request details, validates and serializes JSON
 	// note: Context.JSON would be more compact
@@ -64,9 +83,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "e502fc549354b9049cf6e4b96e16366ed8f18996"
+	code_git_version := "9c7f6c5cb6084c14f36ee81f3119bd92a7a01d00"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "13:57:38 of Saturday, 2022-09-17 (GMT+1)"
+	code_generation_time := "21:36:05 of Saturday, 2022-09-17 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -76,9 +95,16 @@ func main() {
 	reportGenerator()
 	fmt.Printf("%v Go version: runtime.Version()=%v\n", timeNow(), runtime.Version())
 	reportDependencies()
+	docs.SwaggerInfo.Title = "Music Albums API"
+	docs.SwaggerInfo.Description = "Music Albums API "
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http"}
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
 	router.POST("/albums", postAlbums)
 	router.GET("/albums/:id", getAlbumByID)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	router.Run("localhost:8080")
 }

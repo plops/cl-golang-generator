@@ -80,3 +80,25 @@
   ;;pip3 install --user beautysh
   (sb-ext:run-program "/home/martin/.local/bin/beautysh"
 		      `(,bash-fn)))
+
+
+(let* ((idx 5)
+       (name "rebuild_swagger")
+       (bash-fn  (format nil "source00/setup~2,'0d_~a.sh" idx name)))
+  (with-open-file (s bash-fn
+		     :if-exists :supersede
+		     :direction :output
+		     :if-does-not-exist :create)
+    (flet ((out (&rest rest)
+	     (format s "~{~a~^ \\~%~}~%" rest))
+	   )
+      (out "set -x")
+      (out "~/go/bin/swag "
+	   "init -g 00_mymain.go")
+      (out "~/go/bin/swag fmt")
+      ))
+
+
+  ;;pip3 install --user beautysh
+  (sb-ext:run-program "/home/martin/.local/bin/beautysh"
+		      `(,bash-fn)))
