@@ -127,7 +127,7 @@
 			       :direction :output
 			       :if-exists nil
 			       :if-does-not-exist :create)
-	      (format s "module main~%")
+	      (format s "module mymain~%")
 	      (format s "go 1.18~%"))
 	    (write-source
 	     (format nil "~a/source~2,'0d/~a"
@@ -140,11 +140,11 @@
 		      (:name Title :type string)
 		      (:name Artist :type string)
 		      (:name Price :type float64))))
-    (let ((name (format nil "~2,'0d_main" *idx*)))
+    (let ((name (format nil "~2,'0d_mymain" *idx*)))
       (write-go
        name
        `(do0
-	 (package main)
+	 (package mymain)
 	 (import
 	  fmt
 	  net/http
@@ -251,15 +251,16 @@
 	    (router.Run (string "localhost:8080")))
 
 	   ))))
-    (let ((name (format nil "~2,'0d_main_unit_test" 1)))
+    (let ((name (format nil "~2,'0d_mymain_unit_test" 1)))
       (write-go
        name
        `(do0
+	 ;; if the package is called main then
 	 ;; `go test` doesnt work
 	 ;; `go test *.go` works
-	 ;; This is some arcane behaviour of test driver: https://appliedgo.net/testmain/ 
-	 
-	 (package main)
+	 ;; This is some arcane behaviour of test driver: https://appliedgo.net/testmain/
+
+	 (package mymain)
 	 (import
 	  testing
 	  net/http
@@ -293,6 +294,6 @@
 	   (assert.Equal tt http.StatusOK w.Code)
 	   (assert.NotEmpty tt albums)
 	   )
-	 
+
 	 )))
     ))
