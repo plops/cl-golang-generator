@@ -139,7 +139,7 @@
 	(record-def `((:name ID :type string)
 		      (:name Title :type string)
 		      (:name Artist :type string)
-		      (:name Place :type float64))))
+		      (:name Price :type float64))))
     (write-go
      name
      `(do0
@@ -147,8 +147,8 @@
        (import
 	fmt
 	net/http
-	log
-	github.com/julienschmidt/httprouter
+					;log
+	github.com/gin-gonic/gin
 
 					;math
 					;encoding/binary
@@ -187,6 +187,13 @@
        ,(lprint-init)
        ,(panic-init)
 
+
+       (defun getAlbums (c)
+	 (declare (type *gin.Context c))
+	 (comments "gin.Context carries request details, validates and serializes JSON"
+		   "note: Context.JSON would be more compact")
+	 (c.IndentedJSON http.StatusOK
+			 albums))
 
 
        (defun reportDependencies ()
@@ -236,5 +243,10 @@
 	 ,(lprint :msg "Go version:" :vars `((runtime.Version)))
 	 (reportDependencies)
 
+	 (do0
+	  (assign router (gin.Default))
+	  (router.GET (string "/albums")
+		      getAlbums)
+	  (router.Run (string "localhost:8080")))
 
 	 )))))
