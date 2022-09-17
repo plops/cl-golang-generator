@@ -224,7 +224,7 @@
 
        (defun FuzzEqual (f)
 	 (declare (type *testing.F f))
-	 (comments "run this test with `go test -fuzz .`")
+	 (comments "run this test with `go test -fuzz=. -fuzztime=5s .`")
 	 (f.Fuzz
 	  (lambda (tt a b)
 	    (declare (type []byte a b)
