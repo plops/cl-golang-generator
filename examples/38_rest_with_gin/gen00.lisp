@@ -380,5 +380,8 @@
 		(assert.Equal tt album albumOrig))
 	   )
 
+	 ;; fuzz testing described here
+	 ;; https://universalglue.dev/posts/gin-fuzzing/
+
 	 )))
     ))
