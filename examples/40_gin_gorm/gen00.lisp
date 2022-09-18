@@ -539,10 +539,10 @@
 	  encoding/json
 	  net/http/httptest
 	  github.com/gin-gonic/gin
-	  ;github.com/rs/xid
-	  ;bytes
+					;github.com/rs/xid
+	  bytes
 	  os
-					;fmt
+	  fmt
 
 	  )
 	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
@@ -558,18 +558,71 @@
 	      ,(panic0 `(os.Remove dbFilename))))
 	   (assign router (gin.Default))
 	   (return router))
-	 
-	 (defun Test_getUsers (tt)
+
+	 (defun Test_00_getUsers_empty (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
 	   (r.GET (string "/users")
 		  getUsers)
 
 	   (assign (ntuple req _) (http.NewRequest (string "GET")
-						   (string "/api/v1/users")
+						   (string "/users")
 						   "nil"))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
+	   (setf "var usersOrig"
+		 (curly []Users
+		))
+
+	   (assert.Equal tt http.StatusOK w.Code)
+	   (do0 "var users []Users"
+		(json.Unmarshal (w.Body.Bytes)
+				&users)
+		(assert.Empty tt users)
+		(assert.Equal tt users usersOrig)))
+
+
+
+	 (defun Test_01_postUser (tt)
+	   (declare (type *testing.T tt))
+	   (assign r (SetUpRouter))
+	   (r.POST (string "/users")
+		   postUser)
+	   
+	   (assign userOrig (curly Users
+				    :GivenName (string "Bella")
+				    :LastName (string "Hound")
+				    ))
+	   (assign (ntuple jsonValue _) (json.Marshal userOrig))
+	   (assign (ntuple req _) (http.NewRequest (string "POST")
+						   (string "/users")
+						   (bytes.NewBuffer jsonValue)))
+	   (assign w (httptest.NewRecorder))
+	   (r.ServeHTTP w req)
+
+	   (assert.Equal tt http.StatusCreated w.Code)
+
+	   (do0 "var user Users "
+		(json.Unmarshal (w.Body.Bytes)
+				&user)
+		(assert.NotEmpty tt user)
+		,(lprint :vars `(user userOrig))
+		(assert.Equal tt user userOrig))
+	   )
+	 
+	 #+nil
+	 
+	 (defun Test_01_putUser (tt)
+	   (declare (type *testing.T tt))
+	   (assign r (SetUpRouter))
+	   (r.POST (string "/users/")
+		  getUsers)
+	   
+	   (do0 (assign (ntuple req _) (http.NewRequest (string "GET")
+						    (string "/api/v1/users")
+						    "nil"))
+		(assign w (httptest.NewRecorder))
+		(r.ServeHTTP w req))
 	   #+nil (assign (ntuple responseData _)
 			 (ioutil.ReadAll w.Body))
 	   (setf "var usersOrig"
@@ -592,36 +645,8 @@
 		(assert.Equal tt users usersOrig))
 	   #+nil ,(lprint :vars `(albums))
 	   )
-	 #+nil
-	 (defun Test_postAlbums (tt)
-	   (declare (type *testing.T tt))
-	   (assign r (SetUpRouter))
-	   (r.POST (string "/albums")
-		   postAlbums)
-	   (assign albumId (dot xid
-				(New)
-				(String)))
-	   (assign albumOrig (curly Album :ID albumId
-				    :Title (string "bla")
-				    :Artist (string "blub")
-				    :Price "32.12"))
-					;,(lprint :vars `(albumOrig))
-	   (assign (ntuple jsonValue _) (json.Marshal albumOrig))
-	   (assign (ntuple req _) (http.NewRequest (string "POST")
-						   (string "/albums")
-						   (bytes.NewBuffer jsonValue)))
-	   (assign w (httptest.NewRecorder))
-	   (r.ServeHTTP w req)
-
-	   (assert.Equal tt http.StatusCreated w.Code)
-
-	   (do0 "var album Album"
-		(json.Unmarshal (w.Body.Bytes)
-				&album)
-					;,(lprint :vars `(album))
-		(assert.NotEmpty tt album)
-		(assert.Equal tt album albumOrig))
-	   )
+	 
+	 
 
 	 ;; fuzz testing described here
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
