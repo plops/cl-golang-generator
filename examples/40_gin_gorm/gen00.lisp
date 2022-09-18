@@ -39,7 +39,7 @@
        ,(format nil "%v ~a ~{~a=%v (%T)~^ ~}\\n"
 		msg vars))
       (timeNow)
-      ,@(loop for e in vars 
+      ,@(loop for e in vars
 	      appending
 	      `(,e ,e))))
   (let ((err-nr 0))
@@ -128,6 +128,7 @@
 	)))
 
   (let ((record-def `((:name Id :type int :example 1 :gorm AUTO_INCREMENT ;:binding required
+			     ;; if the Id is set to <n> in the POST command then subsequent posts with empty Id will assign <n+1>, <n+2> ... 
 			     )
 		      (:name GivenName :type string :example "Heuss" :gorm "not null" :binding required)
 		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
@@ -332,6 +333,7 @@
 		     ,(lprint :vars `(,e)))))
 	 ,(let ((route-def `(
 			     (:name User :type post
+				    :url (string "/users")
 				    :doc
 				    (comments
 				     "@Summary Add new user"
