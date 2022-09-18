@@ -195,7 +195,7 @@
 					  (string "./data.db"))))
 	   (db.LogMode true)
 	   (comments "create database table from Go structure definition")
-	   (unless (db.HasTable (curly &User))
+	   (unless (db.HasTable (curly &Users))
 	     (db.CreateTable (curly &Users))
 	     (dot db
 		  (Set (string "gorm:table_options")
@@ -385,7 +385,7 @@
 				     "var user Users"
 				     (db.First &user id)
 				     (if (logand (!= user.GivenName (string ""))
-						 (!= user.LastName (srting "")))
+						 (!= user.LastName (string "")))
 					 (do0 (if (== user.Id 0)
 						  (do0
 						   (c.IndentedJSON http.StatusNotFound ;; 404
@@ -425,7 +425,7 @@
 							  ))
 					 (do0
 					  (comments "delete from users where id = user.Id")
-					  (d.Delete &user)
+					  (db.Delete &user)
 					  (c.IndentedJSON http.StatusOK ;; 200
 							  (curly gin.H ,(make-keyword "\"SUCCESS\"")
 								 (+ (string "User #")
@@ -450,6 +450,31 @@
 				(assign db (InitDb))
 				(defer (db.Close)))
 			       ,code)))))
+
+
+	      (defun Cors ()
+		(declare (values gin.HandlerFunc))
+		(return (lambda (c)
+			  (declare (type *gin.Context c))
+			  (dot c
+			       Writer (Header)
+			       (Set (string "Access-Control-Allow-Origin")
+				    (string "*")))
+			  (c.Next))))
+	      (defun OptionsUser (c)
+		(declare (type *gin.Context c)
+			 )
+		(comments "for XMLHttpRequest or Fetch from Javascript with CORS")
+		(dot c
+		     Writer (Header)
+		     (Set (string "Access-Control-Allow-Methods")
+			  (string "DELETE,POST,PUT")))
+		(dot c
+		     Writer (Header)
+		     (Set (string "Access-Control-Allow-Headers")
+			  (string "Content-Type")))
+		(c.Next))
+
 	      (defun main ()
 		,(lprint :msg (format nil "program ~a starts" name))
 		(reportGenerator)
@@ -473,6 +498,7 @@
 
 		(do0
 		 (assign router (gin.Default))
+		 (router.Use (Cors))
 		 (assign v1 (router.Group (string "api/v1")))
 		 (progn
 		   ,@(loop for e in route-def
@@ -484,7 +510,14 @@
 			       (let ((fun (format nil "~a~a" type name))
 				     (GET (string-upcase (format nil "~a" type))))
 				 `((dot v1 (,GET ,url
-						 ,fun))))))))
+						 ,fun)))))))
+		   (comments "POST:")
+		   (v1.OPTIONS (string "/users")
+			       OptionsUser)
+		   (comments "PUT,DELETE")
+		   (v1.OPTIONS (string "/users/:id")
+			       OptionsUser)
+		   )
 		 (router.GET (string "/swagger/*any")
 			     (dot ginSwagger
 				  (WrapHandler
