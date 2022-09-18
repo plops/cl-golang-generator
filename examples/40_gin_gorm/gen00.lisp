@@ -576,7 +576,7 @@
 	  bytes
 	  os
 	  fmt
-	  ;strconv
+					;strconv
 	  )
 	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
 	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
@@ -827,8 +827,8 @@
 					       (string ,last-name)))
 			       )
 		       ))))))
-	 
-	 
+
+
 
 
 
@@ -836,60 +836,60 @@
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
 
 	 (defun FuzzEntries (f)
-	 (declare (type *testing.F f))
-	 (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
-		   "fuzzing can run out of memory, be careful when using it in CI environment")
-	 (do0 (assign r (SetUpRouter))
-	      (r.POST (string "/users")
-		      postUser)
-	      (r.GET (string "/users/:id")
-		     getUserById)
-	      (r.DELETE (string "/users/:id")
-			deleteUserById))
-	 (f.Fuzz
-	  (lambda (tt givenName lastName id)
-	    (declare (type string givenName lastName )
-		     (type int id)
-		     (type *testing.T tt) )
-	    (do0
-	     (do0
-	      (comments ,(format nil "submit post request to add a new user"))
-	      (assign userToSubmit (curly Users
-					  :Id id
-					  :GivenName givenName
-					  :LastName lastName))
-	      (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
-					;,(lprint :vars `(("string" jsonValue)))
-	      (assign (ntuple req _) (http.NewRequest (string "POST")
-						      (string "/users")
-						      (bytes.NewBuffer jsonValue)))
+	   (declare (type *testing.F f))
+	   (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
+		     "fuzzing can run out of memory, be careful when using it in CI environment")
+	   (do0 (assign r (SetUpRouter))
+		(r.POST (string "/users")
+			postUser)
+		(r.GET (string "/users/:id")
+		       getUserById)
+		(r.DELETE (string "/users/:id")
+			  deleteUserById))
+	   (f.Fuzz
+	    (lambda (tt givenName lastName id)
+	      (declare (type string givenName lastName )
+		       (type int id)
+		       (type *testing.T tt) )
 	      (do0
-	       (comments "verify response for the post request")
-	       (assign w (httptest.NewRecorder))
-	       (r.ServeHTTP w req)
-	       (assert.Equal tt http.StatusCreated w.Code)
-	       (do0 "var userReadBack Users "
-		    (json.Unmarshal (w.Body.Bytes)
-				    &userReadBack)
-		    ,(lprint :vars `(userToSubmit userReadBack))
-		    (assert.NotEmpty tt userReadBack)
-		    ,@(loop for e in `(GivenName LastName)
-			    collect
-			    `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
+	       (do0
+		(comments ,(format nil "submit post request to add a new user"))
+		(assign userToSubmit (curly Users
+					    :Id id
+					    :GivenName givenName
+					    :LastName lastName))
+		(assign (ntuple jsonValue _) (json.Marshal userToSubmit))
+					;,(lprint :vars `(("string" jsonValue)))
+		(assign (ntuple req _) (http.NewRequest (string "POST")
+							(string "/users")
+							(bytes.NewBuffer jsonValue)))
+		(do0
+		 (comments "verify response for the post request")
+		 (assign w (httptest.NewRecorder))
+		 (r.ServeHTTP w req)
+		 (assert.Equal tt http.StatusCreated w.Code)
+		 (do0 "var userReadBack Users "
+		      (json.Unmarshal (w.Body.Bytes)
+				      &userReadBack)
+		      ,(lprint :vars `(userToSubmit userReadBack))
+		      (assert.NotEmpty tt userReadBack)
+		      ,@(loop for e in `(GivenName LastName)
+			      collect
+			      `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
 
-	      #+nil(do0
-	       (comments "delete the user")
-	       (assign (ntuple req2 _) (http.NewRequest (string "DELETE")
-						       (+ (string "/users/")
-							  (strconv.Itoa (dot userReadBack Id)))
-						       (bytes.NewBuffer jsonValue)))
-	       (assign w2 (httptest.NewRecorder))
-	       (r.ServeHTTP w2 req2)
-	       (assert.Equal tt http.StatusOK w2.Code)
+		#+nil(do0
+		      (comments "delete the user")
+		      (assign (ntuple req2 _) (http.NewRequest (string "DELETE")
+							       (+ (string "/users/")
+								  (strconv.Itoa (dot userReadBack Id)))
+							       (bytes.NewBuffer jsonValue)))
+		      (assign w2 (httptest.NewRecorder))
+		      (r.ServeHTTP w2 req2)
+		      (assert.Equal tt http.StatusOK w2.Code)
+		      )
+		)
 	       )
-	      )
-	     )
-	    	    )))
+	      )))
 
 	 )))
     ))
