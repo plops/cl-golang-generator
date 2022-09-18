@@ -193,7 +193,7 @@
 				 (string-downcase (format nil "~a" name)) ;; form
 				 gorm
 				 binding
-				 example)))))	 
+				 example)))))
 
 	 ,(lprint-init)
 	 ,(panic-init)
@@ -307,7 +307,6 @@
 					  "@Accept json"
 					  "@Produce json"
 					  "@Success 200 {array} Users"
-					;"@Failure 200 {array} Album"
 					  "@Router /users [get]")
 				    :code
 				    (do0
@@ -339,8 +338,8 @@
 
 					 (c.IndentedJSON http.StatusNotFound ;; 404
 							 (curly gin.H
-									  ,(make-keyword "\"ERROR\"")
-									  (string "User not found"))
+								,(make-keyword "\"ERROR\"")
+								(string "User not found"))
 							 )
 					 (c.IndentedJSON http.StatusOK ;; 200
 							 user))))
@@ -425,11 +424,7 @@
 							  (curly gin.H ,(make-keyword "\"SUCCESS\"")
 								 (+ (string "User #")
 								    id
-								    (string " deleted"))))))
-
-				     )
-				    )
-			     )))
+								    (string " deleted")))))))))))
 	    `(do0
 	      ,@(loop for e in route-def
 		      collect
@@ -544,8 +539,9 @@
 	  encoding/json
 	  net/http/httptest
 	  github.com/gin-gonic/gin
-	  github.com/rs/xid
-	  bytes
+	  ;github.com/rs/xid
+	  ;bytes
+	  os
 					;fmt
 
 	  )
@@ -554,43 +550,49 @@
 
 	 (defun SetUpRouter ()
 	   (declare (values *gin.Engine))
+	   (do0
+	    (comments "remove database file")
+	    (assign dbFilename (string "data.db"))
+	    (assign (ntuple _ err) (os.Stat dbFilename))
+	    (when (== err "nil")
+	      ,(panic0 `(os.Remove dbFilename))))
 	   (assign router (gin.Default))
 	   (return router))
-	 (defun Test_getAlbums (tt)
+	 
+	 (defun Test_getUsers (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
-	   (r.GET (string "/albums")
-		  getAlbums)
+	   (r.GET (string "/users")
+		  getUsers)
 
 	   (assign (ntuple req _) (http.NewRequest (string "GET")
-						   (string "/albums")
+						   (string "/api/v1/users")
 						   "nil"))
 	   (assign w (httptest.NewRecorder))
 	   (r.ServeHTTP w req)
 	   #+nil (assign (ntuple responseData _)
 			 (ioutil.ReadAll w.Body))
-	   (setf "var albumsOrig"
-		 (curly []Album
-			,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
-							      ("jeru" "eryy muliiang" "17.99")
-							      ("vaun and brown" "vaaughn" "39.99"))
+	   (setf "var usersOrig"
+		 (curly []Users
+			,@(loop for (given-name last-name) in `((john coltrane)
+								(jery mulijang)
+								(vanes vaughn))
 				and id from 1
 				collect
 				`(curly ""
-					:ID (string ,id)
-					:Title (string ,title)
-					:Artist (string ,artist)
-					:Price ,price))))
+					:GivenName (string ,given-name)
+					:LastName (string ,last-name)
+					))))
 
 	   (assert.Equal tt http.StatusOK w.Code)
-	   (do0 "var albums []Album"
+	   (do0 "var users []Users"
 		(json.Unmarshal (w.Body.Bytes)
-				&albums)
-		(assert.NotEmpty tt albums)
-		(assert.Equal tt albums albumsOrig))
+				&users)
+		(assert.NotEmpty tt users)
+		(assert.Equal tt users usersOrig))
 	   #+nil ,(lprint :vars `(albums))
 	   )
-
+	 #+nil
 	 (defun Test_postAlbums (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))

@@ -5,3 +5,6 @@
 - https://www.allhandsontech.com/programming/golang/web-app-sqlite-go/
   - postman for checking
   - no use of gorm
+
+- how to write test cases for gin-gonic
+  https://gin-gonic.com/docs/testing/
