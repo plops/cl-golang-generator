@@ -168,7 +168,7 @@
 	 ;; go get github.com/swaggo/swag/cmd/swag
 	 ;; go install github.com/swaggo/swag/cmd/swag
 	 ;; create documentation:
-	 ;; ~/go/bin/swag init -g 00_mymain.go
+	 ;; ~/go/bin/swag init --parseDependency -g 00_mymain.go
 	 ;; format the comments:
 	 ;; ~/go/bin/swag fmt
 	 ;; look at API documentation while mymain is running, you can also test it:
@@ -207,7 +207,7 @@
 			   :cmd (gorm.Open (string "sqlite3")
 					   (string "./data.db"))))
 	    (db.LogMode true)
-	    
+
 	    (unless (db.HasTable (curly &Users))
 	      (db.CreateTable (curly &Users))
 	      (dot db
@@ -272,7 +272,7 @@
 				     "@Produce json"
 				     "@Param user body Users true \"Create User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
+				     ;"@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
 				     "@Router /users [post]")
 
 				    :code
@@ -328,7 +328,7 @@
 				     "@Produce json"
 				     "@Param id path int true \"Get User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+				     ;"@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
 				     "@Router /users/{id} [get]")
 				    :code
 				    (do0
@@ -354,9 +354,10 @@
 				     "@Accept json"
 				     "@Produce json"
 				     "@Param id path int true \"Put User\""
+				     "@Param user body Users true \"Put User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
-				     "@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
+				     "@Failure 404 {object} gin.H ";; {\"code\": 404, \"error\":\"User not found\"}
+					;"@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
 				     "@Router /users/{id} [put]")
 				    :code
 				    (do0
@@ -400,8 +401,8 @@
 				     "@Accept json"
 				     "@Produce json"
 				     "@Param id path int true \"Delete User\""
-				     "@Success 200 {object} gin.H {\"code\": 200, \"success\":\"User #{id} deleted\"}"
-				     "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+				     ;"@Success 200 {object} gin.H {\"code\": 200, \"success\":\"User #{id} deleted\"}"
+				    ; "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
 				     "@Router /users/{id} [delete]")
 				    :code
 				    (do0
@@ -456,7 +457,7 @@
 			       (Set (string "Access-Control-Allow-Origin")
 				    (string "*")))
 			  (c.Next))))
-	      
+
 	      (comments "Set up headers for for XMLHttpRequest or Fetch from Javascript with CORS (untested)")
 	      (defun OptionsUser (c)
 		(declare (type *gin.Context c))
