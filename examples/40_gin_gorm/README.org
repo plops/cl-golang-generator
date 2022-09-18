@@ -8,3 +8,9 @@
 
 - how to write test cases for gin-gonic
   https://gin-gonic.com/docs/testing/
+
+
+- difficulty: how to handle the user id when posting a user. I want
+  the database to choose the ID.
+  - this article discusses this a bit:
+    https://blog.logrocket.com/how-to-build-a-rest-api-with-golang-using-gin-and-gorm/

@@ -195,6 +195,21 @@
 				 binding
 				 example)))))
 
+	 (defstruct0 UsersNoId
+					;(ID "string `json:\"id\"`")
+	     ,@(loop for e in (rest record-def)
+		     collect
+		     (destructuring-bind (&key name type example binding gorm) e
+		       `(,name ,(format
+				 nil
+				 "~a `json:\"~a\" form:\"~a\" gorm:\"~a\" ~@[binding:\"~a\"~]example:\"~a\"`"
+				 type
+				 (string-downcase (format nil "~a" name)) ;; json
+				 (string-downcase (format nil "~a" name)) ;; form
+				 gorm
+				 binding
+				 example)))))
+
 	 ,(lprint-init)
 	 ,(panic-init)
 
@@ -205,6 +220,7 @@
 	    ,(panic `(:var db
 			   :cmd (gorm.Open (string "sqlite3")
 					   (string "./data.db"))))
+	    (db.AutoMigrate (curly &Users))
 	    (db.LogMode true)
 
 	    (unless (db.HasTable (curly &Users))
@@ -280,14 +296,28 @@
 				     (do0
 				      (assign db (InitDb))
 				      (defer (db.Close)))
-				     "var user Users"
+				     "var user UsersNoId"
+				     (do0
+				      ,(when-err0 `(:cmd (c.ShouldBindJSON &user)
+							 :code
+							 (do0
+							   (c.IndentedJSON http.StatusBadRequest ;; 400
+									   (curly gin.H
+										  ,(make-keyword "\"ERROR\"")
+										  (dot err01 Error)))
+							   
+							   ))))
+				     #+nil 
 				     (c.Bind &user)
 				     (comments "definition of http status code https://go.dev/src/net/http/status.go ")
 				     (if (logand (!= user.GivenName (string ""))
 						 (!= user.LastName (string "")))
 					 (do0
 					  (comments "insert into users (name) values user.Name)")
-					  (db.Create &user)
+					  (assign userFromInput (curly Users
+								       :GivenName user.GivenName
+								       :LastName user.LastName))
+					  (db.Create &userFromInput)
 					  (c.IndentedJSON http.StatusCreated ;; 201
 							  user)
 					  )
@@ -582,20 +612,7 @@
 		(assert.Equal tt users usersOrig)))
 
 
-	 (defstruct0 UsersNoId
-					;(ID "string `json:\"id\"`")
-	     ,@(loop for e in (rest record-def)
-		     collect
-		     (destructuring-bind (&key name type example binding gorm) e
-		       `(,name ,(format
-				 nil
-				 "~a `json:\"~a\" form:\"~a\" gorm:\"~a\" ~@[binding:\"~a\"~]example:\"~a\"`"
-				 type
-				 (string-downcase (format nil "~a" name)) ;; json
-				 (string-downcase (format nil "~a" name)) ;; form
-				 gorm
-				 binding
-				 example)))))
+	 
 	 (defun Test_01_postUser (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
@@ -621,7 +638,9 @@
 				&user)
 		(assert.NotEmpty tt user)
 		,(lprint :vars `(user userOrig))
-		(assert.Equal tt user userOrig))
+		,@(loop for e in `(GivenName LastName)
+			collect
+			`(assert.Equal tt (dot user ,e) (dot userOrig ,e))))
 	   )
 
 	 #+nil
