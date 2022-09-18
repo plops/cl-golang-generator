@@ -127,7 +127,8 @@
 					;(incf file-count)
 	)))
 
-  (let ((record-def `((:name Id :type int :example 1 :gorm AUTO_INCREMENT :binding required)
+  (let ((record-def `((:name Id :type int :example 1 :gorm AUTO_INCREMENT ;:binding required
+			     )
 		      (:name GivenName :type string :example "Heuss" :gorm "not null" :binding required)
 		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
 		      )))
@@ -170,7 +171,7 @@
 		   "@description Information about users"
 		   "@license.name Apache 2.0"
 		   "@host localhost:8080"
-		   "@BasePath /")
+		   "@BasePath /api/v1")
 
 	 (defstruct0 Users
 					;(ID "string `json:\"id\"`")
@@ -179,7 +180,7 @@
 		     (destructuring-bind (&key name type example binding gorm) e
 		       `(,name ,(format
 				 nil
-				 "~a `json:\"~a\" form:\"~a\" gorm:\"~a\" binding:\"~a\" example:\"~a\"`"
+				 "~a `json:\"~a\" form:\"~a\" gorm:\"~a\" ~@[binding:\"~a\"~]example:\"~a\"`"
 				 type
 				 (string-downcase (format nil "~a" name)) ;; json
 				 (string-downcase (format nil "~a" name)) ;; form
@@ -332,7 +333,7 @@
 	 ,(let ((route-def `(
 			     (:name User :type post
 				    :doc
-				    (comments 
+				    (comments
 				     "@Summary Add new user"
 				     "@Schemes"
 				     "@Description Add a new user to the table"
@@ -341,9 +342,9 @@
 				     "@Produce json"
 				     "@Param user body Users true \"Create User\""
 				     "@Success 200 {object} Users"
-				     "@Success 422 {object} error"
+				     "@Failure 422 {object} error"
 				     "@Router /users [post]")
-				    
+
 				    :code
 				    (do0
 				     #+nil
@@ -368,7 +369,18 @@
 								 (string "Fields are empty"))
 							  )
 					  ))))
-			     (:name Users :type get :code
+			     (:name Users :type get
+				    :doc (comments
+					  "@Summary List existing users"
+					  "@Schemes"
+					  "@Description Get all the users"
+					  "@Tags users"
+					  "@Accept json"
+					  "@Produce json"
+					  "@Success 200 {array} Users"
+					  ;"@Failure 200 {array} Album"
+					  "@Router /users [get]")
+				    :code
 				    (do0
 				     "var users []Users"
 				     (comments "select * from users")
@@ -376,6 +388,18 @@
 				     (c.IndentedJSON http.StatusOK ;; 200
 						     users)))
 			     (:name UserByID :type get :url (string "/users/:id")
+				    :doc
+				    (comments
+				     "@Summary Get single user"
+				     "@Schemes"
+				     "@Description Get a single user from list"
+				     "@Tags users"
+				     "@Accept json"
+				     "@Produce json"
+				     "@Param id path int true \"Get User\""
+				     "@Success 200 {object} Users"
+				     "@Failure 404 {object} Users"
+				     "@Router /users/{id} [get]")
 				    :code
 				    (do0
 				     (assign id (c.Params.ByName (string "id")))
@@ -503,7 +527,7 @@
 				    (Description (string "Users API "))
 				    (Version (string "1.0"))
 				    (Host (string "localhost:8080"))
-				    (BasePath (string "/"))
+				    (BasePath (string "/api/v1"))
 				    (Schemes (curly []string (string "http"))))
 			 collect
 			 (destructuring-bind (name value) e
