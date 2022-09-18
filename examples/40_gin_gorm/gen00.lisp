@@ -134,13 +134,13 @@
 	)))
 
   (let ((record-def `(
+		      (:name CreatedAt :type time.Time :example "2022-09-18T14:11:36.527738191+02:00")
+		      (:name UpdatedAt :type time.Time :example "2022-09-18T14:11:36.527738191+02:00")
 		      (:name ID :type int :example 1 :gorm "primaryKey;autoIncrement" ;:binding required
 			     ;; if the ID is set to <n> in the POST command then subsequent posts with empty ID will assign <n+1>, <n+2> ...
 			     )
 		      (:name GivenName :type string :example "Heuss" :gorm "not null;default:null;type:varchar(100)" :binding required)
 		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
-		      (:name CreatedAt :type time.Time :example "2022-09-18T14:11:36.527738191+02:00")
-		      (:name UpdatedAt :type time.Time :example "2022-09-18T14:11:36.527738191+02:00")
 		      )))
     (let ((name (format nil "~2,'0d_mymain" *idx*)))
       (write-go
@@ -186,7 +186,7 @@
 	 ;; gorm pluralizes the struct name by default to the table name using snake_case
 	 (defstruct0 Users
 					;(ID "string `json:\"id\"`")
-	     ;("" gorm.Model)
+					;("" gorm.Model)
 	     ,@(loop for e in record-def
 		     collect
 		     (destructuring-bind (&key name type example binding gorm) e
@@ -202,7 +202,7 @@
 
 	 (defstruct0 UsersNoID
 					;(ID "string `json:\"id\"`")
-	     ,@(loop for e in (rest record-def)
+	     ,@(loop for e in (rest (rest (rest record-def)))
 		     collect
 		     (destructuring-bind (&key name type example binding gorm) e
 		       `(,name ,(format
@@ -225,6 +225,11 @@
 	    ,(panic `(:var db
 			   :cmd (gorm.Open (string "sqlite3")
 					   (string "./data.db"))))
+	    (comments "https://gorm.io/docs/migration.html"
+		      "creates tables, missing foreign keys, constraints, columns and indexes"
+		      "will change columns type if size, precision or nullable change"
+		      "will not delete unused columns"
+		     )
 	    (db.AutoMigrate (curly &Users))
 	    (db.LogMode true)
 
@@ -841,61 +846,61 @@
 	 ;; fuzz testing described here
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
 
-	#+nil (defun FuzzEntries (f)
-	   (declare (type *testing.F f))
-	   (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
-		     "fuzzing can run out of memory, be careful when using it in CI environment")
-	   (do0 (assign r (SetUpRouter))
-		(r.POST (string "/users")
-			postUser)
-		(r.GET (string "/users/:id")
-		       getUserByID)
-		(r.DELETE (string "/users/:id")
-			  deleteUserByID))
-	   (f.Fuzz
-	    (lambda (tt givenName lastName id)
-	      (declare (type string givenName lastName )
-		       (type int id)
-		       (type *testing.T tt) )
-	      (do0
-	       (do0
-		(comments ,(format nil "submit post request to add a new user"))
-		(assign userToSubmit (curly Users
-					    :ID id
-					    :GivenName givenName
-					    :LastName lastName))
-		(assign (ntuple jsonValue _) (json.Marshal userToSubmit))
+	 #+nil (defun FuzzEntries (f)
+		 (declare (type *testing.F f))
+		 (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
+			   "fuzzing can run out of memory, be careful when using it in CI environment")
+		 (do0 (assign r (SetUpRouter))
+		      (r.POST (string "/users")
+			      postUser)
+		      (r.GET (string "/users/:id")
+			     getUserByID)
+		      (r.DELETE (string "/users/:id")
+				deleteUserByID))
+		 (f.Fuzz
+		  (lambda (tt givenName lastName id)
+		    (declare (type string givenName lastName )
+			     (type int id)
+			     (type *testing.T tt) )
+		    (do0
+		     (do0
+		      (comments ,(format nil "submit post request to add a new user"))
+		      (assign userToSubmit (curly Users
+						  :ID id
+						  :GivenName givenName
+						  :LastName lastName))
+		      (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
 					;,(lprint :vars `(("string" jsonValue)))
-		(assign (ntuple req _) (http.NewRequest (string "POST")
-							(string "/users")
-							(bytes.NewBuffer jsonValue)))
-		(do0
-		 (comments "verify response for the post request")
-		 (assign w (httptest.NewRecorder))
-		 (r.ServeHTTP w req)
-		 (assert.Equal tt http.StatusCreated w.Code)
-		 (do0 "var userReadBack Users "
-		      (json.Unmarshal (w.Body.Bytes)
-				      &userReadBack)
-		      ,(lprint :vars `(userToSubmit userReadBack))
-		      (assert.NotEmpty tt userReadBack)
-		      ,@(loop for e in `(GivenName LastName)
-			      collect
-			      `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
+		      (assign (ntuple req _) (http.NewRequest (string "POST")
+							      (string "/users")
+							      (bytes.NewBuffer jsonValue)))
+		      (do0
+		       (comments "verify response for the post request")
+		       (assign w (httptest.NewRecorder))
+		       (r.ServeHTTP w req)
+		       (assert.Equal tt http.StatusCreated w.Code)
+		       (do0 "var userReadBack Users "
+			    (json.Unmarshal (w.Body.Bytes)
+					    &userReadBack)
+			    ,(lprint :vars `(userToSubmit userReadBack))
+			    (assert.NotEmpty tt userReadBack)
+			    ,@(loop for e in `(GivenName LastName)
+				    collect
+				    `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
 
-		#+nil(do0
-		      (comments "delete the user")
-		      (assign (ntuple req2 _) (http.NewRequest (string "DELETE")
-							       (+ (string "/users/")
-								  (strconv.Itoa (dot userReadBack ID)))
-							       (bytes.NewBuffer jsonValue)))
-		      (assign w2 (httptest.NewRecorder))
-		      (r.ServeHTTP w2 req2)
-		      (assert.Equal tt http.StatusOK w2.Code)
+		      #+nil(do0
+			    (comments "delete the user")
+			    (assign (ntuple req2 _) (http.NewRequest (string "DELETE")
+								     (+ (string "/users/")
+									(strconv.Itoa (dot userReadBack ID)))
+								     (bytes.NewBuffer jsonValue)))
+			    (assign w2 (httptest.NewRecorder))
+			    (r.ServeHTTP w2 req2)
+			    (assert.Equal tt http.StatusOK w2.Code)
+			    )
 		      )
-		)
-	       )
-	      )))
+		     )
+		    )))
 
 	 )))
     ))
