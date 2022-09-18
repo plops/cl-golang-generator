@@ -193,8 +193,7 @@
 				 (string-downcase (format nil "~a" name)) ;; form
 				 gorm
 				 binding
-				 example))))
-	   )
+				 example)))))	 
 
 	 ,(lprint-init)
 	 ,(panic-init)
@@ -272,7 +271,7 @@
 				     "@Produce json"
 				     "@Param user body Users true \"Create User\""
 				     "@Success 200 {object} Users"
-					;"@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
+				     "@Failure 422 {object} string \"Fields are empty\""
 				     "@Router /users [post]")
 
 				    :code
@@ -328,7 +327,7 @@
 				     "@Produce json"
 				     "@Param id path int true \"Get User\""
 				     "@Success 200 {object} Users"
-					;"@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+				     "@Failure 404 {object} string \"User not Found\""
 				     "@Router /users/{id} [get]")
 				    :code
 				    (do0
@@ -339,8 +338,9 @@
 				     (if (== user.Id 0)
 
 					 (c.IndentedJSON http.StatusNotFound ;; 404
-							 (curly gin.H ,(make-keyword "\"ERROR\"")
-								(string "User not found"))
+							 (curly gin.H
+									  ,(make-keyword "\"ERROR\"")
+									  (string "User not found"))
 							 )
 					 (c.IndentedJSON http.StatusOK ;; 200
 							 user))))
@@ -357,8 +357,8 @@
 				     "@Param id path int true \"Put User\""
 				     "@Param user body Users true \"Put User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 404 {object} map[string]any" ;;  {\"code\": 404, \"error\":\"User not found\"}
-				     "@Failure 422 {object} map[string]any" ;; {\"code\": 422, \"error\":\"Fields are empty\"}
+				     "@Failure 404 {object} string \"User not found\"" ;;  {\"code\": 404, \"error\":\"User not found\"}
+				     "@Failure 422 {object} string \"Fields are empty\"" ;; {\"code\": 422, \"error\":\"Fields are empty\"}
 				     "@Router /users/{id} [put]")
 				    :code
 				    (do0
@@ -371,7 +371,8 @@
 					 (do0 (if (== user.Id 0)
 						  (do0
 						   (c.IndentedJSON http.StatusNotFound ;; 404
-								   (curly gin.H ,(make-keyword "\"ERROR\"")
+								   (curly gin.H
+									  ,(make-keyword "\"ERROR\"")
 									  (string "User not found"))
 								   ))
 						  (do0
@@ -402,8 +403,8 @@
 				     "@Accept json"
 				     "@Produce json"
 				     "@Param id path int true \"Delete User\""
-					;"@Success 200 {object} gin.H {\"code\": 200, \"success\":\"User #{id} deleted\"}"
-					; "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+				     "@Success 200 {object} string \"User #{id} deleted\""
+				     "@Failure 404 {object} string \"User not found\""
 				     "@Router /users/{id} [delete]")
 				    :code
 				    (do0
