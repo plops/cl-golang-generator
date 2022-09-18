@@ -357,7 +357,7 @@
 				     "@Param id path int true \"Put User\""
 				     "@Param user body Users true \"Put User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 404 {object} map[string]any" ;;  {\"code\": 404, \"error\":\"User not found\"} 
+				     "@Failure 404 {object} map[string]any" ;;  {\"code\": 404, \"error\":\"User not found\"}
 				     "@Failure 422 {object} map[string]any" ;; {\"code\": 422, \"error\":\"Fields are empty\"}
 				     "@Router /users/{id} [put]")
 				    :code
