@@ -345,7 +345,7 @@
 				     (db.Find &users)
 				     (c.IndentedJSON http.StatusOK ;; 200
 						     users)))
-			     (:name UserByID :type get :url (string "/users/:id")
+			     (:name UserById :type get :url (string "/users/:id")
 				    :doc
 				    (comments
 				     "@Summary Get single user"
@@ -365,7 +365,6 @@
 				     "var user Users"
 				     (db.First &user id)
 				     (if (== user.Id 0)
-
 					 (c.IndentedJSON http.StatusNotFound ;; 404
 							 (curly gin.H
 								,(make-keyword "\"ERROR\"")
@@ -374,7 +373,7 @@
 					 (c.IndentedJSON http.StatusOK ;; 200
 							 user))))
 			     ;; type H map[string]any in gin-gonic utils.go
-			     (:name UserByID :type put :url (string "/users/:id")
+			     (:name UserById :type put :url (string "/users/:id")
 				    :doc
 				    (comments
 				     "@Summary Change single user"
@@ -422,7 +421,7 @@
 							  (curly gin.H ,(make-keyword "\"ERROR\"")
 								 (string "Fields are empty"))
 							  )))))
-			     (:name UserByID :type delete :url (string "/users/:id")
+			     (:name UserById :type delete :url (string "/users/:id")
 				    :doc
 				    (comments
 				     "@Summary Delete single user"
@@ -577,7 +576,7 @@
 	  bytes
 	  os
 	  fmt
-
+	  ;strconv
 	  )
 	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
 	 (comments "a test file must end with _test.go. Each test method must start with prefix Test")
@@ -742,9 +741,9 @@
 		       ))))
 	      (defun Test_03_postUser_three_times_with_Id (tt)
 		(declare (type *testing.T tt))
-		(assign r (SetUpRouter))
-		(r.POST (string "/users")
-			postUser)
+		(do0 (assign r (SetUpRouter))
+		     (r.POST (string "/users")
+			     postUser))
 		,@(loop for (given-name last-name) in three-names
 			and e-i from 10
 			and count in `(first second third)
@@ -803,7 +802,7 @@
 
 
 		  (assert.Equal tt http.StatusOK w.Code)
-		  
+
 		  (do0 "var users []Users"
 		       (json.Unmarshal (w.Body.Bytes)
 				       &users)
@@ -815,8 +814,8 @@
 			       collect
 			       `(do0
 				 (assert.NotEqual tt
-					       (dot (aref users ,e-i) Id)
-					       ,id)
+						  (dot (aref users ,e-i) Id)
+						  ,id)
 				 (assert.Equal tt
 					       (dot (aref users ,e-i) Id)
 					       ,(+ 1 e-i))
@@ -828,47 +827,69 @@
 					       (string ,last-name)))
 			       )
 		       ))))))
-
-	 #+nil
-
-	 (defun Test_01_putUser (tt)
-	   (declare (type *testing.T tt))
-	   (assign r (SetUpRouter))
-	   (r.POST (string "/users/")
-		   getUsers)
-
-	   (do0 (assign (ntuple req _) (http.NewRequest (string "GET")
-							(string "/api/v1/users")
-							"nil"))
-		(assign w (httptest.NewRecorder))
-		(r.ServeHTTP w req))
-	   #+nil (assign (ntuple responseData _)
-			 (ioutil.ReadAll w.Body))
-	   (setf "var usersOrig"
-		 (curly []Users
-			,@(loop for (given-name last-name) in `((john coltrane)
-								(jery mulijang)
-								(vanes vaughn))
-				and id from 1
-				collect
-				`(curly ""
-					:GivenName (string ,given-name)
-					:LastName (string ,last-name)
-					))))
-
-	   (assert.Equal tt http.StatusOK w.Code)
-	   (do0 "var users []Users"
-		(json.Unmarshal (w.Body.Bytes)
-				&users)
-		(assert.NotEmpty tt users)
-		(assert.Equal tt users usersOrig))
-	   #+nil ,(lprint :vars `(albums))
-	   )
+	 
+	 
 
 
 
 	 ;; fuzz testing described here
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
+
+	 (defun FuzzEntries (f)
+	 (declare (type *testing.F f))
+	 (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
+		   "fuzzing can run out of memory, be careful when using it in CI environment")
+	 (do0 (assign r (SetUpRouter))
+	      (r.POST (string "/users")
+		      postUser)
+	      (r.GET (string "/users/:id")
+		     getUserById)
+	      (r.DELETE (string "/users/:id")
+			deleteUserById))
+	 (f.Fuzz
+	  (lambda (tt givenName lastName id)
+	    (declare (type string givenName lastName )
+		     (type int id)
+		     (type *testing.T tt) )
+	    (do0
+	     (do0
+	      (comments ,(format nil "submit post request to add a new user"))
+	      (assign userToSubmit (curly Users
+					  :Id id
+					  :GivenName givenName
+					  :LastName lastName))
+	      (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
+					;,(lprint :vars `(("string" jsonValue)))
+	      (assign (ntuple req _) (http.NewRequest (string "POST")
+						      (string "/users")
+						      (bytes.NewBuffer jsonValue)))
+	      (do0
+	       (comments "verify response for the post request")
+	       (assign w (httptest.NewRecorder))
+	       (r.ServeHTTP w req)
+	       (assert.Equal tt http.StatusCreated w.Code)
+	       (do0 "var userReadBack Users "
+		    (json.Unmarshal (w.Body.Bytes)
+				    &userReadBack)
+		    ,(lprint :vars `(userToSubmit userReadBack))
+		    (assert.NotEmpty tt userReadBack)
+		    ,@(loop for e in `(GivenName LastName)
+			    collect
+			    `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
+
+	      #+nil(do0
+	       (comments "delete the user")
+	       (assign (ntuple req2 _) (http.NewRequest (string "DELETE")
+						       (+ (string "/users/")
+							  (strconv.Itoa (dot userReadBack Id)))
+						       (bytes.NewBuffer jsonValue)))
+	       (assign w2 (httptest.NewRecorder))
+	       (r.ServeHTTP w2 req2)
+	       (assert.Equal tt http.StatusOK w2.Code)
+	       )
+	      )
+	     )
+	    	    )))
 
 	 )))
     ))
