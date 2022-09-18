@@ -229,7 +229,7 @@
 		      "creates tables, missing foreign keys, constraints, columns and indexes"
 		      "will change columns type if size, precision or nullable change"
 		      "will not delete unused columns"
-		     )
+		      )
 	    (db.AutoMigrate (curly &Users))
 	    (db.LogMode true)
 
@@ -308,6 +308,7 @@
 				      (defer (db.Close)))
 				     "var user UsersNoID"
 				     (do0
+				      ,(lprint :msg "BIND" :vars `(c.Request.Body))
 				      ,(when-err0 `(:cmd (c.ShouldBindJSON &user)
 							 :code
 							 (do0
@@ -846,7 +847,7 @@
 	 ;; fuzz testing described here
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
 
-	 #+nil (defun FuzzEntries (f)
+	 (defun FuzzEntries (f)
 		 (declare (type *testing.F f))
 		 (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
 			   "fuzzing can run out of memory, be careful when using it in CI environment")
@@ -865,8 +866,8 @@
 		    (do0
 		     (do0
 		      (comments ,(format nil "submit post request to add a new user"))
-		      (assign userToSubmit (curly Users
-						  :ID id
+		      (assign userToSubmit (curly UsersNoID
+						  ;:ID id
 						  :GivenName givenName
 						  :LastName lastName))
 		      (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
