@@ -141,6 +141,8 @@
 	  net/http
 					;log
 	  github.com/gin-gonic/gin
+	  github.com/jinzhu/gorm
+	  (_ "github.com/mattn/go-sqlite3")
 
 					;math
 					;encoding/binary
@@ -170,7 +172,7 @@
 		   "@host localhost:8080"
 		   "@BasePath /")
 
-	 (defstruct0 User
+	 (defstruct0 Users
 					;(ID "string `json:\"id\"`")
 	     ,@(loop for e in record-def
 		     collect
@@ -185,6 +187,22 @@
 				 binding
 				 example))))
 	   )
+
+	 (defun InitDb ()
+	   (declare (values *gorm.DB))
+	   ,(panic `(:var db
+			  :cmd (gorm.Open (string "sqlite3")
+					  (string "./data.db"))))
+	   (db.LogMode true)
+	   (comments "create database table from Go structure definition")
+	   (unless (db.HasTable (curly &User))
+	     (db.CreateTable (curly &Users))
+	     (dot db
+		  (Set (string "gorm:table_options")
+		       (string "ENGINE=InnoDB"))
+		  (CreateTable (curly &Users))))
+	   (return db))
+
 	 #+nil
 	 (setf "var albums"
 	       (curly []Album
@@ -311,66 +329,143 @@
 		   collect
 		   `(do0
 		     ,(lprint :vars `(,e)))))
-	 ,(let ((route-def `((:name Users :type get)
-			    (:name Users :type post)
-			    (:name UserByID :type get :url (string "/users/:id"))
-			    (:name UserByID :type put :url (string "/users/:id"))
-			    (:name UserByID :type delete :url (string "/users/:id"))
-			    )))
+	 ,(let ((route-def `(
+			     (:name User :type post :code
+				    (do0
+				     #+nil
+				     (do0
+				      (assign db (InitDb))
+				      (defer (db.Close)))
+				     "var user Users"
+				     (c.Bind &user)
+				     (comments "definition of http status code https://go.dev/src/net/http/status.go ")
+				     (if (logand (!= user.GivenName (string ""))
+						 (!= user.LastName (string "")))
+					 (do0
+					  (comments "insert into users (name) values user.Name)")
+					  (db.Create &user)
+					  (c.IndentedJSON http.StatusCreated ;; 201
+							  user)
+					  )
+					 (do0
+					  (comments "insert into users (name) values user.Name)")
+					  (c.IndentedJSON http.StatusUnprocessableEntity ;; 422
+							  (curly gin.H ,(make-keyword "\"ERROR\"")
+								 (string "Fields are empty"))
+							  )
+					  ))))
+			     (:name Users :type get :code
+				    (do0
+				     "var users []Users"
+				     (comments "select * from users")
+				     (db.Find &users)
+				     (c.IndentedJSON http.StatusOK ;; 200
+						     users)))
+			     (:name UserByID :type get :url (string "/users/:id")
+				    :code
+				    (do0
+				     (assign id (c.Params.ByName (string "id")))
+				     (comments "// select * from users where id=<id>")
+				     (db.First &user id)
+				     (if (== user.Id 0)
+
+					 (c.IndentedJSON http.StatusNotFound ;; 404
+							 (curly gin.H ,(make-keyword "\"ERROR\"")
+								(string "User not found"))
+							 )
+					 (c.IndentedJSON http.StatusOK ;; 200
+							 user))))
+			     (:name UserByID :type put :url (string "/users/:id")
+				    :code
+				    (do0
+				     (assign id (c.Params.ByName (string "id")))
+				     (comments "// select * from users where id=<id>")
+				     (db.First &user id)
+				     (if (logand (!= user.GivenName (string ""))
+						 (!= user.LastName (srting "")))
+					 (do0 (if (== user.Id 0)
+						  (do0
+						   (c.IndentedJSON http.StatusNotFound ;; 404
+								   (curly gin.H ,(make-keyword "\"ERROR\"")
+									  (string "User not found"))
+								   ))
+						  (do0
+						   "var newUser Users"
+						   (c.Bind &newUser)
+						   (assign result (curly Users
+									 :Id user.Id
+									 :GivenName newUser.GivenName
+									 :LastName newUser.LastName))
+						   (comments "// update users set givenname='newuser.GivenName', lastname='newUser.LastName' where id=user.id;")
+						   (db.Save &result)
+						   (c.IndentedJSON http.StatusOK ;; 200
+								   result))
+
+						  ))
+					 (do0
+					  (c.IndentedJSON http.StatusUnprocessableEntity ;; 422
+							  (curly gin.H ,(make-keyword "\"ERROR\"")
+								 (string "Fields are empty"))
+							  )))))
+			     (:name UserByID :type delete :url (string "/users/:id"))
+			     )))
 	    `(do0
 	      ,@(loop for e in route-def
-			  collect
-			  (destructuring-bind (&key name type url) e
-			    (let* ((small-name (string-downcase (format nil "~a" name))))
-			      (unless url
-				(setf url `(string ,(format nil "/~a" small-name))))
-			      (let ((fun (format nil "~a~a" type name))
-				    (GET (string-upcase (format nil "~a" type))))
-				`(defun ,fun (c)
-				   (declare (type *gin.Context c))
-				   (c.JSON 200 user))))))
-	     (defun main ()
-	       ,(lprint :msg (format nil "program ~a starts" name))
-	       (reportGenerator)
-	       ,(lprint :msg "Go version:" :vars `((runtime.Version)))
-	       (reportDependencies)
+		      collect
+		      (destructuring-bind (&key name type url code) e
+			(let* ((small-name (string-downcase (format nil "~a" name))))
+			  (unless url
+			    (setf url `(string ,(format nil "/~a" small-name))))
+			  (let ((fun (format nil "~a~a" type name))
+				(GET (string-upcase (format nil "~a" type))))
+			    `(defun ,fun (c)
+			       (declare (type *gin.Context c))
+			       (do0
+				(assign db (InitDb))
+				(defer (db.Close)))
+			       ,code)))))
+	      (defun main ()
+		,(lprint :msg (format nil "program ~a starts" name))
+		(reportGenerator)
+		,(lprint :msg "Go version:" :vars `((runtime.Version)))
+		(reportDependencies)
 
-	       (do0
-		,@(loop for e in `((Title (string "Userss API"))
-				   (Description (string "Users API "))
-				   (Version (string "1.0"))
-				   (Host (string "localhost:8080"))
-				   (BasePath (string "/"))
-				   (Schemes (curly []string (string "http"))))
-			collect
-			(destructuring-bind (name value) e
-			  `(setf (dot
-				  docs
-				  SwaggerInfo
-				  ,name )
-				 ,value))))
+		(do0
+		 ,@(loop for e in `((Title (string "Users API"))
+				    (Description (string "Users API "))
+				    (Version (string "1.0"))
+				    (Host (string "localhost:8080"))
+				    (BasePath (string "/"))
+				    (Schemes (curly []string (string "http"))))
+			 collect
+			 (destructuring-bind (name value) e
+			   `(setf (dot
+				   docs
+				   SwaggerInfo
+				   ,name )
+				  ,value))))
 
-	       (do0
-		(assign router (gin.Default))
-		(assign v1 (router.Group (string "api/v1")))
-		(progn
-		  ,@(loop for e in route-def
-			  appending
-			  (destructuring-bind (&key name type url) e
-			    (let* ((small-name (string-downcase (format nil "~a" name))))
-			      (unless url
-				(setf url `(string ,(format nil "/~a" small-name))))
-			      (let ((fun (format nil "~a~a" type name))
-				    (GET (string-upcase (format nil "~a" type))))
-				`((dot v1 (,GET ,url
-						    ,fun))))))))
-		(router.GET (string "/swagger/*any")
-			    (dot ginSwagger
-				 (WrapHandler
-				  swaggerfiles.Handler)))
-		(router.Run (string "localhost:8080")))
+		(do0
+		 (assign router (gin.Default))
+		 (assign v1 (router.Group (string "api/v1")))
+		 (progn
+		   ,@(loop for e in route-def
+			   appending
+			   (destructuring-bind (&key name type url code) e
+			     (let* ((small-name (string-downcase (format nil "~a" name))))
+			       (unless url
+				 (setf url `(string ,(format nil "/~a" small-name))))
+			       (let ((fun (format nil "~a~a" type name))
+				     (GET (string-upcase (format nil "~a" type))))
+				 `((dot v1 (,GET ,url
+						 ,fun))))))))
+		 (router.GET (string "/swagger/*any")
+			     (dot ginSwagger
+				  (WrapHandler
+				   swaggerfiles.Handler)))
+		 (router.Run (string "localhost:8080")))
 
-	       ))))))
+		))))))
     (let ((name (format nil "~2,'0d_mymain_unit_test" 1)))
       (write-go
        name
