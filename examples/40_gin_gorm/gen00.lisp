@@ -133,11 +133,14 @@
 					;(incf file-count)
 	)))
 
-  (let ((record-def `((:name ID :type int :example 1 :gorm AUTO_INCREMENT ;:binding required
+  (let ((record-def `(
+		      (:name ID :type int :example 1 :gorm "primaryKey;autoIncrement" ;:binding required
 			     ;; if the ID is set to <n> in the POST command then subsequent posts with empty ID will assign <n+1>, <n+2> ...
 			     )
-		      (:name GivenName :type string :example "Heuss" :gorm "not null" :binding required)
+		      (:name GivenName :type string :example "Heuss" :gorm "not null;default:null;type:varchar(100)" :binding required)
 		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
+		      (:name CreatedAt :type time.Time :example "2022-09-18T14:11:36.527738191+02:00")
+		      (:name UpdatedAt :type time.Time :example "2022-09-18T14:11:36.527738191+02:00")
 		      )))
     (let ((name (format nil "~2,'0d_mymain" *idx*)))
       (write-go
@@ -183,6 +186,7 @@
 	 ;; gorm pluralizes the struct name by default to the table name using snake_case
 	 (defstruct0 Users
 					;(ID "string `json:\"id\"`")
+	     ;("" gorm.Model)
 	     ,@(loop for e in record-def
 		     collect
 		     (destructuring-bind (&key name type example binding gorm) e
@@ -324,7 +328,7 @@
 							  userFromInput)
 					  )
 					 (do0
-					  
+
 					  (c.IndentedJSON http.StatusUnprocessableEntity ;; 422
 							  (curly gin.H ,(make-keyword "\"ERROR\"")
 								 (string "Fields are empty"))
@@ -837,7 +841,7 @@
 	 ;; fuzz testing described here
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
 
-	 (defun FuzzEntries (f)
+	#+nil (defun FuzzEntries (f)
 	   (declare (type *testing.F f))
 	   (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
 		     "fuzzing can run out of memory, be careful when using it in CI environment")
