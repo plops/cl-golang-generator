@@ -13,14 +13,17 @@
       "Thursday" "Friday" "Saturday"
       "Sunday"))
   (defun lprint-init ()
-    `(defun timeNow ()
-       (declare (values string))
-       (return
-	 (dot time
-	      (Now)
-	      (Format
-	       (string
-		"2006-01-02 15:04:05.000"))))))
+    `(do0
+      (comments "timeNow godoc")
+      (comments "standardized timestamp for logging")
+      (defun timeNow ()
+	(declare (values string))
+	(return
+	  (dot time
+	       (Now)
+	       (Format
+		(string
+		 "2006-01-02 15:04:05.000")))))))
   (defun lprint (&key (msg "") vars)
     "generate go code to print variables in log output"
     `(fmt.Printf
@@ -44,15 +47,18 @@
 	      `(,e ,e))))
   (let ((err-nr 0))
     (defun panic-init ()
-      `(defun checkAndPanic (msg err)
-	 (declare (type error err)
-		  (type string msg))
-	 (unless (== err "nil")
-	   ,(lprint
-	     :vars `(msg err))
-	   (panic err))
+      `(do0
+	(comments "checkAndPanic godoc")
+	(comments "I use this for many functions that return errors to bail with an error message")
+	(defun checkAndPanic (msg err)
+	  (declare (type error err)
+		   (type string msg))
+	  (unless (== err "nil")
+	    ,(lprint
+	      :vars `(msg err))
+	    (panic err))
 
-	 ))
+	  )))
     (defun when-err (var-cmd-code)
       "check second return value and execute code if error occured"
       (let ((err (format nil "err~2,'0d" err-nr)))
@@ -128,7 +134,7 @@
 	)))
 
   (let ((record-def `((:name Id :type int :example 1 :gorm AUTO_INCREMENT ;:binding required
-			     ;; if the Id is set to <n> in the POST command then subsequent posts with empty Id will assign <n+1>, <n+2> ... 
+			     ;; if the Id is set to <n> in the POST command then subsequent posts with empty Id will assign <n+1>, <n+2> ...
 			     )
 		      (:name GivenName :type string :example "Heuss" :gorm "not null" :binding required)
 		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
@@ -190,147 +196,69 @@
 				 example))))
 	   )
 
-	 (defun InitDb ()
-	   (declare (values *gorm.DB))
-	   ,(panic `(:var db
-			  :cmd (gorm.Open (string "sqlite3")
-					  (string "./data.db"))))
-	   (db.LogMode true)
-	   (comments "create database table from Go structure definition")
-	   (unless (db.HasTable (curly &Users))
-	     (db.CreateTable (curly &Users))
-	     (dot db
-		  (Set (string "gorm:table_options")
-		       (string "ENGINE=InnoDB"))
-		  (CreateTable (curly &Users))))
-	   (return db))
-
-	 #+nil
-	 (setf "var albums"
-	       (curly []Album
-		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
-							    ("jeru" "eryy muliiang" "17.99")
-							    ("vaun and brown" "vaaughn" "39.99"))
-			      and id from 1
-			      collect
-			      `(curly ""
-				      :ID (string ,id)
-				      :Title (string ,title)
-				      :Artist (string ,artist)
-				      :Price ,price))))
-
 	 ,(lprint-init)
 	 ,(panic-init)
 
-	 #+nil
 	 (do0
-	  (comments "getAlbums godoc"
-		    "@Summary List existing albums"
-		    "@Schemes"
-		    "@Description Get all the albums"
-		    "@Tags albums"
-		    "@Accept json"
-		    "@Produce json"
-		    "@Success 200 {array} Album"
-		    "@Router /albums [get]")
-	  (defun getAlbums (c)
-	    (declare (type *gin.Context c))
-	    (comments "gin.Context carries request details, validates and serializes JSON"
-		      "note: Context.JSON would be more compact")
-	    (c.IndentedJSON http.StatusOK
-			    albums)))
-	 #+nil
+	  (comments "Create SQL database table from Go structure definition")
+	  (defun InitDb ()
+	    (declare (values *gorm.DB))
+	    ,(panic `(:var db
+			   :cmd (gorm.Open (string "sqlite3")
+					   (string "./data.db"))))
+	    (db.LogMode true)
+	    
+	    (unless (db.HasTable (curly &Users))
+	      (db.CreateTable (curly &Users))
+	      (dot db
+		   (Set (string "gorm:table_options")
+			(string "ENGINE=InnoDB"))
+		   (CreateTable (curly &Users))))
+	    (return db)))
+
 	 (do0
-	  (comments "postAlbums godoc"
-		    "@Summary Add new album"
-		    "@Schemes"
-		    "@Description Add a new album to the list"
-		    "@Tags albums"
-		    "@Accept json"
-		    "@Produce json"
-		    "@Param album body Album true \"Create Album\""
-		    "@Success 200 {object} Album"
-		    "@Router /albums [post]")
-	  (defun postAlbums (c)
-	    (declare (type *gin.Context c))
-	    "var newAlbum Album"
-	    ,(when-err0 `(:cmd (c.BindJSON &newAlbum)
-			       :code return))
-	    (comments "add new Album to slice")
-	    (setf albums (append albums newAlbum))
-	    (c.IndentedJSON http.StatusCreated ;; 201 status code with
-			    ;; json of the new Album
-			    newAlbum)))
+	  (comments "list version and checksums of the go dependencies")
+	  (defun reportDependencies ()
+	    (do0
+	     (assign (ntuple bi ok) (debug.ReadBuildInfo))
+	     (if ok
+		 (do0
+		  (foreach ((ntuple _ dep)
+			    (range bi.Deps))
+			   ,(lprint  :vars `(dep)))
+		  )
+		 (do0
+		  ,(lprint :msg "failed to read build info"))))))
 
-	 #+nil
 	 (do0
-	  (comments "getAlbumByID godoc"
-		    "@Summary Get single album"
-		    "@Schemes"
-		    "@Description Get a single album from list"
-		    "@Tags albums"
-		    "@Accept json"
-		    "@Produce json"
-		    "@Param id path int true \"Get Album\""
-		    "@Success 200 {object} Album"
-		    "@Router /albums/{id} [get]")
-	  (defun getAlbumByID (c)
-	    (declare (type *gin.Context c))
-	    (assign id (c.Param (string "id")))
-	    (comments "locate Album whose ID matches parameter")
-	    #+nil ,(lprint :msg "locate album with"
-			   :vars `(id))
-	    (foreach ((ntuple _ a)
-		      (range albums))
-		     (when (== a.ID id)
-		       (c.IndentedJSON http.StatusOK
-				       a)
-		       (return)))
-	    (c.IndentedJSON http.StatusNotFound
-			    (curly gin.H
-				   ,(make-keyword (string-upcase "\"message\""))
-				   (string "Album not found")))))
-
-
-	 (defun reportDependencies ()
-	   (do0
-	    (assign (ntuple bi ok) (debug.ReadBuildInfo))
-	    (if ok
-		(do0
-		 (foreach ((ntuple _ dep)
-			   (range bi.Deps))
-			  ,(lprint  :vars `(dep)))
-		 )
-		(do0
-		 ,(lprint :msg "failed to read build info")))))
-
-	 (defun reportGenerator ()
-	   (assign
-	    code_git_version
-	    (string ,(let ((str (with-output-to-string (s)
-				  (sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
-		       (subseq str 0 (1- (length str)))))
-	    code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"))
-	    code_generation_time
-	    (string ,(multiple-value-bind
-			   (second minute hour date month year day-of-week dst-p tz)
-			 (get-decoded-time)
-		       (declare (ignorable dst-p))
-		       (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
-			       hour
-			       minute
-			       second
-			       (nth day-of-week *day-names*)
-			       year
-			       month
-			       date
-			       (- tz)))))
-	   ,@(loop for e in `(code_git_version
-			      code_repository
-			      code_generation_time)
-		   collect
-		   `(do0
-		     ,(lprint :vars `(,e)))))
+	  (comments "list git commit and date of when the go code was generated that was used to compile the binary")
+	  (defun reportGenerator ()
+	    (assign
+	     code_git_version
+	     (string ,(let ((str (with-output-to-string (s)
+				   (sb-ext:run-program "/usr/bin/git" (list "rev-parse" "HEAD") :output s))))
+			(subseq str 0 (1- (length str)))))
+	     code_repository (string ,(format nil "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"))
+	     code_generation_time
+	     (string ,(multiple-value-bind
+			    (second minute hour date month year day-of-week dst-p tz)
+			  (get-decoded-time)
+			(declare (ignorable dst-p))
+			(format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
+				hour
+				minute
+				second
+				(nth day-of-week *day-names*)
+				year
+				month
+				date
+				(- tz)))))
+	    ,@(loop for e in `(code_git_version
+			       code_repository
+			       code_generation_time)
+		    collect
+		    `(do0
+		      ,(lprint :vars `(,e))))))
 	 ,(let ((route-def `(
 			     (:name User :type post
 				    :url (string "/users")
@@ -344,7 +272,7 @@
 				     "@Produce json"
 				     "@Param user body Users true \"Create User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 422 {object} error"
+				     "@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
 				     "@Router /users [post]")
 
 				    :code
@@ -400,7 +328,7 @@
 				     "@Produce json"
 				     "@Param id path int true \"Get User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 404 {object} Users"
+				     "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
 				     "@Router /users/{id} [get]")
 				    :code
 				    (do0
@@ -417,8 +345,20 @@
 					 (c.IndentedJSON http.StatusOK ;; 200
 							 user))))
 			     (:name UserByID :type put :url (string "/users/:id")
+				    :doc
+				    (comments
+				     "@Summary Change single user"
+				     "@Schemes"
+				     "@Description Change a single user that already exists in list"
+				     "@Tags users"
+				     "@Accept json"
+				     "@Produce json"
+				     "@Param id path int true \"Put User\""
+				     "@Success 200 {object} Users"
+				     "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+				     "@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
+				     "@Router /users/{id} [put]")
 				    :code
-
 				    (do0
 				     (assign id (c.Params.ByName (string "id")))
 				     (comments "select * from users where id=<id>")
@@ -451,6 +391,18 @@
 								 (string "Fields are empty"))
 							  )))))
 			     (:name UserByID :type delete :url (string "/users/:id")
+				    :doc
+				    (comments
+				     "@Summary Delete single user"
+				     "@Schemes"
+				     "@Description Delete a single user that already exists in list"
+				     "@Tags users"
+				     "@Accept json"
+				     "@Produce json"
+				     "@Param id path int true \"Delete User\""
+				     "@Success 200 {object} gin.H {\"code\": 200, \"success\":\"User #{id} deleted\"}"
+				     "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+				     "@Router /users/{id} [delete]")
 				    :code
 				    (do0
 				     (assign id (c.Params.ByName (string "id")))
@@ -485,7 +437,7 @@
 			  (let ((fun (format nil "~a~a" type name))
 				(GET (string-upcase (format nil "~a" type))))
 			    `(do0
-			      (comments ,(format nil "~a godoc" fun))
+			      (comments ,(format nil "~a handler function for gin-gonic godoc" fun))
 			      ,doc
 			      (defun ,fun (c)
 				(declare (type *gin.Context c))
@@ -494,7 +446,7 @@
 				 (defer (db.Close)))
 				,code))))))
 
-
+	      (comments "Cross Origin Resource Sharing (untested)")
 	      (defun Cors ()
 		(declare (values gin.HandlerFunc))
 		(return (lambda (c)
@@ -504,10 +456,10 @@
 			       (Set (string "Access-Control-Allow-Origin")
 				    (string "*")))
 			  (c.Next))))
+	      
+	      (comments "Set up headers for for XMLHttpRequest or Fetch from Javascript with CORS (untested)")
 	      (defun OptionsUser (c)
-		(declare (type *gin.Context c)
-			 )
-		(comments "for XMLHttpRequest or Fetch from Javascript with CORS")
+		(declare (type *gin.Context c))
 		(dot c
 		     Writer (Header)
 		     (Set (string "Access-Control-Allow-Methods")
