@@ -905,10 +905,10 @@
 							  userReadBack.ID))
 					;(assert.NotEmpty tt userReadBack)
 		      (when (utf8.ValidString givenName)
-		       ,@(loop for e in `(GivenName ;LastName
-					  )
-			       collect
-			       `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e))))))
+			,@(loop for e in `(GivenName ;LastName
+					   )
+				collect
+				`(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e))))))
 
 		#+nil(do0
 		      (comments "delete the user")
