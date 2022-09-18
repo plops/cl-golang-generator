@@ -272,7 +272,7 @@
 				     "@Produce json"
 				     "@Param user body Users true \"Create User\""
 				     "@Success 200 {object} Users"
-				     ;"@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
+					;"@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
 				     "@Router /users [post]")
 
 				    :code
@@ -328,7 +328,7 @@
 				     "@Produce json"
 				     "@Param id path int true \"Get User\""
 				     "@Success 200 {object} Users"
-				     ;"@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+					;"@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
 				     "@Router /users/{id} [get]")
 				    :code
 				    (do0
@@ -344,6 +344,7 @@
 							 )
 					 (c.IndentedJSON http.StatusOK ;; 200
 							 user))))
+			     ;; type H map[string]any in gin-gonic utils.go
 			     (:name UserByID :type put :url (string "/users/:id")
 				    :doc
 				    (comments
@@ -356,8 +357,8 @@
 				     "@Param id path int true \"Put User\""
 				     "@Param user body Users true \"Put User\""
 				     "@Success 200 {object} Users"
-				     "@Failure 404 {object} gin.H ";; {\"code\": 404, \"error\":\"User not found\"}
-					;"@Failure 422 {object} gin.H {\"code\": 422, \"error\":\"Fields are empty\"}"
+				     "@Failure 404 {object} map[string]any" ;;  {\"code\": 404, \"error\":\"User not found\"} 
+				     "@Failure 422 {object} map[string]any" ;; {\"code\": 422, \"error\":\"Fields are empty\"}
 				     "@Router /users/{id} [put]")
 				    :code
 				    (do0
@@ -401,8 +402,8 @@
 				     "@Accept json"
 				     "@Produce json"
 				     "@Param id path int true \"Delete User\""
-				     ;"@Success 200 {object} gin.H {\"code\": 200, \"success\":\"User #{id} deleted\"}"
-				    ; "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
+					;"@Success 200 {object} gin.H {\"code\": 200, \"success\":\"User #{id} deleted\"}"
+					; "@Failure 404 {object} gin.H {\"code\": 404, \"error\":\"User not found\"}"
 				     "@Router /users/{id} [delete]")
 				    :code
 				    (do0
