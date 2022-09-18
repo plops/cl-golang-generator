@@ -1,0 +1,2 @@
+- use gin web framework together with gorm object relational mapper
+- https://medium.com/@etiennerouzeaud/how-to-create-a-basic-restful-api-in-go-c8e032ba3181
