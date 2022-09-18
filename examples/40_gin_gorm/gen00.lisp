@@ -39,7 +39,7 @@
        ,(format nil "%v ~a ~{~a=%v (%T)~^ ~}\\n"
 		msg vars))
       (timeNow)
-      ,@(loop for e in vars
+      ,@(loop for e in vars 
 	      appending
 	      `(,e ,e))))
   (let ((err-nr 0))
@@ -378,7 +378,7 @@
 					  "@Accept json"
 					  "@Produce json"
 					  "@Success 200 {array} Users"
-					  ;"@Failure 200 {array} Album"
+					;"@Failure 200 {array} Album"
 					  "@Router /users [get]")
 				    :code
 				    (do0
