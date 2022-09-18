@@ -209,10 +209,10 @@
 
 	    (unless (db.HasTable (curly &Users))
 	      (db.CreateTable (curly &Users))
-	      (dot db
-		   (Set (string "gorm:table_options")
-			(string "ENGINE=InnoDB"))
-		   (CreateTable (curly &Users))))
+	      #+nil (dot db
+			 (Set (string "gorm:table_options")
+			      (string "ENGINE=InnoDB"))
+			 (CreateTable (curly &Users))))
 	    (return db)))
 
 	 (do0
@@ -270,7 +270,7 @@
 				     "@Accept json"
 				     "@Produce json"
 				     "@Param user body Users true \"Create User\""
-				     "@Success 200 {object} Users"
+				     "@Success 201 {object} Users"
 				     "@Failure 422 {object} string \"Fields are empty\""
 				     "@Router /users [post]")
 
@@ -572,7 +572,7 @@
 	   (r.ServeHTTP w req)
 	   (setf "var usersOrig"
 		 (curly []Users
-		))
+			))
 
 	   (assert.Equal tt http.StatusOK w.Code)
 	   (do0 "var users []Users"
@@ -582,18 +582,32 @@
 		(assert.Equal tt users usersOrig)))
 
 
-
+	 (defstruct0 UsersNoId
+					;(ID "string `json:\"id\"`")
+	     ,@(loop for e in (rest record-def)
+		     collect
+		     (destructuring-bind (&key name type example binding gorm) e
+		       `(,name ,(format
+				 nil
+				 "~a `json:\"~a\" form:\"~a\" gorm:\"~a\" ~@[binding:\"~a\"~]example:\"~a\"`"
+				 type
+				 (string-downcase (format nil "~a" name)) ;; json
+				 (string-downcase (format nil "~a" name)) ;; form
+				 gorm
+				 binding
+				 example)))))
 	 (defun Test_01_postUser (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
 	   (r.POST (string "/users")
 		   postUser)
-	   
-	   (assign userOrig (curly Users
-				    :GivenName (string "Bella")
-				    :LastName (string "Hound")
-				    ))
+	   (comments "let the database choose the ID")
+	   (assign userOrig (curly UsersNoId
+				   :GivenName (string "Bella")
+				   :LastName (string "Hound")
+				   ))
 	   (assign (ntuple jsonValue _) (json.Marshal userOrig))
+	   ,(lprint :vars `(("string" jsonValue)))
 	   (assign (ntuple req _) (http.NewRequest (string "POST")
 						   (string "/users")
 						   (bytes.NewBuffer jsonValue)))
@@ -609,18 +623,18 @@
 		,(lprint :vars `(user userOrig))
 		(assert.Equal tt user userOrig))
 	   )
-	 
+
 	 #+nil
-	 
+
 	 (defun Test_01_putUser (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
 	   (r.POST (string "/users/")
-		  getUsers)
-	   
+		   getUsers)
+
 	   (do0 (assign (ntuple req _) (http.NewRequest (string "GET")
-						    (string "/api/v1/users")
-						    "nil"))
+							(string "/api/v1/users")
+							"nil"))
 		(assign w (httptest.NewRecorder))
 		(r.ServeHTTP w req))
 	   #+nil (assign (ntuple responseData _)
@@ -645,8 +659,8 @@
 		(assert.Equal tt users usersOrig))
 	   #+nil ,(lprint :vars `(albums))
 	   )
-	 
-	 
+
+
 
 	 ;; fuzz testing described here
 	 ;; https://universalglue.dev/posts/gin-fuzzing/
