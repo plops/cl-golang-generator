@@ -309,7 +309,7 @@
 				     "var user UsersNoID"
 				     (do0
 				      ,(lprint :msg "BIND" :vars `(c.Request.Body))
-				      
+
 				      ,(when-err0 `(:cmd (c.ShouldBindJSON &user)
 							 :code
 							 (do0
@@ -853,7 +853,9 @@
 	 ;; of a fuzz target should not persist past the end of each
 	 ;; call, and the behavior of a fuzz target should not depend
 	 ;; on global state.
-#+nil
+
+	 ;; go test -fuzz .  stores failing tests in testdata/
+	 ;; these tests will also be run in subsequent calls of `go test`
 	 (defun FuzzGivenName (f)
 	   (declare (type *testing.F f))
 	   (comments "run this test with `go test -fuzz=. -fuzztime=5s .`"
@@ -870,7 +872,7 @@
 		     )
 	      (declare (type string givenName ;lastName
 			     )
-		       ;(type int id)
+					;(type int id)
 		       (type *testing.T tt) )
 	      (assign lastName (string "test"))
 	      (do0
@@ -895,7 +897,7 @@
 				      &userReadBack)
 		      ,(lprint :msg "FuzzEntries" :vars `(;userToSubmit.ID
 							  userReadBack.ID))
-		      ;(assert.NotEmpty tt userReadBack)
+					;(assert.NotEmpty tt userReadBack)
 		      ,@(loop for e in `(GivenName LastName)
 			      collect
 			      `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
