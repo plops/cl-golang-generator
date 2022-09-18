@@ -301,13 +301,13 @@
 				      ,(when-err0 `(:cmd (c.ShouldBindJSON &user)
 							 :code
 							 (do0
-							   (c.IndentedJSON http.StatusBadRequest ;; 400
-									   (curly gin.H
-										  ,(make-keyword "\"ERROR\"")
-										  (dot err01 Error)))
-							   
-							   ))))
-				     #+nil 
+							  (c.IndentedJSON http.StatusBadRequest ;; 400
+									  (curly gin.H
+										 ,(make-keyword "\"ERROR\"")
+										 (dot err01 Error)))
+
+							  ))))
+				     #+nil
 				     (c.Bind &user)
 				     (comments "definition of http status code https://go.dev/src/net/http/status.go ")
 				     (if (logand (!= user.GivenName (string ""))
@@ -592,56 +592,144 @@
 	 (defun Test_00_getUsers_empty (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
-	   (r.GET (string "/users")
-		  getUsers)
+	   (do0
+	    (do0
+	     (comments "submit get request to obtain entire user list")
+	     (r.GET (string "/users")
+		    getUsers)
 
-	   (assign (ntuple req _) (http.NewRequest (string "GET")
-						   (string "/users")
-						   "nil"))
-	   (assign w (httptest.NewRecorder))
-	   (r.ServeHTTP w req)
-	   (setf "var usersOrig"
-		 (curly []Users
-			))
+	     (assign (ntuple req _) (http.NewRequest (string "GET")
+						     (string "/users")
+						     "nil")))
 
-	   (assert.Equal tt http.StatusOK w.Code)
-	   (do0 "var users []Users"
-		(json.Unmarshal (w.Body.Bytes)
-				&users)
-		(assert.Empty tt users)
-		(assert.Equal tt users usersOrig)))
+	    (do0
+	     (comments "validate response")
+	     (assign w (httptest.NewRecorder))
+	     (r.ServeHTTP w req)
+	     (setf "var usersOrig"
+		   (curly []Users
+			  ))
+
+	     (assert.Equal tt http.StatusOK w.Code)
+	     (do0 "var users []Users"
+		  (json.Unmarshal (w.Body.Bytes)
+				  &users)
+		  (assert.Empty tt users)
+		  (assert.Equal tt users usersOrig)))))
 
 
-	 
-	 (defun Test_01_postUser (tt)
+
+	 (defun Test_01_postUser_once (tt)
 	   (declare (type *testing.T tt))
 	   (assign r (SetUpRouter))
-	   (r.POST (string "/users")
-		   postUser)
-	   (comments "let the database choose the ID")
-	   (assign userOrig (curly UsersNoId
-				   :GivenName (string "Bella")
-				   :LastName (string "Hound")
-				   ))
-	   (assign (ntuple jsonValue _) (json.Marshal userOrig))
-	   ,(lprint :vars `(("string" jsonValue)))
-	   (assign (ntuple req _) (http.NewRequest (string "POST")
-						   (string "/users")
-						   (bytes.NewBuffer jsonValue)))
-	   (assign w (httptest.NewRecorder))
-	   (r.ServeHTTP w req)
 
-	   (assert.Equal tt http.StatusCreated w.Code)
+	   (do0
+	    (do0
+	     (comments "submit post request to add one user")
+	     (r.POST (string "/users")
+		     postUser)
+	     (comments "let the database choose the ID")
+	     (assign userOrig (curly UsersNoId
+				     :GivenName (string "Bella")
+				     :LastName (string "Hound")))
+	     (assign (ntuple jsonValue _) (json.Marshal userOrig))
+	     ,(lprint :vars `(("string" jsonValue)))
+	     (assign (ntuple req _) (http.NewRequest (string "POST")
+						     (string "/users")
+						     (bytes.NewBuffer jsonValue))))
 
-	   (do0 "var user Users "
-		(json.Unmarshal (w.Body.Bytes)
-				&user)
-		(assert.NotEmpty tt user)
-		,(lprint :vars `(user userOrig))
-		,@(loop for e in `(GivenName LastName)
-			collect
-			`(assert.Equal tt (dot user ,e) (dot userOrig ,e))))
-	   )
+	    (do0
+	     (comments "verify response for the post request")
+	     (assign w (httptest.NewRecorder))
+	     (r.ServeHTTP w req)
+
+	     (assert.Equal tt http.StatusCreated w.Code)
+
+	     (do0 "var user Users "
+		  (json.Unmarshal (w.Body.Bytes)
+				  &user)
+		  (assert.NotEmpty tt user)
+		  ,(lprint :vars `(user userOrig))
+		  ,@(loop for e in `(GivenName LastName)
+			  collect
+			  `(assert.Equal tt (dot user ,e) (dot userOrig ,e)))))))
+
+	 ,(let ((three-names `((john coltrane)
+			       (jery mulijang)
+			       (vanes vaughn))))
+	    `(defun Test_02_postUser_three_times (tt)
+	       (declare (type *testing.T tt))
+	       (assign r (SetUpRouter))
+	       (r.POST (string "/users")
+		       postUser)
+	       ,@(loop for (given-name last-name) in three-names
+		       collect
+		       `(progn
+			 (do0
+			  (do0
+			   (comments "submit post request to add one user")
+			   
+			   (comments "let the database choose the ID")
+			   (assign userOrig (curly UsersNoId
+						   :GivenName (string ,given-name)
+						   :LastName (string ,last-name)))
+			   (assign (ntuple jsonValue _) (json.Marshal userOrig))
+			   ,(lprint :vars `(("string" jsonValue)))
+			   (assign (ntuple req _) (http.NewRequest (string "POST")
+								   (string "/users")
+								   (bytes.NewBuffer jsonValue))))
+
+			  (do0
+			   (comments "verify response for the post request")
+			   (assign w (httptest.NewRecorder))
+			   (r.ServeHTTP w req)
+
+			   (assert.Equal tt http.StatusCreated w.Code)
+
+			   (do0 "var user Users "
+				(json.Unmarshal (w.Body.Bytes)
+						&user)
+				(assert.NotEmpty tt user)
+				,(lprint :vars `(user userOrig))
+				,@(loop for e in `(GivenName LastName)
+					collect
+					`(assert.Equal tt (dot user ,e) (dot userOrig ,e))))))))
+
+
+	       (do0
+		(do0
+		 (comments "submit get request to obtain entire user list")
+		 (r.GET (string "/users")
+			getUsers)
+
+		 (assign (ntuple req _) (http.NewRequest (string "GET")
+							 (string "/users")
+							 "nil")))
+
+		(do0
+		 (comments "validate response")
+		 (assign w (httptest.NewRecorder))
+		 (r.ServeHTTP w req)
+		 
+
+
+		 (assert.Equal tt http.StatusOK w.Code)
+		 (do0 "var users []Users"
+		      (json.Unmarshal (w.Body.Bytes)
+				      &users)
+		      (assert.NotEmpty tt users)
+		      ,@(loop for (given-name last-name) in three-names
+			      and e-i from 0
+			      collect
+			      `(do0
+				(assert.Equal tt
+					      (dot (aref users ,e-i) GivenName)
+					      (string ,given-name))
+				(assert.Equal tt
+					      (dot (aref users ,e-i) LastName)
+					      (string ,last-name)))
+			      )
+		      )))))
 
 	 #+nil
 
