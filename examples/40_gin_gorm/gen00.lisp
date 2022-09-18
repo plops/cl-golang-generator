@@ -285,7 +285,7 @@
 				     "@Tags users"
 				     "@Accept json"
 				     "@Produce json"
-				     "@Param user body Users true \"Create User\""
+				     "@Param user body UsersNoId true \"Create User\""
 				     "@Success 201 {object} Users"
 				     "@Failure 422 {object} string \"Fields are empty\""
 				     "@Router /users [post]")
@@ -314,10 +314,10 @@
 						 (!= user.LastName (string "")))
 					 (do0
 					  (comments "insert into users (name) values user.Name)")
-					  (assign userFromInput (curly Users
+					  #+nil (assign userFromInput (curly Users
 								       :GivenName user.GivenName
 								       :LastName user.LastName))
-					  (db.Create &userFromInput)
+					  (db.Create &user)
 					  (c.IndentedJSON http.StatusCreated ;; 201
 							  user)
 					  )
@@ -663,37 +663,38 @@
 	       (r.POST (string "/users")
 		       postUser)
 	       ,@(loop for (given-name last-name) in three-names
+		       and count in `(first second third)
 		       collect
 		       `(progn
-			 (do0
 			  (do0
-			   (comments "submit post request to add one user")
-			   
-			   (comments "let the database choose the ID")
-			   (assign userOrig (curly UsersNoId
-						   :GivenName (string ,given-name)
-						   :LastName (string ,last-name)))
-			   (assign (ntuple jsonValue _) (json.Marshal userOrig))
-			   ,(lprint :vars `(("string" jsonValue)))
-			   (assign (ntuple req _) (http.NewRequest (string "POST")
-								   (string "/users")
-								   (bytes.NewBuffer jsonValue))))
+			   (do0
+			    (comments ,(format nil "submit post request to add the ~a user (out of three)" count))
 
-			  (do0
-			   (comments "verify response for the post request")
-			   (assign w (httptest.NewRecorder))
-			   (r.ServeHTTP w req)
+			    (comments "let the database choose the ID")
+			    (assign userOrig (curly UsersNoId
+						    :GivenName (string ,given-name)
+						    :LastName (string ,last-name)))
+			    (assign (ntuple jsonValue _) (json.Marshal userOrig))
+			    ,(lprint :vars `(("string" jsonValue)))
+			    (assign (ntuple req _) (http.NewRequest (string "POST")
+								    (string "/users")
+								    (bytes.NewBuffer jsonValue))))
 
-			   (assert.Equal tt http.StatusCreated w.Code)
+			   (do0
+			    (comments "verify response for the post request")
+			    (assign w (httptest.NewRecorder))
+			    (r.ServeHTTP w req)
 
-			   (do0 "var user Users "
-				(json.Unmarshal (w.Body.Bytes)
-						&user)
-				(assert.NotEmpty tt user)
-				,(lprint :vars `(user userOrig))
-				,@(loop for e in `(GivenName LastName)
-					collect
-					`(assert.Equal tt (dot user ,e) (dot userOrig ,e))))))))
+			    (assert.Equal tt http.StatusCreated w.Code)
+
+			    (do0 "var user Users "
+				 (json.Unmarshal (w.Body.Bytes)
+						 &user)
+				 (assert.NotEmpty tt user)
+				 ,(lprint :vars `(user userOrig))
+				 ,@(loop for e in `(GivenName LastName)
+					 collect
+					 `(assert.Equal tt (dot user ,e) (dot userOrig ,e))))))))
 
 
 	       (do0
@@ -710,7 +711,7 @@
 		 (comments "validate response")
 		 (assign w (httptest.NewRecorder))
 		 (r.ServeHTTP w req)
-		 
+
 
 
 		 (assert.Equal tt http.StatusOK w.Code)
