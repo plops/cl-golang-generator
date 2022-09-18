@@ -5,7 +5,7 @@
 
 (progn
   (defparameter *path*
-    (format nil "~a/stage/cl-golang-generator/examples/38_rest_with_gin"
+    (format nil "~a/stage/cl-golang-generator/examples/40_gin_gorm"
 	    (user-homedir-pathname)))
   (defparameter *idx* "00")
   (defparameter *day-names*
@@ -127,10 +127,10 @@
 					;(incf file-count)
 	)))
 
-  (let ((record-def `((:name ID :type string :example "1" :binding required)
-		      (:name Title :type string :example "This is a song" :binding required)
-		      (:name Artist :type string :example "Art Ista" :binding required)
-		      (:name Price :type float64 :example "12.23" :binding required))))
+  (let ((record-def `((:name Id :type int :example 1 :gorm AUTO_INCREMENT :binding required)
+		      (:name GivenName :type string :example "Heuss" :gorm "not null" :binding required)
+		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
+		      )))
     (let ((name (format nil "~2,'0d_mymain" *idx*)))
       (write-go
        name
@@ -163,25 +163,29 @@
 	 ;; ~/go/bin/swag fmt
 	 ;; look at API documentation while mymain is running, you can also test it:
 	 ;; http://localhost:8080/swagger/index.html
-	 (comments "@title  Music Album service"
+	 (comments "@title  User table service"
 		   "@version   1.0"
-		   "@description Information about music album"
+		   "@description Information about users"
 		   "@license.name Apache 2.0"
 		   "@host localhost:8080"
 		   "@BasePath /")
 
-	 (defstruct0 Album
+	 (defstruct0 User
 					;(ID "string `json:\"id\"`")
 	     ,@(loop for e in record-def
 		     collect
-		     (destructuring-bind (&key name type example binding) e
-		       `(,name ,(format nil "~a `json:\"~a\" binding:\"~a\" example:\"~a\"`"
-					type
-					(string-downcase (format nil "~a" name))
-					binding
-					example))))
+		     (destructuring-bind (&key name type example binding gorm) e
+		       `(,name ,(format
+				 nil
+				 "~a `json:\"~a\" form:\"~a\" gorm:\"~a\" binding:\"~a\" example:\"~a\"`"
+				 type
+				 (string-downcase (format nil "~a" name)) ;; json
+				 (string-downcase (format nil "~a" name)) ;; form
+				 gorm
+				 binding
+				 example))))
 	   )
-
+	 #+nil
 	 (setf "var albums"
 	       (curly []Album
 		      ,@(loop for (title artist price) in `(("blue train" "john coltrane" "54.99")
@@ -198,6 +202,7 @@
 	 ,(lprint-init)
 	 ,(panic-init)
 
+	 #+nil
 	 (do0
 	  (comments "getAlbums godoc"
 		    "@Summary List existing albums"
@@ -214,7 +219,7 @@
 		      "note: Context.JSON would be more compact")
 	    (c.IndentedJSON http.StatusOK
 			    albums)))
-
+	 #+nil
 	 (do0
 	  (comments "postAlbums godoc"
 		    "@Summary Add new album"
@@ -237,6 +242,7 @@
 			    ;; json of the new Album
 			    newAlbum)))
 
+	 #+nil
 	 (do0
 	  (comments "getAlbumByID godoc"
 		    "@Summary Get single album"
@@ -305,52 +311,66 @@
 		   collect
 		   `(do0
 		     ,(lprint :vars `(,e)))))
+	 ,(let ((route-def `((:name Users :type get)
+			    (:name Users :type post)
+			    (:name UserByID :type get :url (string "/users/:id"))
+			    (:name UserByID :type put :url (string "/users/:id"))
+			    (:name UserByID :type delete :url (string "/users/:id"))
+			    )))
+	    `(do0
+	      ,@(loop for e in route-def
+			  collect
+			  (destructuring-bind (&key name type url) e
+			    (let* ((small-name (string-downcase (format nil "~a" name))))
+			      (unless url
+				(setf url `(string ,(format nil "/~a" small-name))))
+			      (let ((fun (format nil "~a~a" type name))
+				    (GET (string-upcase (format nil "~a" type))))
+				`(defun ,fun (c)
+				   (declare (type *gin.Context c))
+				   (c.JSON 200 user))))))
+	     (defun main ()
+	       ,(lprint :msg (format nil "program ~a starts" name))
+	       (reportGenerator)
+	       ,(lprint :msg "Go version:" :vars `((runtime.Version)))
+	       (reportDependencies)
 
+	       (do0
+		,@(loop for e in `((Title (string "Userss API"))
+				   (Description (string "Users API "))
+				   (Version (string "1.0"))
+				   (Host (string "localhost:8080"))
+				   (BasePath (string "/"))
+				   (Schemes (curly []string (string "http"))))
+			collect
+			(destructuring-bind (name value) e
+			  `(setf (dot
+				  docs
+				  SwaggerInfo
+				  ,name )
+				 ,value))))
 
-	 (defun main ()
-	   ,(lprint :msg (format nil "program ~a starts" name))
-	   (reportGenerator)
-	   ,(lprint :msg "Go version:" :vars `((runtime.Version)))
-	   (reportDependencies)
+	       (do0
+		(assign router (gin.Default))
+		(assign v1 (router.Group (string "api/v1")))
+		(progn
+		  ,@(loop for e in route-def
+			  appending
+			  (destructuring-bind (&key name type url) e
+			    (let* ((small-name (string-downcase (format nil "~a" name))))
+			      (unless url
+				(setf url `(string ,(format nil "/~a" small-name))))
+			      (let ((fun (format nil "~a~a" type name))
+				    (GET (string-upcase (format nil "~a" type))))
+				`((dot v1 (,GET ,url
+						    ,fun))))))))
+		(router.GET (string "/swagger/*any")
+			    (dot ginSwagger
+				 (WrapHandler
+				  swaggerfiles.Handler)))
+		(router.Run (string "localhost:8080")))
 
-	   (do0
-	    ,@(loop for e in `((Title (string "Music Albums API"))
-			       (Description (string "Music Albums API "))
-			       (Version (string "1.0"))
-			       (Host (string "localhost:8080"))
-			       (BasePath (string "/"))
-			       (Schemes (curly []string (string "http"))))
-		    collect
-		    (destructuring-bind (name value) e
-		      `(setf (dot
-			      docs
-			      SwaggerInfo
-			      ,name )
-			     ,value))))
-
-	   (do0
-	    (assign router (gin.Default))
-	    ,@(loop for e in `((:name Albums :type get)
-			       (:name Albums :type post)
-			       (:name AlbumByID :type get :url (string "/albums/:id"))
-			       )
-		    appending
-		    (destructuring-bind (&key name type url) e
-		      (let* ((small-name (string-downcase (format nil "~a" name)))
-			     )
-			(unless url
-			  (setf url `(string ,(format nil "/~a" small-name))))
-			(let ((fun (format nil "~a~a" type name))
-			      (GET (string-upcase (format nil "~a" type))))
-			  `((dot router (,GET ,url
-					      ,fun)))))))
-	    (router.GET (string "/swagger/*any")
-			(dot ginSwagger
-			     (WrapHandler
-			      swaggerfiles.Handler)))
-	    (router.Run (string "localhost:8080")))
-
-	   ))))
+	       ))))))
     (let ((name (format nil "~2,'0d_mymain_unit_test" 1)))
       (write-go
        name

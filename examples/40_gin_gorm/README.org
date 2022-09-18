@@ -1,2 +1,7 @@
 - use gin web framework together with gorm object relational mapper
 - https://medium.com/@etiennerouzeaud/how-to-create-a-basic-restful-api-in-go-c8e032ba3181
+  - code on github: https://gist.github.com/EtienneR/ed522e3d31bc69a9dec3335e639fcf60 (186 lines)
+    
+- https://www.allhandsontech.com/programming/golang/web-app-sqlite-go/
+  - postman for checking
+  - no use of gorm
