@@ -166,6 +166,8 @@
 	  (swaggerfiles github.com/swaggo/files)
 	  (docs "mymain/docs")
 
+	  unicode/utf8
+
 	  )
 	 ;; install swag
 	 ;; go get github.com/swaggo/swag/cmd/swag
@@ -324,7 +326,9 @@
 				     ,(lprint :vars `(user))
 				     (comments "definition of http status code https://go.dev/src/net/http/status.go ")
 				     (if (logand (!= user.GivenName (string ""))
-						 (!= user.LastName (string "")))
+						 (!= user.LastName (string ""))
+						 (utf8.ValidString user.GivenName)
+						 (utf8.ValidString user.LastName))
 					 (do0
 					  (comments "insert into users (name) values user.Name)")
 					  (assign userFromInput (curly Users
