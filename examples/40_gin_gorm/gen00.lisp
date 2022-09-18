@@ -593,6 +593,7 @@
 	  bytes
 	  os
 	  fmt
+	  unicode/utf8
 					;strconv
 	  )
 	 (comments "run with `go test` or `GIN_MODE=release go test -v`")
@@ -895,6 +896,7 @@
 		 (comments "verify response for the post request")
 		 (assign w (httptest.NewRecorder))
 		 (r.ServeHTTP w req)
+		 ,(lprint :msg "FuzzGivenName" :vars `(w.Code))
 		 ;;(assert.Equal tt http.StatusCreated w.Code)
 		 (do0 "var userReadBack Users "
 		      (json.Unmarshal (w.Body.Bytes)
@@ -902,9 +904,11 @@
 		      ,(lprint :msg "FuzzEntries" :vars `(;userToSubmit.ID
 							  userReadBack.ID))
 					;(assert.NotEmpty tt userReadBack)
-		      ,@(loop for e in `(GivenName LastName)
-			      collect
-			      `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e)))))
+		      (when (utf8.ValidString givenName)
+		       ,@(loop for e in `(GivenName ;LastName
+					  )
+			       collect
+			       `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e))))))
 
 		#+nil(do0
 		      (comments "delete the user")
