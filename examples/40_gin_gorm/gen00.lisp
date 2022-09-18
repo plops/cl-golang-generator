@@ -281,7 +281,7 @@
 				    (comments
 				     "@Summary Add new user"
 				     "@Schemes"
-				     "@Description Add a new user to the table"
+				     "@Description Add a new user to the table. The input can contain an id, but it will be ignored. The database chooses an id automatically. The chosen id is returned in the response."
 				     "@Tags users"
 				     "@Accept json"
 				     "@Produce json"
@@ -314,12 +314,12 @@
 						 (!= user.LastName (string "")))
 					 (do0
 					  (comments "insert into users (name) values user.Name)")
-					  #+nil (assign userFromInput (curly Users
+					  (assign userFromInput (curly Users
 								       :GivenName user.GivenName
 								       :LastName user.LastName))
-					  (db.Create &user)
+					  (db.Create &userFromInput)
 					  (c.IndentedJSON http.StatusCreated ;; 201
-							  user)
+							  userFromInput)
 					  )
 					 (do0
 					  (comments "insert into users (name) values user.Name)")
@@ -657,80 +657,163 @@
 	 ,(let ((three-names `((john coltrane)
 			       (jery mulijang)
 			       (vanes vaughn))))
-	    `(defun Test_02_postUser_three_times (tt)
-	       (declare (type *testing.T tt))
-	       (assign r (SetUpRouter))
-	       (r.POST (string "/users")
-		       postUser)
-	       ,@(loop for (given-name last-name) in three-names
-		       and count in `(first second third)
-		       collect
-		       `(progn
-			  (do0
+	    `(do0
+	      (defun Test_02_postUser_three_times_without_Id (tt)
+		(declare (type *testing.T tt))
+		(assign r (SetUpRouter))
+		(r.POST (string "/users")
+			postUser)
+		,@(loop for (given-name last-name) in three-names
+			and e-i from 10
+			and count in `(first second third)
+			collect
+			`(progn
 			   (do0
-			    (comments ,(format nil "submit post request to add the ~a user (out of three)" count))
+			    (do0
+			     (comments ,(format nil "submit post request to add the ~a user (out of three)" count))
 
-			    (comments "let the database choose the ID")
-			    (assign userOrig (curly UsersNoId
-						    :GivenName (string ,given-name)
-						    :LastName (string ,last-name)))
-			    (assign (ntuple jsonValue _) (json.Marshal userOrig))
-			    ,(lprint :vars `(("string" jsonValue)))
-			    (assign (ntuple req _) (http.NewRequest (string "POST")
-								    (string "/users")
-								    (bytes.NewBuffer jsonValue))))
+			     (comments "It is acceptable to submit an ID but the the database will choose the ID.")
+			     (assign userOrig (curly UsersNoId
+						     
+						     :GivenName (string ,given-name)
+						     :LastName (string ,last-name)))
+			     (assign (ntuple jsonValue _) (json.Marshal userOrig))
+			     ,(lprint :vars `(("string" jsonValue)))
+			     (assign (ntuple req _) (http.NewRequest (string "POST")
+								     (string "/users")
+								     (bytes.NewBuffer jsonValue))))
 
-			   (do0
-			    (comments "verify response for the post request")
-			    (assign w (httptest.NewRecorder))
-			    (r.ServeHTTP w req)
+			    (do0
+			     (comments "verify response for the post request")
+			     (assign w (httptest.NewRecorder))
+			     (r.ServeHTTP w req)
 
-			    (assert.Equal tt http.StatusCreated w.Code)
+			     (assert.Equal tt http.StatusCreated w.Code)
 
-			    (do0 "var user Users "
-				 (json.Unmarshal (w.Body.Bytes)
-						 &user)
-				 (assert.NotEmpty tt user)
-				 ,(lprint :vars `(user userOrig))
-				 ,@(loop for e in `(GivenName LastName)
-					 collect
-					 `(assert.Equal tt (dot user ,e) (dot userOrig ,e))))))))
+			     (do0 "var user Users "
+				  (json.Unmarshal (w.Body.Bytes)
+						  &user)
+				  (assert.NotEmpty tt user)
+				  ,(lprint :vars `(user userOrig))
+				 
+				  ,@(loop for e in `(GivenName LastName)
+					  collect
+					  `(assert.Equal tt (dot user ,e) (dot userOrig ,e))))))))
 
-
-	       (do0
-		(do0
-		 (comments "submit get request to obtain entire user list")
-		 (r.GET (string "/users")
-			getUsers)
-
-		 (assign (ntuple req _) (http.NewRequest (string "GET")
-							 (string "/users")
-							 "nil")))
 
 		(do0
-		 (comments "validate response")
-		 (assign w (httptest.NewRecorder))
-		 (r.ServeHTTP w req)
+		 (do0
+		  (comments "submit get request to obtain entire user list")
+		  (r.GET (string "/users")
+			 getUsers)
+
+		  (assign (ntuple req _) (http.NewRequest (string "GET")
+							  (string "/users")
+							  "nil")))
+
+		 (do0
+		  (comments "validate response")
+		  (assign w (httptest.NewRecorder))
+		  (r.ServeHTTP w req)
 
 
 
-		 (assert.Equal tt http.StatusOK w.Code)
-		 (do0 "var users []Users"
-		      (json.Unmarshal (w.Body.Bytes)
-				      &users)
-		      (assert.NotEmpty tt users)
-		      ,@(loop for (given-name last-name) in three-names
-			      and e-i from 0
-			      collect
-			      `(do0
-				(assert.Equal tt
-					      (dot (aref users ,e-i) GivenName)
-					      (string ,given-name))
-				(assert.Equal tt
-					      (dot (aref users ,e-i) LastName)
-					      (string ,last-name)))
-			      )
-		      )))))
+		  (assert.Equal tt http.StatusOK w.Code)
+		  (do0 "var users []Users"
+		       (json.Unmarshal (w.Body.Bytes)
+				       &users)
+		       (assert.NotEmpty tt users)
+		       ,@(loop for (given-name last-name) in three-names
+			       and e-i from 0
+			       collect
+			       `(do0
+				 (assert.Equal tt
+					       (dot (aref users ,e-i) GivenName)
+					       (string ,given-name))
+				 (assert.Equal tt
+					       (dot (aref users ,e-i) LastName)
+					       (string ,last-name)))
+			       )
+		       ))))
+	      (defun Test_02_postUser_three_times_with_Id (tt)
+		(declare (type *testing.T tt))
+		(assign r (SetUpRouter))
+		(r.POST (string "/users")
+			postUser)
+		,@(loop for (given-name last-name) in three-names
+			and e-i from 10
+			and count in `(first second third)
+			collect
+			`(progn
+			   (do0
+			    (do0
+			     (comments ,(format nil "submit post request to add the ~a user (out of three)" count))
+
+			     (comments "It is acceptable to submit an ID but the the database will choose the ID.")
+			     (assign userToSubmit (curly Users
+						     :Id ,e-i
+						     :GivenName (string ,given-name)
+						     :LastName (string ,last-name)))
+			     (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
+			     ,(lprint :vars `(("string" jsonValue)))
+			     (assign (ntuple req _) (http.NewRequest (string "POST")
+								     (string "/users")
+								     (bytes.NewBuffer jsonValue))))
+
+			    (do0
+			     (comments "verify response for the post request")
+			     (assign w (httptest.NewRecorder))
+			     (r.ServeHTTP w req)
+
+			     (assert.Equal tt http.StatusCreated w.Code)
+
+			     (do0 "var userReadBack Users "
+				  (json.Unmarshal (w.Body.Bytes)
+						  &userReadBack)
+				  ,(lprint :vars `(userToSubmit userReadBack))
+				  (assert.NotEmpty tt userReadBack)
+				  ,@(loop for e in `(Id)
+					  collect
+					  `(assert.NotEqual tt (dot userReadBack ,e) (dot userToSubmit ,e)))
+				  ,@(loop for e in `(GivenName LastName)
+					  collect
+					  `(assert.Equal tt (dot userReadBack ,e) (dot userToSubmit ,e))))))))
+
+
+		(do0
+		 (do0
+		  (comments "submit get request to obtain entire user list")
+		  (r.GET (string "/users")
+			 getUsers)
+
+		  (assign (ntuple req _) (http.NewRequest (string "GET")
+							  (string "/users")
+							  "nil")))
+
+		 (do0
+		  (comments "validate response")
+		  (assign w (httptest.NewRecorder))
+		  (r.ServeHTTP w req)
+
+
+
+		  (assert.Equal tt http.StatusOK w.Code)
+		  (do0 "var users []Users"
+		       (json.Unmarshal (w.Body.Bytes)
+				       &users)
+		       (assert.NotEmpty tt users)
+		       ,@(loop for (given-name last-name) in three-names
+			       and e-i from 0
+			       collect
+			       `(do0
+				 (assert.Equal tt
+					       (dot (aref users ,e-i) GivenName)
+					       (string ,given-name))
+				 (assert.Equal tt
+					       (dot (aref users ,e-i) LastName)
+					       (string ,last-name)))
+			       )
+		       ))))))
 
 	 #+nil
 
