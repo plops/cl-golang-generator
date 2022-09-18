@@ -133,8 +133,8 @@
 					;(incf file-count)
 	)))
 
-  (let ((record-def `((:name Id :type int :example 1 :gorm AUTO_INCREMENT ;:binding required
-			     ;; if the Id is set to <n> in the POST command then subsequent posts with empty Id will assign <n+1>, <n+2> ...
+  (let ((record-def `((:name ID :type int :example 1 :gorm AUTO_INCREMENT ;:binding required
+			     ;; if the ID is set to <n> in the POST command then subsequent posts with empty ID will assign <n+1>, <n+2> ...
 			     )
 		      (:name GivenName :type string :example "Heuss" :gorm "not null" :binding required)
 		      (:name LastName :type string :example "Karl" :gorm "not null" :binding required)
@@ -173,13 +173,14 @@
 	 ;; ~/go/bin/swag fmt
 	 ;; look at API documentation while mymain is running, you can also test it:
 	 ;; http://localhost:8080/swagger/index.html
-	 (comments "@title  User table service"
+	 (comments "GORM uses ID as primary key by default"
+		   "@title  User table service"
 		   "@version   1.0"
 		   "@description Information about users"
 		   "@license.name Apache 2.0"
 		   "@host localhost:8080"
 		   "@BasePath /api/v1")
-
+	 ;; gorm pluralizes the struct name by default to the table name using snake_case
 	 (defstruct0 Users
 					;(ID "string `json:\"id\"`")
 	     ,@(loop for e in record-def
@@ -195,7 +196,7 @@
 				 binding
 				 example)))))
 
-	 (defstruct0 UsersNoId
+	 (defstruct0 UsersNoID
 					;(ID "string `json:\"id\"`")
 	     ,@(loop for e in (rest record-def)
 		     collect
@@ -285,7 +286,7 @@
 				     "@Tags users"
 				     "@Accept json"
 				     "@Produce json"
-				     "@Param user body UsersNoId true \"Create User\""
+				     "@Param user body UsersNoID true \"Create User\""
 				     "@Success 201 {object} Users"
 				     "@Failure 422 {object} string \"Fields are empty\""
 				     "@Router /users [post]")
@@ -296,7 +297,7 @@
 				     (do0
 				      (assign db (InitDb))
 				      (defer (db.Close)))
-				     "var user UsersNoId"
+				     "var user UsersNoID"
 				     (do0
 				      ,(when-err0 `(:cmd (c.ShouldBindJSON &user)
 							 :code
@@ -309,6 +310,7 @@
 							  ))))
 				     #+nil
 				     (c.Bind &user)
+				     ,(lprint :vars `(user))
 				     (comments "definition of http status code https://go.dev/src/net/http/status.go ")
 				     (if (logand (!= user.GivenName (string ""))
 						 (!= user.LastName (string "")))
@@ -322,7 +324,7 @@
 							  userFromInput)
 					  )
 					 (do0
-					  (comments "insert into users (name) values user.Name)")
+					  
 					  (c.IndentedJSON http.StatusUnprocessableEntity ;; 422
 							  (curly gin.H ,(make-keyword "\"ERROR\"")
 								 (string "Fields are empty"))
@@ -345,7 +347,7 @@
 				     (db.Find &users)
 				     (c.IndentedJSON http.StatusOK ;; 200
 						     users)))
-			     (:name UserById :type get :url (string "/users/:id")
+			     (:name UserByID :type get :url (string "/users/:id")
 				    :doc
 				    (comments
 				     "@Summary Get single user"
@@ -364,7 +366,7 @@
 				     (comments "select * from users where id=<id>")
 				     "var user Users"
 				     (db.First &user id)
-				     (if (== user.Id 0)
+				     (if (== user.ID 0)
 					 (c.IndentedJSON http.StatusNotFound ;; 404
 							 (curly gin.H
 								,(make-keyword "\"ERROR\"")
@@ -373,7 +375,7 @@
 					 (c.IndentedJSON http.StatusOK ;; 200
 							 user))))
 			     ;; type H map[string]any in gin-gonic utils.go
-			     (:name UserById :type put :url (string "/users/:id")
+			     (:name UserByID :type put :url (string "/users/:id")
 				    :doc
 				    (comments
 				     "@Summary Change single user"
@@ -396,7 +398,7 @@
 				     (db.First &user id)
 				     (if (logand (!= user.GivenName (string ""))
 						 (!= user.LastName (string "")))
-					 (do0 (if (== user.Id 0)
+					 (do0 (if (== user.ID 0)
 						  (do0
 						   (c.IndentedJSON http.StatusNotFound ;; 404
 								   (curly gin.H
@@ -407,7 +409,7 @@
 						   "var newUser Users"
 						   (c.Bind &newUser)
 						   (assign result (curly Users
-									 :Id user.Id
+									 :ID user.ID
 									 :GivenName newUser.GivenName
 									 :LastName newUser.LastName))
 						   (comments "// update users set givenname='newuser.GivenName', lastname='newUser.LastName' where id=user.id;")
@@ -421,7 +423,7 @@
 							  (curly gin.H ,(make-keyword "\"ERROR\"")
 								 (string "Fields are empty"))
 							  )))))
-			     (:name UserById :type delete :url (string "/users/:id")
+			     (:name UserByID :type delete :url (string "/users/:id")
 				    :doc
 				    (comments
 				     "@Summary Delete single user"
@@ -440,14 +442,14 @@
 				     (comments "select * from users where id=<id>")
 				     "var user Users"
 				     (db.First &user id)
-				     (if (== user.Id 0)
+				     (if (== user.ID 0)
 					 (do0
 					  (c.IndentedJSON http.StatusNotFound ;; 404
 							  (curly gin.H ,(make-keyword "\"ERROR\"")
 								 (string "User not found"))
 							  ))
 					 (do0
-					  (comments "delete from users where id = user.Id")
+					  (comments "delete from users where id = user.ID")
 					  (db.Delete &user)
 					  (c.IndentedJSON http.StatusOK ;; 200
 							  (curly gin.H ,(make-keyword "\"SUCCESS\"")
@@ -633,7 +635,7 @@
 	     (r.POST (string "/users")
 		     postUser)
 	     (comments "let the database choose the ID")
-	     (assign userOrig (curly UsersNoId
+	     (assign userOrig (curly UsersNoID
 				     :GivenName (string "Bella")
 				     :LastName (string "Hound")))
 	     (assign (ntuple jsonValue _) (json.Marshal userOrig))
@@ -662,7 +664,7 @@
 			       (jery mulijang)
 			       (vanes vaughn))))
 	    `(do0
-	      (defun Test_02_postUser_three_times_without_Id (tt)
+	      (defun Test_02_postUser_three_times_without_ID (tt)
 		(declare (type *testing.T tt))
 		(assign r (SetUpRouter))
 		(r.POST (string "/users")
@@ -677,7 +679,7 @@
 			     (comments ,(format nil "submit post request to add the ~a user (out of three)" count))
 
 			     (comments "It is acceptable to submit an ID but the the database will choose the ID.")
-			     (assign userOrig (curly UsersNoId
+			     (assign userOrig (curly UsersNoID
 
 						     :GivenName (string ,given-name)
 						     :LastName (string ,last-name)))
@@ -739,7 +741,7 @@
 					       (string ,last-name)))
 			       )
 		       ))))
-	      (defun Test_03_postUser_three_times_with_Id (tt)
+	      (defun Test_03_postUser_three_times_with_ID (tt)
 		(declare (type *testing.T tt))
 		(do0 (assign r (SetUpRouter))
 		     (r.POST (string "/users")
@@ -755,7 +757,7 @@
 
 			     (comments "It is acceptable to submit an ID but the the database will choose the ID.")
 			     (assign userToSubmit (curly Users
-							 :Id ,e-i
+							 :ID ,e-i
 							 :GivenName (string ,given-name)
 							 :LastName (string ,last-name)))
 			     (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
@@ -776,7 +778,7 @@
 						  &userReadBack)
 				  ,(lprint :vars `(userToSubmit userReadBack))
 				  (assert.NotEmpty tt userReadBack)
-				  ,@(loop for e in `(Id)
+				  ,@(loop for e in `(ID)
 					  collect
 					  `(assert.NotEqual tt (dot userReadBack ,e) (dot userToSubmit ,e)))
 				  ,@(loop for e in `(GivenName LastName)
@@ -814,10 +816,10 @@
 			       collect
 			       `(do0
 				 (assert.NotEqual tt
-						  (dot (aref users ,e-i) Id)
+						  (dot (aref users ,e-i) ID)
 						  ,id)
 				 (assert.Equal tt
-					       (dot (aref users ,e-i) Id)
+					       (dot (aref users ,e-i) ID)
 					       ,(+ 1 e-i))
 				 (assert.Equal tt
 					       (dot (aref users ,e-i) GivenName)
@@ -843,9 +845,9 @@
 		(r.POST (string "/users")
 			postUser)
 		(r.GET (string "/users/:id")
-		       getUserById)
+		       getUserByID)
 		(r.DELETE (string "/users/:id")
-			  deleteUserById))
+			  deleteUserByID))
 	   (f.Fuzz
 	    (lambda (tt givenName lastName id)
 	      (declare (type string givenName lastName )
@@ -855,7 +857,7 @@
 	       (do0
 		(comments ,(format nil "submit post request to add a new user"))
 		(assign userToSubmit (curly Users
-					    :Id id
+					    :ID id
 					    :GivenName givenName
 					    :LastName lastName))
 		(assign (ntuple jsonValue _) (json.Marshal userToSubmit))
@@ -881,7 +883,7 @@
 		      (comments "delete the user")
 		      (assign (ntuple req2 _) (http.NewRequest (string "DELETE")
 							       (+ (string "/users/")
-								  (strconv.Itoa (dot userReadBack Id)))
+								  (strconv.Itoa (dot userReadBack ID)))
 							       (bytes.NewBuffer jsonValue)))
 		      (assign w2 (httptest.NewRecorder))
 		      (r.ServeHTTP w2 req2)
