@@ -504,6 +504,8 @@
 		,(lprint :msg "Go version:" :vars `((runtime.Version)))
 		(reportDependencies)
 
+		#+nil (gin.SetMode gin.ReleaseMode)
+
 		(do0
 		 ,@(loop for e in `((Title (string "Users API"))
 				    (Description (string "Users API "))
@@ -522,6 +524,8 @@
 		(do0
 		 (assign router (gin.Default))
 		 (router.Use (Cors))
+		 (router.SetTrustedProxies "nil")
+
 		 (assign v1 (router.Group (string "api/v1")))
 		 (progn
 		   ,@(loop for e in route-def
@@ -587,6 +591,7 @@
 	    (when (== err "nil")
 	      ,(panic0 `(os.Remove dbFilename))))
 	   (assign router (gin.Default))
+	   (router.SetTrustedProxies "nil")
 	   (return router))
 
 	 (defun Test_00_getUsers_empty (tt)
@@ -674,7 +679,7 @@
 
 			     (comments "It is acceptable to submit an ID but the the database will choose the ID.")
 			     (assign userOrig (curly UsersNoId
-						     
+
 						     :GivenName (string ,given-name)
 						     :LastName (string ,last-name)))
 			     (assign (ntuple jsonValue _) (json.Marshal userOrig))
@@ -695,7 +700,7 @@
 						  &user)
 				  (assert.NotEmpty tt user)
 				  ,(lprint :vars `(user userOrig))
-				 
+
 				  ,@(loop for e in `(GivenName LastName)
 					  collect
 					  `(assert.Equal tt (dot user ,e) (dot userOrig ,e))))))))
@@ -735,7 +740,7 @@
 					       (string ,last-name)))
 			       )
 		       ))))
-	      (defun Test_02_postUser_three_times_with_Id (tt)
+	      (defun Test_03_postUser_three_times_with_Id (tt)
 		(declare (type *testing.T tt))
 		(assign r (SetUpRouter))
 		(r.POST (string "/users")
@@ -751,9 +756,9 @@
 
 			     (comments "It is acceptable to submit an ID but the the database will choose the ID.")
 			     (assign userToSubmit (curly Users
-						     :Id ,e-i
-						     :GivenName (string ,given-name)
-						     :LastName (string ,last-name)))
+							 :Id ,e-i
+							 :GivenName (string ,given-name)
+							 :LastName (string ,last-name)))
 			     (assign (ntuple jsonValue _) (json.Marshal userToSubmit))
 			     ,(lprint :vars `(("string" jsonValue)))
 			     (assign (ntuple req _) (http.NewRequest (string "POST")
@@ -798,14 +803,23 @@
 
 
 		  (assert.Equal tt http.StatusOK w.Code)
+		  
 		  (do0 "var users []Users"
 		       (json.Unmarshal (w.Body.Bytes)
 				       &users)
 		       (assert.NotEmpty tt users)
+		       (comments "we only add three users with ids starting from 10. the database ignores those ids and uses 1, 2, 3 instead")
 		       ,@(loop for (given-name last-name) in three-names
 			       and e-i from 0
+			       and id from 10
 			       collect
 			       `(do0
+				 (assert.NotEqual tt
+					       (dot (aref users ,e-i) Id)
+					       ,id)
+				 (assert.Equal tt
+					       (dot (aref users ,e-i) Id)
+					       ,(+ 1 e-i))
 				 (assert.Equal tt
 					       (dot (aref users ,e-i) GivenName)
 					       (string ,given-name))
