@@ -365,7 +365,8 @@
 				    :code
 				    (do0
 				     (assign id (c.Params.ByName (string "id")))
-				     (comments "// select * from users where id=<id>")
+				     (comments "select * from users where id=<id>")
+				     "var user Users"
 				     (db.First &user id)
 				     (if (== user.Id 0)
 
@@ -377,9 +378,11 @@
 							 user))))
 			     (:name UserByID :type put :url (string "/users/:id")
 				    :code
+
 				    (do0
 				     (assign id (c.Params.ByName (string "id")))
-				     (comments "// select * from users where id=<id>")
+				     (comments "select * from users where id=<id>")
+				     "var user Users"
 				     (db.First &user id)
 				     (if (logand (!= user.GivenName (string ""))
 						 (!= user.LastName (srting "")))
@@ -407,7 +410,30 @@
 							  (curly gin.H ,(make-keyword "\"ERROR\"")
 								 (string "Fields are empty"))
 							  )))))
-			     (:name UserByID :type delete :url (string "/users/:id"))
+			     (:name UserByID :type delete :url (string "/users/:id")
+				    :code
+				    (do0
+				     (assign id (c.Params.ByName (string "id")))
+				     (comments "select * from users where id=<id>")
+				     "var user Users"
+				     (db.First &user id)
+				     (if (== user.Id 0)
+					 (do0
+					  (c.IndentedJSON http.StatusNotFound ;; 404
+							  (curly gin.H ,(make-keyword "\"ERROR\"")
+								 (string "User not found"))
+							  ))
+					 (do0
+					  (comments "delete from users where id = user.Id")
+					  (d.Delete &user)
+					  (c.IndentedJSON http.StatusOK ;; 200
+							  (curly gin.H ,(make-keyword "\"SUCCESS\"")
+								 (+ (string "User #")
+								    id
+								    (string " deleted"))))))
+
+				     )
+				    )
 			     )))
 	    `(do0
 	      ,@(loop for e in route-def
