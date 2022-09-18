@@ -330,7 +330,21 @@
 		   `(do0
 		     ,(lprint :vars `(,e)))))
 	 ,(let ((route-def `(
-			     (:name User :type post :code
+			     (:name User :type post
+				    :doc
+				    (comments 
+				     "@Summary Add new user"
+				     "@Schemes"
+				     "@Description Add a new user to the table"
+				     "@Tags users"
+				     "@Accept json"
+				     "@Produce json"
+				     "@Param user body Users true \"Create User\""
+				     "@Success 200 {object} Users"
+				     "@Success 422 {object} error"
+				     "@Router /users [post]")
+				    
+				    :code
 				    (do0
 				     #+nil
 				     (do0
@@ -438,18 +452,21 @@
 	    `(do0
 	      ,@(loop for e in route-def
 		      collect
-		      (destructuring-bind (&key name type url code) e
+		      (destructuring-bind (&key name type url doc code) e
 			(let* ((small-name (string-downcase (format nil "~a" name))))
 			  (unless url
 			    (setf url `(string ,(format nil "/~a" small-name))))
 			  (let ((fun (format nil "~a~a" type name))
 				(GET (string-upcase (format nil "~a" type))))
-			    `(defun ,fun (c)
-			       (declare (type *gin.Context c))
-			       (do0
-				(assign db (InitDb))
-				(defer (db.Close)))
-			       ,code)))))
+			    `(do0
+			      (comments ,(format nil "~a godoc" fun))
+			      ,doc
+			      (defun ,fun (c)
+				(declare (type *gin.Context c))
+				(do0
+				 (assign db (InitDb))
+				 (defer (db.Close)))
+				,code))))))
 
 
 	      (defun Cors ()
@@ -503,7 +520,7 @@
 		 (progn
 		   ,@(loop for e in route-def
 			   appending
-			   (destructuring-bind (&key name type url code) e
+			   (destructuring-bind (&key name type url doc code) e
 			     (let* ((small-name (string-downcase (format nil "~a" name))))
 			       (unless url
 				 (setf url `(string ,(format nil "/~a" small-name))))
