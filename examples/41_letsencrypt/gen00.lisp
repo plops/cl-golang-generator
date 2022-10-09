@@ -196,7 +196,7 @@
 
 
        "const htmlIndex = `<htm><body>WElcome!</body></html>`"
-       "const httpPort = \"127.0.0.1:8080\""
+       "const httpPort = \":80\""
 
        (let ((flagProduction false)
 	     (flagRedirectHTTPToHTTPS false)))

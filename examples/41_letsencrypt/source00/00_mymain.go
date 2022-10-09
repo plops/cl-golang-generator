@@ -34,16 +34,16 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "c0ee47ffe845909970ef2c5e82686baa25731565"
+	code_git_version := "e11222f58e2858a3c5b99d7da22851faa92e2b48"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "23:16:19 of Sunday, 2022-10-09 (GMT+1)"
+	code_generation_time := "23:18:35 of Sunday, 2022-10-09 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
 }
 
 const htmlIndex = `<htm><body>WElcome!</body></html>`
-const httpPort = "127.0.0.1:8080"
+const httpPort = ":80"
 
 var flagProduction = false
 var flagRedirectHTTPToHTTPS = false
