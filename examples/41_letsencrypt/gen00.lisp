@@ -135,7 +135,7 @@
        (import
 	fmt
 	net/http
-					;log
+	log
 	context
 	crypto/tls
 	flag
@@ -150,7 +150,7 @@
 	"golang.org/x/crypto/acme/autocert"
 
 	)
-       
+
        ,(lprint-init)
        ,(panic-init)
 
@@ -209,7 +209,7 @@
 
        (defun makeServerFromMux (mux)
 	 (declare (values *http.Server)
-		  (type *http.ServerMux mux))
+		  (type *http.ServeMux mux))
 	 (return (curly &http.Server
 			:ReadTimeout (* 5 time.Second)
 			:WriteTimeout (* 5 time.Second)
@@ -234,7 +234,7 @@
 		   (http.Redirect w r newURI http.StatusFound)
 		   ))
 	 (assign mux (curly &http.ServeMux))
-	 (mux.handleFunc (string "/")
+	 (mux.HandleFunc (string "/")
 			 handleRedirect)
 	 (return (makeServerFromMux mux)))
 
@@ -249,7 +249,7 @@
 		       (string "if true, we redirect HTTP to HTTPS")
 		       )
 	 (flag.Parse))
-       
+
        (defun main ()
 	 ,(lprint :msg (format nil "program ~a starts" name))
 	 (reportGenerator)
@@ -258,9 +258,61 @@
 	 (parseFlags)
 
 	 (do0
-	  "var m *autocert.Manager")
+	  "var m *autocert.Manager"
+	  "var httpsSrv *http.Server"
+	  (when flagProduction
+	    (assign hostPolicy
+		    (lambda (ctx host)
+		      (declare (type context.Context ctx)
+			       (type string host)
+			       (values error))
+		      (assign allowedHost (string "kielhorn.eu.org"))
+		      (when (== host allowedHost)
+			(return "nil"))
+		      (return (fmt.Errorf
+			       (string "acme/autocert: only %s host is allowed")
+			       allowedHost))
+		      ))
+	    (assign dataDir (string "."))
+	    (setf m (curly &autocert.Manager
+			   :Prompt autocert.AcceptTOS
+			   :HostPolicy hostPolicy
+			   :Cache (autocert.DirCache dataDir)))
+	    (setf httpsSrv (makeHTTPServer))
+	    (setf httpsSrv.Addr (string ":443"))
+	    (setf (dot httpsSrv TLSConfig)
+		  (curly &tls.Config
+			 :GetCertificate m.GetCertificate))
+	    (go ((lambda ()
+		   ,(lprint :msg "Starting HTTPS server on"
+			    :vars `(httpsSrv.Addr))
+		   (assign err (httpsSrv.ListenAndServeTLS
+				(string "")
+				(string "")))
+		   (unless (== err "nil")
+		     (log.Fatalf (string "httpSrv.ListenAndServeTLS() failed with %s")
+				 err))
+		   )))))
 
-	 
+	 (do0
+	  "var httpSrv *http.Server"
+	  (when flagRedirectHTTPToHTTPS
+	    (setf httpSrv (makeHTTPToHTTPSRedirectServer))
+	    (setf httpSrv (makeHTTPServer)))
+	  (do0
+	   (comments "allow autocert to handle let's encrypt callbacks over http")
+	   (unless (== m "nil")
+	     (setf httpSrv.Handler
+		   (m.HTTPHandler httpSrv.Handler))))
+
+	  (setf httpSrv.Addr httpPort)
+	  ,(lprint :msg "starting HTTP server on" :vars `(httpPort))
+	  (assign err (httpSrv.ListenAndServe))
+	  (unless (== err "nil")
+	    (log.Fatalf (string "httpSrv.ListenAndServe() failed with %s")
+			err)))
+
+
 
 	 ))))
 

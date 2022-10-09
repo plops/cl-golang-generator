@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/acme/autocert"
 	"io"
+	"log"
 	"net/http"
 	"runtime"
 	"runtime/debug"
@@ -33,9 +34,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "15bcd366c790d3e143fb202494e4172b34e8000d"
+	code_git_version := "fe879e5955bf05357772db92e3878f4a959cc314"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "22:47:54 of Sunday, 2022-10-09 (GMT+1)"
+	code_generation_time := "23:05:05 of Sunday, 2022-10-09 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -50,7 +51,7 @@ var flagRedirectHTTPToHTTPS = false
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, htmlIndex)
 }
-func makeServerFromMux(mux *http.ServerMux) *http.Server {
+func makeServerFromMux(mux *http.ServeMux) *http.Server {
 	return &http.Server{ReadTimeout: ((5) * (time.Second)), WriteTimeout: ((5) * (time.Second)), IdleTimeout: ((120) * (time.Second)), Handler: mux}
 }
 func makeHTTPServer() *http.Server {
@@ -64,7 +65,7 @@ func makeHTTPToHTTPSRedirectServer() *http.Server {
 		http.Redirect(w, r, newURI, http.StatusFound)
 	}
 	mux := &http.ServeMux{}
-	mux.handleFunc("/", handleRedirect)
+	mux.HandleFunc("/", handleRedirect)
 	return makeServerFromMux(mux)
 }
 func parseFlags() {
@@ -79,4 +80,41 @@ func main() {
 	reportDependencies()
 	parseFlags()
 	var m *autocert.Manager
+	var httpsSrv *http.Server
+	if flagProduction {
+		hostPolicy := func(ctx context.Context, host string) error {
+			allowedHost := "kielhorn.eu.org"
+			if (host) == (allowedHost) {
+				return nil
+			}
+			return fmt.Errorf("acme/autocert: only %s host is allowed", allowedHost)
+		}
+		dataDir := "."
+		m = &autocert.Manager{Prompt: autocert.AcceptTOS, HostPolicy: hostPolicy, Cache: autocert.DirCache(dataDir)}
+		httpsSrv = makeHTTPServer()
+		httpsSrv.Addr = ":443"
+		httpsSrv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
+		go (func() {
+			fmt.Printf("%v Starting HTTPS server on httpsSrv.Addr=%v\n", timeNow(), httpsSrv.Addr)
+			err := httpsSrv.ListenAndServeTLS("", "")
+			if !((err) == (nil)) {
+				log.Fatalf("httpSrv.ListenAndServeTLS() failed with %s", err)
+			}
+		})()
+	}
+	var httpSrv *http.Server
+	if flagRedirectHTTPToHTTPS {
+		httpSrv = makeHTTPToHTTPSRedirectServer()
+		httpSrv = makeHTTPServer()
+	}
+	// allow autocert to handle let's encrypt callbacks over http
+	if !((m) == (nil)) {
+		httpSrv.Handler = m.HTTPHandler(httpSrv.Handler)
+	}
+	httpSrv.Addr = httpPort
+	fmt.Printf("%v starting HTTP server on httpPort=%v\n", timeNow(), httpPort)
+	err := httpSrv.ListenAndServe()
+	if !((err) == (nil)) {
+		log.Fatalf("httpSrv.ListenAndServe() failed with %s", err)
+	}
 }
