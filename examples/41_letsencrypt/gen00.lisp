@@ -181,7 +181,7 @@
 		     (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d-~2,'0d-~2,'0d (GMT~@d)"
 			     hour
 			     minute
-			     second
+			     1second
 			     (nth day-of-week *day-names*)
 			     year
 			     month
