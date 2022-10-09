@@ -34,9 +34,9 @@ func reportDependencies() {
 	}
 }
 func reportGenerator() {
-	code_git_version := "fe879e5955bf05357772db92e3878f4a959cc314"
+	code_git_version := "c0ee47ffe845909970ef2c5e82686baa25731565"
 	code_repository := "https://github.com/plops/cl-golang-generator/tree/master/examples/35_rest"
-	code_generation_time := "23:05:05 of Sunday, 2022-10-09 (GMT+1)"
+	code_generation_time := "23:16:19 of Sunday, 2022-10-09 (GMT+1)"
 	fmt.Printf("%v  code_git_version=%v\n", timeNow(), code_git_version)
 	fmt.Printf("%v  code_repository=%v\n", timeNow(), code_repository)
 	fmt.Printf("%v  code_generation_time=%v\n", timeNow(), code_generation_time)
@@ -105,12 +105,14 @@ func main() {
 	var httpSrv *http.Server
 	if flagRedirectHTTPToHTTPS {
 		httpSrv = makeHTTPToHTTPSRedirectServer()
+	} else {
 		httpSrv = makeHTTPServer()
 	}
-	// allow autocert to handle let's encrypt callbacks over http
+	fmt.Printf("%v allow autocert to handle let's encrypt callbacks over http \n", timeNow())
 	if !((m) == (nil)) {
 		httpSrv.Handler = m.HTTPHandler(httpSrv.Handler)
 	}
+	fmt.Printf("%v configure http addr httpPort=%v\n", timeNow(), httpPort)
 	httpSrv.Addr = httpPort
 	fmt.Printf("%v starting HTTP server on httpPort=%v\n", timeNow(), httpPort)
 	err := httpSrv.ListenAndServe()

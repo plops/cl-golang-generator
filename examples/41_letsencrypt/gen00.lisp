@@ -296,15 +296,18 @@
 
 	 (do0
 	  "var httpSrv *http.Server"
-	  (when flagRedirectHTTPToHTTPS
-	    (setf httpSrv (makeHTTPToHTTPSRedirectServer))
-	    (setf httpSrv (makeHTTPServer)))
+	  (if flagRedirectHTTPToHTTPS
+	      (setf httpSrv (makeHTTPToHTTPSRedirectServer))
+	      (setf httpSrv (makeHTTPServer)))
 	  (do0
-	   (comments "allow autocert to handle let's encrypt callbacks over http")
+	   ,(lprint :msg
+		    "allow autocert to handle let's encrypt callbacks over http")
 	   (unless (== m "nil")
 	     (setf httpSrv.Handler
 		   (m.HTTPHandler httpSrv.Handler))))
 
+	  ,(lprint :msg "configure http addr"
+		   :vars `(httpPort))
 	  (setf httpSrv.Addr httpPort)
 	  ,(lprint :msg "starting HTTP server on" :vars `(httpPort))
 	  (assign err (httpSrv.ListenAndServe))
